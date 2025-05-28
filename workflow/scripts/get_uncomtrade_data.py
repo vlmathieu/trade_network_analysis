@@ -105,7 +105,11 @@ def get_uncomtrade_bulk(apikey: str, years: list, cmdCode: list, flowCode: list)
 
     return uncomtrade_data
 
-def process_param(start: int, stop: int, HS_versions: list, FAO_HS_json: str):
+def process_param(start: int, 
+                  stop: int, 
+                  HS_versions: list, 
+                  FAO_HS_json: str,
+                  fao_divisions: list = ['012']):
     '''
     Function that process parameters for downloading uncomtrade data for wood 
     products, namely : years of download and HS codes to download, while taking 
@@ -123,6 +127,10 @@ def process_param(start: int, stop: int, HS_versions: list, FAO_HS_json: str):
         2007, 2012, 2017, 2022...
     FAO_HS_json : string
         Path to the json file of the correspondance between FAO and HS codes.
+    fao_divisions : list of strings
+        List of FAO division codes from which HS codes are derived. It 
+        corresponds to the product of interest. Default value is ['012'] for 
+        wood in the rough (roundwood).
 
     Returns
     -------
@@ -148,7 +156,9 @@ def process_param(start: int, stop: int, HS_versions: list, FAO_HS_json: str):
         years.append(list(range(break_years[i], break_years[i+1])))
 
     # Codes for wood products under a common HS version for each year chunk
-    FAO_HS_codes = pl.read_json(FAO_HS_json)
+    FAO_HS_codes = (
+        pl.read_json(FAO_HS_json)
+          .filter(pl.col('FAO Code').is_in(fao_divisions)))
     codes = [cmdCode.to_list()
         for HS in HS_versions_keep
         for cmdCode 

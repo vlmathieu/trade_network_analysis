@@ -1,4 +1,4 @@
-rule merge_data:
+rule join_fao_code:
     input:
         'resources/inhouse/correspondence_FAO_HS.json',
         'results/global/deflate_uncomtrade_data.parquet.gzip'
@@ -8,4 +8,4 @@ rule merge_data:
     conda:
         '../envs/polars.yaml'
     script:
-        '../scripts/merge_data.py'
+        '../scripts/join_fao_code.py'

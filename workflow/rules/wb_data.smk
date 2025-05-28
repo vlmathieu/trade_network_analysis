@@ -1,7 +1,6 @@
 rule wb_data:
     output:
         'resources/public/wb_series_data.csv',
-        'resources/public/wb_countries_data.csv'
     params:
         year_start  = config['years']['start'],
         year_stop   = config['years']['stop'],

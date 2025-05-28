@@ -28,37 +28,37 @@ col_keep = ['period',
            'primaryValue_deflated']
 
 # Load data
-FAO_HS = pl.read_json('/Users/valentinmathieu/Desktop/wd/trade_discrepancies/resources/raw_data/inhouse/correspondence_FAO_HS.json')
+FAO_HS = pl.read_json('/Users/valentinmathieu/Desktop/wd/trade_network_analysis/resources/inhouse/correspondence_FAO_HS.json')
 
-comtrade_data = pl.read_parquet('/Users/valentinmathieu/Desktop/wd/trade_discrepancies/resources/raw_data/public/uncomtrade_data.parquet.gzip')
+comtrade_data = pl.read_parquet('/Users/valentinmathieu/Desktop/wd/trade_network_analysis/resources/public/uncomtrade_data.parquet.gzip')
 
-wb_countries = pl.read_csv('/Users/valentinmathieu/Desktop/wd/trade_discrepancies/resources/raw_data/public/wb_countries_data.csv',
+wb_countries = pl.read_csv('/Users/valentinmathieu/Desktop/wd/trade_network_analysis/resources/public/wb_countries_data.csv',
                       separator=';')
-wb_data = pl.read_csv('/Users/valentinmathieu/Desktop/wd/trade_discrepancies/resources/raw_data/public/wb_series_data.csv',
+wb_data = pl.read_csv('/Users/valentinmathieu/Desktop/wd/trade_network_analysis/resources/public/wb_series_data.csv',
                       separator=';')
 
-deflate_data = pl.read_parquet('/Users/valentinmathieu/Desktop/wd/trade_discrepancies/results/processed_data/global/deflate_uncomtrade_data.parquet.gzip')
+deflate_data = pl.read_parquet('/Users/valentinmathieu/Desktop/wd/trade_network_analysis/results/global/deflate_uncomtrade_data.parquet.gzip')
 
-merged_data = pl.read_parquet('/Users/valentinmathieu/Desktop/wd/trade_discrepancies/results/processed_data/global/merged_data.parquet.gzip')
+merged_data = pl.read_parquet('/Users/valentinmathieu/Desktop/wd/trade_network_analysis/results/global/merged_data.parquet.gzip')
 
-input_data = pl.read_parquet('/Users/valentinmathieu/Desktop/wd/trade_discrepancies/results/processed_data/network_analysis/input/input_data.parquet.gzip')
+input_data = pl.read_parquet('/Users/valentinmathieu/Desktop/wd/trade_network_analysis/results/network_analysis/input/input_data.parquet.gzip')
 
 mirror_flows = pl.read_csv(
-    '/Users/valentinmathieu/Desktop/wd/trade_discrepancies/results/processed_data/network_analysis/intermediary/mirror_flows.csv',
+    '/Users/valentinmathieu/Desktop/wd/trade_network_analysis/results/network_analysis/intermediary/mirror_flows.csv',
     separator=';'
 )
 
-path = '/Users/valentinmathieu/Desktop/wd/trade_discrepancies/results/processed_data/network_analysis/intermediary/edge_lists.pkl'
+path = '/Users/valentinmathieu/Desktop/wd/trade_network_analysis/results/network_analysis/intermediary/edge_lists.pkl'
 with open(path, 'rb') as f:
     net_dict = pickle.load(f)
 
 contributor_profiles = pl.read_csv(
-    '/Users/valentinmathieu/Desktop/wd/trade_discrepancies/results/processed_data/network_analysis/output/contributor_profiles.csv',
+    '/Users/valentinmathieu/Desktop/wd/trade_network_analysis/results/network_analysis/output/contributor_profiles.csv',
     separator=';'
 )
 
 market_concentration = pl.read_csv(
-    '/Users/valentinmathieu/Desktop/wd/trade_discrepancies/results/processed_data/network_analysis/output/market_concentration.csv',
+    '/Users/valentinmathieu/Desktop/wd/trade_network_analysis/results/network_analysis/output/market_concentration.csv',
     separator=';'
 )
 
@@ -66,12 +66,12 @@ sorted(market_concentration.select('period').unique().to_series().to_list())
 market_concentration.filter(pl.col('cmd') == 12).sort('period').select('hhi_imp')
 
 network_composition = pl.read_csv(
-    '/Users/valentinmathieu/Desktop/wd/trade_discrepancies/results/processed_data/network_analysis/output/network_composition.csv',
+    '/Users/valentinmathieu/Desktop/wd/trade_network_analysis/results/network_analysis/output/network_composition.csv',
     separator=';'
 )
 
 network_connectivity = pl.read_csv(
-    '/Users/valentinmathieu/Desktop/wd/trade_discrepancies/results/processed_data/network_analysis/output/network_connectivity.csv',
+    '/Users/valentinmathieu/Desktop/wd/trade_network_analysis/results/network_analysis/output/network_connectivity.csv',
     separator=';'
 )
 
@@ -491,16 +491,16 @@ wb_series_drop      = ['TM.UVI.MRCH.XD.WD', 'TX.UVI.MRCH.XD.WD'],
 wb_countries_keep   = ['id', 'longitude', 'latitude','capitalCity']
 
 # Load data
-FAO_HS = pl.read_json('/Users/valentinmathieu/Desktop/wd/trade_discrepancies/resources/raw_data/inhouse/correspondence_FAO_HS.json')
+FAO_HS = pl.read_json('/Users/valentinmathieu/Desktop/wd/trade_network_analysis/resources/inhouse/correspondence_FAO_HS.json')
 
-wb_countries = pl.read_csv('/Users/valentinmathieu/Desktop/wd/trade_discrepancies/resources/raw_data/public/wb_countries_data.csv',
+wb_countries = pl.read_csv('/Users/valentinmathieu/Desktop/wd/trade_network_analysis/resources/public/wb_countries_data.csv',
                       separator=';').select(['id', 'longitude', 'latitude','capitalCity'])
 
-wb_series = (pl.read_csv('/Users/valentinmathieu/Desktop/wd/trade_discrepancies/resources/raw_data/public/wb_series_data.csv', separator=';')
+wb_series = (pl.read_csv('/Users/valentinmathieu/Desktop/wd/trade_network_analysis/resources/public/wb_series_data.csv', separator=';')
              .with_columns(pl.col('time').str.replace(r'YR', ''))
              .drop(['TM.UVI.MRCH.XD.WD', 'TX.UVI.MRCH.XD.WD']))
 
-deflate_uncomtrade = pl.read_parquet('/Users/valentinmathieu/Desktop/wd/trade_discrepancies/results/processed_data/global/deflate_uncomtrade_data.parquet.gzip')
+deflate_uncomtrade = pl.read_parquet('/Users/valentinmathieu/Desktop/wd/trade_network_analysis/results/global/deflate_uncomtrade_data.parquet.gzip')
 
 def join_uncomtrade_FAO(FAO_HS: pl.dataframe.frame.DataFrame, 
                         uncomtrade_data: pl.dataframe.frame.DataFrame):

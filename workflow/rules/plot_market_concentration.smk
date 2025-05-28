@@ -1,8 +1,8 @@
 rule plot_market_concentration:
     input:
-        'results/processed_data/network_analysis/output/market_concentration.csv'
+        'results/network_analysis/output/market_concentration.csv'
     output:
-        expand('results/processed_data/network_analysis/plot/{fao_div}/market_concentration.{ext}',
+        expand('results/network_analysis/plot/{fao_div}/market_concentration.{ext}',
                fao_div = config['fao_divisions'],
                ext = ['png', 'svg'])
     params:

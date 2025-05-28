@@ -1,8 +1,8 @@
 rule get_uncomtrade:
     input:
-        'resources/raw_data/inhouse/correspondence_FAO_HS.json'
+        'resources/inhouse/correspondence_FAO_HS.json'
     output:
-        'resources/raw_data/public/uncomtrade_data.parquet.gzip'
+        'resources/public/uncomtrade_data.parquet.gzip'
     params:
         year_start  = config['years']['start'],
         year_stop   = config['years']['stop'],

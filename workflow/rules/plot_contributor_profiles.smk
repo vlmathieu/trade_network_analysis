@@ -1,8 +1,8 @@
 rule plot_contributor_profiles:
     input:
-        'results/processed_data/network_analysis/output/contributor_profiles.csv'
+        'results/network_analysis/output/contributor_profiles.csv'
     output:
-        expand('results/processed_data/network_analysis/plot/{fao_div}/contributor_profiles/profiles_{year}.{ext}',
+        expand('results/network_analysis/plot/{fao_div}/contributor_profiles/profiles_{year}.{ext}',
                fao_div = config['fao_divisions'],
                year = list(range(config['years']['start'], 
                                  config['years']['stop']-1)),

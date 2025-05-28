@@ -1,8 +1,8 @@
 rule plot_network_connectivity:
     input:
-        'results/processed_data/network_analysis/output/network_connectivity.csv'
+        'results/network_analysis/output/network_connectivity.csv'
     output:
-        expand('results/processed_data/network_analysis/plot/{fao_div}/network_connectivity.{ext}',
+        expand('results/network_analysis/plot/{fao_div}/network_connectivity.{ext}',
                fao_div = config['fao_divisions'],
                ext = ['png', 'svg'])
     params:

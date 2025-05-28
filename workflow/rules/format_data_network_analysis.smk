@@ -1,8 +1,8 @@
 rule format_data_network_analysis:
     input:
-        'results/processed_data/global/merged_data.parquet.gzip'
+        'results/global/merged_data.parquet.gzip'
     output:
-        'results/processed_data/network_analysis/input/input_data.parquet.gzip'
+        'results/network_analysis/input/input_data.parquet.gzip'
     params:
         year_start      = config['years']['start'],
         year_stop       = config['years']['stop'],

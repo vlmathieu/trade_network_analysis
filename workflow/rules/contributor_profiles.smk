@@ -1,8 +1,8 @@
 rule contributor_profiles:
     input:
-        'results/processed_data/network_analysis/intermediary/edge_lists.pkl'
+        'results/network_analysis/intermediary/edge_lists.pkl'
     output:
-        'results/processed_data/network_analysis/output/contributor_profiles.csv'
+        'results/network_analysis/output/contributor_profiles.csv'
     params:
         threshold   = config['threshold_main_contributors'],
         weight      = config['weight']

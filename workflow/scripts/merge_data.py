@@ -68,37 +68,11 @@ def join_uncomtrade_FAO(FAO_HS: pl.dataframe.frame.DataFrame,
 # Load correspondance between HS codes and FAO forest product classification
 FAO_HS = pl.read_json(snakemake.input[0])
 
-# Load World Bank series data, rectify time column, drop unnecessary columns
-wb_series = (
-    pl.read_csv(snakemake.input[1], separator=';')
-    .with_columns(pl.col('time').str.replace(r'YR', ''))
-    .drop(snakemake.params['wb_series_drop'])
-)
-
-# Load World Bank countries data, rectify time column, keep relevant columns
-wb_countries = (
-    pl.read_csv(snakemake.input[2], separator=';')
-    .select(snakemake.params['wb_countries_keep'])
-)
-
 # Load UNComtrade data with new deflated trade value column
-deflate_uncomtrade = pl.read_parquet(snakemake.input[3])
-
-# Join UNComtrade data with World Bank data
-merged_data = (
-    deflate_uncomtrade
-    .join(wb_series,
-          left_on=['reporterISO', 'period'],
-          right_on=['economy', 'time'],
-          how='left')
-    .join(wb_countries,
-          left_on=['reporterISO'],
-          right_on=['id'],
-          how='left')
-)
+deflate_uncomtrade = pl.read_parquet(snakemake.input[1])
 
 # Join UNComtrade data with FAO_HS corresponding table
-merged_data = join_uncomtrade_FAO(FAO_HS, merged_data)
+merged_data = join_uncomtrade_FAO(FAO_HS, deflate_uncomtrade)
 
 # Save merged data
 merged_data.write_parquet(

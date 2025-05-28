@@ -166,8 +166,13 @@ def process_param(start: int,
     
     return zip(years, codes)
 
-def get_uncomtrade_all(apikey: str, start: int, stop: int, HS_versions: list, 
-                       FAO_HS_json: str, flowCode: list):
+def get_uncomtrade_all(apikey: str, 
+                       start: int, 
+                       stop: int, 
+                       HS_versions: list, 
+                       FAO_HS_json: str, 
+                       flowCode: list,
+                       fao_divisions: list = ['012']):
     '''
     Function that downloads UNComtrade data for all wood products over a desired 
     trade period and for specific trade flows, taking into account the evolution 
@@ -189,6 +194,10 @@ def get_uncomtrade_all(apikey: str, start: int, stop: int, HS_versions: list,
         Path to a json file of the correspondance between FAO and HS codes.
     flowCode: list of strings
         The trade flow to download (import, export, re-import, re-export...).
+    fao_divisions : list of strings
+        List of FAO division codes from which HS codes are derived. It 
+        corresponds to the product of interest. Default value is ['012'] for 
+        wood in the rough (roundwood).
 
     Returns
     -------
@@ -201,7 +210,11 @@ def get_uncomtrade_all(apikey: str, start: int, stop: int, HS_versions: list,
     years, codes = (
     map(list, 
         zip(*[list(_) 
-              for _ in process_param(start, stop, HS_versions, FAO_HS_json)]))
+              for _ in process_param(start, 
+                                     stop, 
+                                     HS_versions, 
+                                     FAO_HS_json,
+                                     fao_divisions)]))
     )
 
     # Dowload data by batch of HS version
@@ -211,7 +224,8 @@ def get_uncomtrade_all(apikey: str, start: int, stop: int, HS_versions: list,
          in tqdm(process_param(start, 
                                stop, 
                                HS_versions, 
-                               FAO_HS_json),
+                               FAO_HS_json,
+                               fao_divisions),
                                total=len(years))]
     )
 
@@ -246,7 +260,8 @@ UN_Comtrade_data, check_list = get_uncomtrade_all(
     snakemake.params['year_stop'],
     snakemake.params['HS_version'],
     snakemake.input[0],
-    snakemake.params['flowCode']
+    snakemake.params['flowCode'],
+    snakemake.params['fao_divisions']
 )
 
 print("\nDataframe head: \n\n", UN_Comtrade_data.head(5), "\n")

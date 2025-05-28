@@ -1,0 +1,172 @@
+### Global parameters
+
+# Years of trade
+years:
+  start: 1996
+  stop: 2024  # process will consider stop year - 1 only
+
+# HS code version --> different classifications according to the year
+HS_version: [1996, 2002, 2007, 2012, 2017, 2022]
+
+# Trade flows to download --> Imports, Exports, Re-imports, Re-exports
+flowCode: ['M', 'X', 'RM', 'RX']
+
+### World bank data parameters
+
+# World Bank series --> data of interest from World Bank
+wb_series:
+  [
+    # Economic weights
+    'NY.GDP.MKTP.CD',    # GDP (current US$)
+    'NY.GDP.MKTP.KD',    # GDP (constant 2015 US$)
+    'NY.GDP.PCAP.CD',    # GDP per capita (current US$)
+    'NY.GDP.PCAP.KD',    # GDP per capita (constant 2015 US$)
+    'NY.GDP.MKTP.KD.ZG', # GDP growth (annual %)
+    'NY.GDP.PCAP.KD.ZG', # GDP per capita growth (annual %)
+    
+    # Population and urbanization proxies
+    'SP.POP.TOTL',       # Population, total
+    'SP.POP.GROW',       # Population growth (annual %)
+    'EN.POP.DNST',       # Population density (people per sq. km of land area)
+    'SP.URB.TOTL',       # Urban population
+    'SP.URB.TOTL.IN.ZS', # Urban population (% of total population)
+    'SP.URB.GROW',       # Urban population growth (annual %)
+    'EN.URB.MCTY',       # Population in urban agglomerations of more than 1 million
+    'EN.URB.MCTY.TL.ZS', # Population in urban agglomerations of more than 1 million (% of total population)
+
+    # Land use indicators
+    'AG.SRF.TOTL.K2',    # Surface area (sq. km)
+    'AG.LND.TOTL.K2',    # Land area (sq. km)
+    'AG.LND.AGRI.K2',    # Agricultural land (sq. km)
+    'AG.LND.AGRI.ZS',    # Agricultural land (% of land area)
+    'AG.LND.FRST.K2',    # Forest area (sq. km)
+    'AG.LND.FRST.ZS',    # Forest area (% of land area)
+    'AG.LND.TOTL.RU.K2', # Rural land area (sq. km)
+    'AG.LND.TOTL.UR.K2', # Urban land area (sq. km)
+
+    # Forestry indicators
+    'NV.AGR.TOTL.CD',    # Agriculture, forestry, and fishing, value added (current US$)
+    'NV.AGR.TOTL.KD',    # Agriculture, forestry, and fishing, value added (constant 2015 US$)
+    'NV.AGR.TOTL.KD.ZG', # Agriculture, forestry, and fishing, value added (annual % growth)
+    'NV.AGR.TOTL.ZS',    # Agriculture, forestry, and fishing, value added (% of GDP)
+    'NY.GDP.FRST.RT.ZS', # Forest rents (% of GDP)
+
+    # International trade
+    'TG.VAL.TOTL.GD.ZS', # Merchandise trade (% of GDP)
+    'NE.TRD.GNFS.ZS',    # Trade (% of GDP)
+    'NE.IMP.GNFS.CD',    # Imports of goods and services (current US$)
+    'NE.IMP.GNFS.KD',    # Imports of goods and services (constant 2015 US$)
+    'NE.IMP.GNFS.KD.ZG', # Imports of goods and services (annual % growth)
+    'NE.IMP.GNFS.ZS',    # Imports of goods and services (% of GDP)
+    'NE.EXP.GNFS.CD',    # Exports of goods and services (current US$)
+    'NE.EXP.GNFS.KD',    # Exports of goods and services (constant 2015 US$)
+    'NE.EXP.GNFS.KD.ZG', # Exports of goods and services (annual % growth)
+    'NE.EXP.GNFS.ZS',    # Exports of goods and services (% of GDP)
+
+    # Taxes on trade
+    'GC.TAX.EXPT.CN',    # Taxes on exports (current LCU)
+    'GC.TAX.EXPT.ZS',    # Taxes on exports (% of tax revenue)
+    'GC.TAX.IMPT.CN',    # Customs and other import duties (current LCU)
+    'GC.TAX.IMPT.ZS',    # Customs and other import duties (% of tax revenue)
+    'GC.TAX.INTT.CN',    # Taxes on international trade (current LCU)
+    'GC.TAX.INTT.RV.ZS', # Taxes on international trade (% of revenue)
+
+    # Logistics indicators
+    'IC.EXP.CSBC.CD',    # Cost to export, border compliance (US$)
+    'IC.EXP.CSDC.CD',    # Cost to export, documentary compliance (US$)
+    'IC.IMP.CSBC.CD',    # Cost to import, border compliance (US$)
+    'IC.IMP.CSDC.CD',    # Cost to import, documentary compliance (US$)
+    'IS.SHP.GOOD.TU',    # Container port traffic (TEU: 20 foot equivalent units)
+    'IS.SHP.GCNW.XQ',    # Liner shipping connectivity index (maximum value in 2004 = 100)
+    'IS.RRS.GOOD.MT.K6', # Railways, goods transported (million ton-km)
+
+    # Investments
+    'BM.KLT.DINV.CD.WD',    # Foreign direct investment, net outflows (BoP, current US$)
+    'BM.KLT.DINV.WD.GD.ZS', # Foreign direct investment, net outflows (% of GDP)
+    'BX.KLT.DINV.CD.WD',    # Foreign direct investment, net inflows (BoP, current US$)
+    'BX.KLT.DINV.WD.GD.ZS', # Foreign direct investment, net inflows (% of GDP)
+
+    # Unit value index for convertion into constant USD 2015
+    'TM.UVI.MRCH.XD.WD', # Import unit value index (2015 = 100)
+    'TX.UVI.MRCH.XD.WD', # Export unit value index (2015 = 100)
+
+    # World governance indicators
+    'CC.EST', # Control of Corruption: Estimate
+    'GE.EST', # Government Effectiveness: Estimate
+    'PV.EST', # Political Stability and Absence of Violence/Terrorism: Estimate
+    'RL.EST', # Rule of Law: Estimate
+    'RQ.EST', # Regulatory Quality: Estimate
+    'VA.EST', # Voice and Accountability: Estimate
+  ]
+
+### Parameters for network analysis
+
+# ISO code to exclude from analysis
+excluded_iso: ['XX', '_X', '\d']
+# This excludes the following non-country reporters or partners:
+#    ['Southern African Customs Union (...1999)', 'Other Asia, nes',
+#    'World', 'Areas, nes', 'Oceania, nes', 'Bunkers',
+#    'Special Categories', 'Other Europe, nes', 'Other Africa, nes',
+#    'Rest of America, nes', 'Free Zones', 'Western Asia, nes',
+#    'CACM, nes', 'LAIA, nes', 'Caribbean, nes', 'Northern Africa, nes',
+#    'North America and Central America, nes']
+
+# Flow types to keep
+flow_to_keep: ['M', 'X']
+# This drop re-import and re-export flows
+
+# Product to keep (FAO classification)
+fao_divisions: ['011', '012']
+# This keeps trade flows of roundwood products (FAO classification of forest
+# products 2022):
+# - Wood fuel (including wood for charcoal) (Division code: 011)
+# - Wood in the rough, other than wood fuel (Division code: 012)
+
+# Columns to keep for analysis (lighten computation)
+col_keep: ['period', 
+           'reporterISO', 
+           'reporterDesc', 
+           'flowCode', 
+           'partnerISO', 
+           'partnerDesc',
+           'FAO Code',
+           'FAO Product',  
+           'netWgt', 
+           'primaryValue', 
+           'primaryValue_deflated']
+
+# The weight of network edges to choose
+weight: 'primary_value'
+
+# Threshold to apply for identifying main contributors to trade
+threshold_main_contributors: 0.01
+
+# Countries to omit to compute contribution to trade
+omission_list: [None,
+                'China', 
+                'New Zealand', 
+                'USA', 
+                'Germany', 
+                'Sweden', 
+                'Canada', 
+                'Japan', 
+                'France', 
+                'Czechia', 
+                'Finland', 
+                'Russian Federation']
+
+# List of r packages for plotting results
+r_packages: ['ggplot2',
+             'ggrepel',
+             'ggpubr',
+             'hrbrthemes',
+             'scales',
+             'patchwork',
+             'poweRlaw',
+             'maps',
+             'geosphere',
+             'CoordinateCleaner',
+             'dplyr',
+             'reshape2',
+             'FAOSTAT',
+             'utils']

@@ -1,0 +1,26 @@
+channels:
+  - conda-forge
+  - bioconda
+  - r
+  - noemicazzaniga
+  - defaults
+dependencies:
+  - snakemake-minimal >=8.4.4
+  - matplotlib =3.9.1
+  - seaborn =0.13.2
+  - graphviz =11.0.0
+  - pyarrow =17.0.0
+  - numpy =2.1.3
+  - numba =0.61.0
+  - polars =1.2.1
+  - pandas =2.2.2
+  - scipy =1.15.2
+  - networkx =3.4.2
+  - tqdm =4.66.4
+  - pathlib =1.0.1
+  - time =1.8
+  - faostat =1.1.2
+  - wbgapi =1.0.12
+  - pip
+  - pip:
+    - comtradeapicall ==1.2.1

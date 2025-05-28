@@ -46,12 +46,6 @@ input_data = (
             pl.col('period') >= str(snakemake.params['year_start']),
             pl.col('period') <= str(snakemake.params['year_stop']-2),
 
-            # Keep imports and exports only
-            pl.col('flow_code').is_in(snakemake.params['flow_to_keep']),
-
-            # Keep FAO product division specified
-            pl.col('fao_code').is_in(snakemake.params['fao_divisions']),
-
             # Remove non-country reporters and partners
             (~pl.col('reporter_iso')
              .str.contains('|'.join(snakemake.params['excluded_iso']))),
@@ -60,9 +54,6 @@ input_data = (
 
             # Delete "auto-" imports or exports (reporter = partner)
             pl.col('reporter_desc') != pl.col('partner_desc'),
-
-            # # Remove primaryValue_deflated null values (~8% of the dataset)
-            # ~pl.col('primary_value_deflated').is_null()
         )
         # Drop potential duplicates
         .unique()

@@ -1,4 +1,4 @@
-rule format_data_network_analysis:
+rule filter_data:
     input:
         'results/global/merged_data.parquet.gzip'
     output:
@@ -6,12 +6,10 @@ rule format_data_network_analysis:
     params:
         year_start      = config['years']['start'],
         year_stop       = config['years']['stop'],
-        flow_to_keep    = config['flow_to_keep'],
-        fao_divisions   = config['fao_divisions'],
         excluded_iso    = config['excluded_iso'],
         col_keep        = config['col_keep']
     threads: 2
     conda:
         '../envs/polars.yaml'
     script:
-        '../scripts/format_data_network_analysis.py'
+        '../scripts/filter_data.py'

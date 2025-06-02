@@ -19,39 +19,38 @@ include: 'rules/deflate_uncomtrade.smk'
 include: 'rules/join_fao_code.smk'
 include: 'rules/filter_data.smk'
 include: 'rules/network_objects.smk'
-# include: 'rules/contributor_profiles.smk'
-# include: 'rules/market_concentration.smk'
-# include: 'rules/network_composition.smk'
-# include: 'rules/network_connectivity.smk'
+include: 'rules/contributor_profiles.smk'
+include: 'rules/market_concentration.smk'
+include: 'rules/network_composition.smk'
+include: 'rules/network_connectivity.smk'
 include: 'rules/network_contribution.smk'
-# include: 'rules/plot_network_composition.smk'
-# include: 'rules/plot_market_concentration.smk'
-# include: 'rules/plot_contributor_profiles.smk'
-# include: 'rules/plot_network_connectivity.smk'
+include: 'rules/plot_network_composition.smk'
+include: 'rules/plot_market_concentration.smk'
+include: 'rules/plot_contributor_profiles.smk'
+include: 'rules/plot_network_connectivity.smk'
 
 # target rule
 rule all:
     input:
-        # expand('results/network_analysis/plot/{fao_div}/network_connectivity.{ext}',
-        #        fao_div = config['fao_divisions'],
-        #        ext = ['png', 'svg']),
-        # expand('results/network_analysis/plot/{fao_div}/contributor_profiles/profiles_{year}.{ext}',
-        #        fao_div = config['fao_divisions'],
-        #        year = list(range(config['years']['start'], 
-        #                          config['years']['stop']-1)),
-        #        ext = ['png', 'svg']),
-        # expand('results/network_analysis/plot/{fao_div}/market_concentration.{ext}',
-        #             fao_div = config['fao_divisions'],
-        #             ext = ['png', 'svg']),
-        # expand('results/network_analysis/plot/{fao_div}/network_composition.{ext}',
-        #        fao_div = config['fao_divisions'],
-        #        ext = ['png', 'svg']),
-        # 'results/network_analysis/output/network_metrics.csv',
+        expand('results/network_analysis/plot/{fao_div}/network_connectivity.{ext}',
+               fao_div = config['fao_divisions'],
+               ext = ['png', 'svg']),
+        expand('results/network_analysis/plot/{fao_div}/contributor_profiles/profiles_{year}.{ext}',
+               fao_div = config['fao_divisions'],
+               year = list(range(config['years']['start'], 
+                                 config['years']['stop']-1)),
+               ext = ['png', 'svg']),
+        expand('results/network_analysis/plot/{fao_div}/market_concentration.{ext}',
+                    fao_div = config['fao_divisions'],
+                    ext = ['png', 'svg']),
+        expand('results/network_analysis/plot/{fao_div}/network_composition.{ext}',
+               fao_div = config['fao_divisions'],
+               ext = ['png', 'svg']),
         'results/network_analysis/output/network_contribution.csv',
-        # 'results/network_analysis/output/network_connectivity.csv',
-        # 'results/network_analysis/output/network_composition.csv',
-        # 'results/network_analysis/output/market_concentration.csv',
-        # 'results/network_analysis/output/contributor_profiles.csv',
+        'results/network_analysis/output/network_connectivity.csv',
+        'results/network_analysis/output/network_composition.csv',
+        'results/network_analysis/output/market_concentration.csv',
+        'results/network_analysis/output/contributor_profiles.csv',
         'results/network_analysis/intermediary/edge_lists.pkl',
         'results/network_analysis/intermediary/mirror_flows.csv',
         'results/network_analysis/input/input_data.parquet.gzip',

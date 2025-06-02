@@ -38,14 +38,21 @@ library("showtext")
 library("ggtext")
 
 network_contribution <- read.csv(
-  file = "/Users/valentinmathieu/Desktop/wd/trade_discrepancies/results/processed_data/network_analysis/output/network_contribution.csv", # nolint
+  file = "/Users/valentinmathieu/Desktop/wd/trade_network_analysis/results/network_analysis/output/network_contribution.csv", # nolint
   header = TRUE,
   sep = ";")
 contributor_profiles <- read.csv(
-  file = "/Users/valentinmathieu/Desktop/wd/trade_discrepancies/results/processed_data/network_analysis/output/contributor_profiles.csv", # nolint
+  file = "/Users/valentinmathieu/Desktop/wd/trade_network_analysis/results/network_analysis/output/contributor_profiles.csv", # nolint
   header = TRUE,
   sep = ";")
 head(network_contribution)
+
+test <- network_contribution %>%
+  filter(
+    cmd == 12,
+    period == 1996,
+    country == "Japan"
+  )
 
 main_contributors <- network_contribution %>%
   filter(

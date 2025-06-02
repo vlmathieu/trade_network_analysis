@@ -96,30 +96,39 @@ weight = 'primary_value'
 ######
 network_contribution.filter(pl.col('country') == 'Japan')
 mirror_flows.columns
-tot_val_exp = (mirror_flows.filter(pl.col('period') == 1996,
+tot_val_exp = (mirror_flows.filter(pl.col('period') == 2000,
                                    pl.col('fao_code') == 12)
                            .select(pl.sum('primary_value_exp'))
                )
-tot_val_imp = (mirror_flows.filter(pl.col('period') == 1996,
+tot_val_imp = (mirror_flows.filter(pl.col('period') == 2000,
                                    pl.col('fao_code') == 12)
                            .select(pl.sum('primary_value_imp'))
                )
-tot_val_exp_wo_Japan = (mirror_flows.filter(pl.col('period') == 1996,
+tot_val_exp_wo_Japan = (mirror_flows.filter(pl.col('period') == 2000,
                                    pl.col('fao_code') == 12,
-                                   ((pl.col('exporter_desc') != 'Japan') &
-                                   (pl.col('importer_desc') != 'Japan')))
+                                   ((pl.col('exporter_desc') != 'China') &
+                                   (pl.col('importer_desc') != 'China')))
                            .select(pl.sum('primary_value_exp'))
                )
-tot_val_imp_wo_Japan = (mirror_flows.filter(pl.col('period') == 1996,
+tot_val_imp_wo_Japan = (mirror_flows.filter(pl.col('period') == 2000,
                                    pl.col('fao_code') == 12,
-                                   ((pl.col('exporter_desc') != 'Japan') &
-                                   (pl.col('importer_desc') != 'Japan')))
+                                   ((pl.col('exporter_desc') != 'China') &
+                                   (pl.col('importer_desc') != 'China')))
                            .select(pl.sum('primary_value_imp'))
                )
 (tot_val_imp - tot_val_imp_wo_Japan) / tot_val_imp
 (tot_val_exp - tot_val_exp_wo_Japan) / tot_val_exp
 
-edge_list = net_dict[(12, 1996)]
+(mirror_flows.filter(pl.col('period') == 2000,
+                     pl.col('fao_code') == 12,
+                     ((pl.col('exporter_desc') == 'China') |
+                     (pl.col('importer_desc') == 'China')))
+             .select('primary_value_exp')
+             .to_series()
+             .to_list()
+    )
+
+edge_list = net_dict[(12, 2000)]
 # Build directed network based on edge_list
 net = nx.from_edgelist(edge_list, create_using=nx.DiGraph)
 
@@ -130,7 +139,7 @@ for _,_,d in net.edges(data=True):
             d[key] = 0
 
 # Remove country on which contribution is calculated from network
-to_omit = 'Japan'
+to_omit = 'China'
 net_omit = nx.from_edgelist(edge_list, create_using=nx.DiGraph)
 net_omit.remove_node(to_omit)
 
@@ -173,7 +182,7 @@ degree_weighted_imp_omit = [
 
 unit_network_contribution = pl.from_dict(
         {
-            "period": 1996,
+            "period": 2000,
             "cmd": 12,
             # Country on which contribution is calculated
             "country": to_omit,
@@ -205,6 +214,142 @@ unit_network_contribution = unit_network_contribution.with_columns(
     pl.col("traded_value_imp")).alias("contrib_trade_value_imp")
 )
 
-network_contribution.filter(pl.col('country') == 'Japan',
+network_contribution.filter(pl.col('country') == 'China',
                             pl.col('cmd') == 12,
-                            pl.col('period') == 1996)
+                            pl.col('period') == 2000)
+
+input_data.columns
+(input_data.filter(
+    pl.col('period') == '2000',
+    pl.col('fao_code') == '012',
+    ((pl.col('reporter_desc') == 'China') |
+    (pl.col('partner_desc') == 'China')))
+           .filter(pl.col('flow_code') == 'M')
+           .select(pl.sum('primary_value'))
+ )
+
+(merged_data.filter(
+    pl.col('period') == '2000',
+    pl.col('FAO Code').str.contains('012'),
+    pl.col('flowCode') == 'M',
+    ((pl.col('reporterDesc') == 'China') |
+     (pl.col('partnerDesc') == 'China')))
+              .select(pl.sum('primaryValue'))
+ )
+(merged_data.filter(
+    pl.col('period') == '2000',
+    pl.col('FAO Code').str.contains('012'),
+    pl.col('flowCode') == 'M',
+    ((pl.col('reporterDesc') == 'China') |
+     (pl.col('partnerDesc') == 'China')))
+              .select(pl.sum('primaryValue'))
+ )
+
+
+year_start = 1996
+year_stop = 2024
+excluded_iso = ['XX', '_X', '\\d']
+flow_to_keep = ['M', 'X']
+col_keep = ['period', 
+           'reporterISO', 
+           'reporterDesc', 
+           'flowCode', 
+           'partnerISO', 
+           'partnerDesc',
+           'FAO Code',
+           'FAO Product',  
+           'netWgt', 
+           'primaryValue', 
+           'primaryValue_deflated']
+
+def format_col_names(col_names: list) -> dict:
+    '''
+    Function that returns a mapping between column names and their formated 
+    version as a dictionnary.
+
+    Parameters
+    ----------
+    col_names : list of strings
+        The list of column names to format.
+
+    Returns
+    -------
+    col_mapping : dictionnary
+        Mapping between column names and their formated version.
+    '''
+
+    # Insert an underscore before a uppercase
+    col_names_formated = [re.sub(r"([a-z])([A-Z])", "\\1_\\2", s) for s in col_names]
+
+    # Replace space by underscore
+    col_names_formated = [re.sub(" ", "_", s) for s in col_names_formated]
+
+    # Put every column name to lowercase
+    col_names_formated = [s.lower() for s in col_names_formated]
+
+    # Create mapping between column names and their formated version
+    col_mapping = dict(zip(col_names, col_names_formated))
+
+    return col_mapping
+
+input_data_test = (
+    merged_data
+        .select(col_keep)
+        # Format column names for homogenity
+        .rename(format_col_names(col_keep))
+        .filter(
+            # Keep data in specified time range
+            pl.col('period') >= str(year_start),
+            pl.col('period') <= str(year_stop-2),
+
+            # Remove non-country reporters and partners
+            (~pl.col('reporter_iso')
+             .str.contains('|'.join(excluded_iso))),
+            (~pl.col('partner_iso')
+             .str.contains('|'.join(excluded_iso))),
+
+            # Delete "auto-" imports or exports (reporter = partner)
+            pl.col('reporter_desc') != pl.col('partner_desc'),
+        )
+        # Drop potential duplicates
+        .unique()
+)
+
+stats_desc = (
+    input_data_test
+    .select(['net_wgt', 'primary_value'])
+    .describe(percentiles=[0.05])
+)
+
+min_weight, min_value = (
+    stats_desc
+    .filter(pl.col('statistic') == '5%')
+    .select(['net_wgt', 'primary_value'])
+)
+
+input_data_test = (
+    input_data_test.filter(
+        # Drop trade flow with net weight (kg) under fifth percentile
+        ((pl.col('net_wgt') > min_weight.item()) | (pl.col('net_wgt').is_null())),
+
+        # Drop trade flow with value (USD) under fifth percentile
+        pl.col('primary_value') > min_value.item()
+    )
+)
+
+(input_data_test.filter(
+    pl.col('period') == '2000',
+    pl.col('fao_code') == '012',
+    ((pl.col('reporter_desc') == 'China') |
+    (pl.col('partner_desc') == 'China')))
+           .filter(pl.col('flow_code') == 'M')
+           .select(pl.sum('primary_value'))
+ )
+(input_data.filter(
+    pl.col('period') == '2000',
+    pl.col('fao_code') == '012',
+    ((pl.col('reporter_desc') == 'China') |
+    (pl.col('partner_desc') == 'China')))
+           .filter(pl.col('flow_code') == 'M')
+           .select(pl.sum('primary_value'))
+ )

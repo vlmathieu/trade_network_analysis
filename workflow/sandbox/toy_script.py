@@ -95,3 +95,116 @@ weight = 'primary_value'
 
 ######
 network_contribution.filter(pl.col('country') == 'Japan')
+mirror_flows.columns
+tot_val_exp = (mirror_flows.filter(pl.col('period') == 1996,
+                                   pl.col('fao_code') == 12)
+                           .select(pl.sum('primary_value_exp'))
+               )
+tot_val_imp = (mirror_flows.filter(pl.col('period') == 1996,
+                                   pl.col('fao_code') == 12)
+                           .select(pl.sum('primary_value_imp'))
+               )
+tot_val_exp_wo_Japan = (mirror_flows.filter(pl.col('period') == 1996,
+                                   pl.col('fao_code') == 12,
+                                   ((pl.col('exporter_desc') != 'Japan') &
+                                   (pl.col('importer_desc') != 'Japan')))
+                           .select(pl.sum('primary_value_exp'))
+               )
+tot_val_imp_wo_Japan = (mirror_flows.filter(pl.col('period') == 1996,
+                                   pl.col('fao_code') == 12,
+                                   ((pl.col('exporter_desc') != 'Japan') &
+                                   (pl.col('importer_desc') != 'Japan')))
+                           .select(pl.sum('primary_value_imp'))
+               )
+(tot_val_imp - tot_val_imp_wo_Japan) / tot_val_imp
+(tot_val_exp - tot_val_exp_wo_Japan) / tot_val_exp
+
+edge_list = net_dict[(12, 1996)]
+# Build directed network based on edge_list
+net = nx.from_edgelist(edge_list, create_using=nx.DiGraph)
+
+# Replace None weights by 0
+for _,_,d in net.edges(data=True):
+    for key in d:
+        if d[key] is None:
+            d[key] = 0
+
+# Remove country on which contribution is calculated from network
+to_omit = 'Japan'
+net_omit = nx.from_edgelist(edge_list, create_using=nx.DiGraph)
+net_omit.remove_node(to_omit)
+
+# Replace None weights by 0
+for _,_,d in net_omit.edges(data=True):
+    for key in d:
+        if d[key] is None:
+            d[key] = 0
+
+# Build unweighted degree lists for exp=out_degree | imp=in_degree
+# Without omission
+degree_unweighted = [
+    net.out_degree(x) for x in net.nodes()
+]
+# With omission
+degree_unweighted_omit = [
+    net_omit.out_degree(x) for x in net_omit.nodes()
+]
+
+# Build weighted degree lists for exporters=out_degree | importers=in_degree
+# Without omission
+degree_weighted_exp = [
+    net.out_degree(x, weight = f'{weight}_exp') for x in net.nodes()
+]
+degree_weighted_imp = [
+    net.in_degree(x, weight = f'{weight}_imp') for x in net.nodes()
+]
+# With omission
+degree_weighted_exp_omit = [
+    net_omit.out_degree(x, weight = f'{weight}_exp') 
+    for x in net_omit.nodes()
+]
+degree_weighted_imp_omit = [
+    net_omit.in_degree(x, weight = f'{weight}_imp') 
+    for x in net_omit.nodes()
+]
+
+(sum(degree_weighted_exp) - sum(degree_weighted_exp_omit)) / sum(degree_weighted_exp)
+(sum(degree_weighted_imp) - sum(degree_weighted_imp_omit)) / sum(degree_weighted_imp)
+
+unit_network_contribution = pl.from_dict(
+        {
+            "period": 1996,
+            "cmd": 12,
+            # Country on which contribution is calculated
+            "country": to_omit,
+            # Assign total number of edges in network
+            # Without omission
+            "nb_edges": sum(degree_unweighted),
+            # With omission
+            "nb_edges_country": (sum(degree_unweighted) 
+                                    - sum(degree_unweighted_omit)),
+            # Assign total circulating value for exports and imports
+            # Without omission
+            "traded_value_exp": sum(degree_weighted_exp),
+            "traded_value_imp": sum(degree_weighted_imp),
+            # With omission
+            "traded_value_exp_country": (sum(degree_weighted_exp) -
+                                            sum(degree_weighted_exp_omit)),
+            "traded_value_imp_country": (sum(degree_weighted_imp) -
+                                            sum(degree_weighted_imp_omit))
+        }
+)
+
+# Compute country contribution to total traded value and nb. of edges
+unit_network_contribution = unit_network_contribution.with_columns(
+    (pl.col("nb_edges_country") / 
+    pl.col("nb_edges")).alias("contrib_nb_edges"),
+    (pl.col("traded_value_exp_country") / 
+    pl.col("traded_value_exp")).alias("contrib_trade_value_exp"),
+    (pl.col("traded_value_imp_country") / 
+    pl.col("traded_value_imp")).alias("contrib_trade_value_imp")
+)
+
+network_contribution.filter(pl.col('country') == 'Japan',
+                            pl.col('cmd') == 12,
+                            pl.col('period') == 1996)

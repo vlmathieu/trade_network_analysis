@@ -75,7 +75,8 @@ min_weight, min_value = (
 input_data = (
     input_data.filter(
         # Drop trade flow with net weight (kg) under fifth percentile
-        pl.col('net_wgt') > min_weight.item(),
+        ((pl.col('net_wgt') > min_weight.item()) | 
+         (pl.col('net_wgt').is_null())),
 
         # Drop trade flow with value (USD) under fifth percentile
         pl.col('primary_value') > min_value.item()

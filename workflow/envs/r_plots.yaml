@@ -2,6 +2,7 @@ channels:
  - conda-forge
 dependencies:
  - r-base=4.3.3
+ - r-tidyverse=2.0.0
  - r-dplyr=1.1.4
  - r-ggplot2=3.5.1
  - r-svglite=2.1.3

@@ -118,7 +118,7 @@ for (fao_division in snakemake@params$fao_divisions) {
                  color = "black") +
     geom_point(aes(x = 2000,
                    y = data[data$period == 2000 &
-                               data$cmd == prod, ]$tot_nb_nodes),
+                              data$cmd == prod, ]$tot_nb_nodes),
                color = "black") +
     annotate("text", x = 2000,
              y = data[data$period == 2000 &

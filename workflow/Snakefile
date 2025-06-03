@@ -28,10 +28,14 @@ include: 'rules/plot_network_composition.smk'
 include: 'rules/plot_market_concentration.smk'
 include: 'rules/plot_contributor_profiles.smk'
 include: 'rules/plot_network_connectivity.smk'
+include: 'rules/plot_network_contribution.smk'
 
 # target rule
 rule all:
     input:
+        expand('results/network_analysis/plot/{fao_div}/network_contribution.{ext}',
+               fao_div = config['fao_divisions'],
+               ext = ['png', 'svg']),
         expand('results/network_analysis/plot/{fao_div}/network_connectivity.{ext}',
                fao_div = config['fao_divisions'],
                ext = ['png', 'svg']),

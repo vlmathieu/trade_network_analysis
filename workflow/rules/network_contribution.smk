@@ -5,6 +5,8 @@ rule network_contribution:
         'results/network_analysis/output/network_contribution.csv'
     params:
         weight      = config['weight']
+    log:
+        'workflow/logs/network_contribution.log'
     threads: 2
     conda:
         '../envs/network_metrics.yaml'

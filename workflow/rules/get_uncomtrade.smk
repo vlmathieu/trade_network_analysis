@@ -10,6 +10,8 @@ rule get_uncomtrade:
         flowCode        = list(str(flow) for flow in config['flowCode']),
         fao_divisions   = config['fao_divisions'],
         apikey          = os.environ['comtrade_apikey']
+    log:
+        'workflow/logs/get_uncomtrade.log'
     threads: 1
     conda:
         '../envs/comtradeapicall.yaml'

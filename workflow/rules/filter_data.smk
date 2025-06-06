@@ -8,6 +8,8 @@ rule filter_data:
         year_stop       = config['years']['stop'],
         excluded_iso    = config['excluded_iso'],
         col_keep        = config['col_keep']
+    log:
+        'workflow/logs/filter_data.log'
     threads: 2
     conda:
         '../envs/polars.yaml'

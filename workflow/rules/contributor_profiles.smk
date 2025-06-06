@@ -6,6 +6,8 @@ rule contributor_profiles:
     params:
         threshold   = config['threshold_main_contributors'],
         weight      = config['weight']
+    log:
+        "workflow/logs/contributor_profiles.log"
     threads: 2
     conda:
         '../envs/network_metrics.yaml'

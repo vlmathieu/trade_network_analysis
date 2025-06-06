@@ -5,6 +5,8 @@ rule market_concentration:
         'results/network_analysis/output/market_concentration.csv'
     params:
         weight      = config['weight']
+    log:
+        'workflow/logs/market_concentration.log'
     threads: 2
     conda:
         '../envs/network_metrics.yaml'

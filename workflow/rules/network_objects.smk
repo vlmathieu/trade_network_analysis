@@ -4,6 +4,8 @@ rule network_objects:
     output:
         'results/network_analysis/intermediary/mirror_flows.csv',
         'results/network_analysis/intermediary/edge_lists.pkl'
+    log:
+        'workflow/logs/network_objects.log'
     threads: 4
     conda:
         '../envs/polars.yaml'

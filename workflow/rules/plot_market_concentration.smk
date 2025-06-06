@@ -8,6 +8,10 @@ rule plot_market_concentration:
     params:
         fao_divisions   = config['fao_divisions'],
         ext             = ['png', 'svg']
+    log:
+        expand('workflow/logs/plot_market_concentration/{fao_div}_{ext}.log',
+               fao_div = config['fao_divisions'],
+               ext = ['png', 'svg'])
     threads: 1
     conda:
         '../envs/r_plots.yaml'

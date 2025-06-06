@@ -145,31 +145,31 @@
 <circle cx='191.47' cy='332.73' r='1.84' style='stroke-width: 0.71; stroke: #3D85F7; stroke-opacity: 0.60; fill: #3D85F7; fill-opacity: 0.60;' />
 <circle cx='162.04' cy='365.71' r='1.45' style='stroke-width: 0.71; stroke: #3D85F7; stroke-opacity: 0.60; fill: #3D85F7; fill-opacity: 0.60;' />
 <circle cx='97.30' cy='311.74' r='1.69' style='stroke-width: 0.71; stroke: #3D85F7; stroke-opacity: 0.60; fill: #3D85F7; fill-opacity: 0.60;' />
-<line x1='128.55' y1='286.74' x2='115.77' y2='298.97' style='stroke-width: 1.07;' />
-<line x1='146.24' y1='333.19' x2='127.64' y2='347.04' style='stroke-width: 1.07;' />
-<line x1='148.86' y1='372.74' x2='130.73' y2='380.26' style='stroke-width: 1.07;' />
-<text x='125.72' y='320.23' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='23.15px' lengthAdjust='spacingAndGlyphs'>Austria</text>
-<text x='115.16' y='308.67' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='26.14px' lengthAdjust='spacingAndGlyphs'>Belgium</text>
-<text x='130.36' y='374.79' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='26.84px' lengthAdjust='spacingAndGlyphs'>Bulgaria</text>
-<text x='113.66' y='356.53' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='23.81px' lengthAdjust='spacingAndGlyphs'>Canada</text>
-<text x='89.52' y='371.92' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='23.24px' lengthAdjust='spacingAndGlyphs'>Croatia</text>
-<text x='128.53' y='331.59' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='24.55px' lengthAdjust='spacingAndGlyphs'>Czechia</text>
-<text x='144.84' y='288.27' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='28.98px' lengthAdjust='spacingAndGlyphs'>Denmark</text>
-<text x='160.01' y='314.69' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='21.44px' lengthAdjust='spacingAndGlyphs'>France</text>
-<text x='159.65' y='299.66' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='28.85px' lengthAdjust='spacingAndGlyphs'>Germany</text>
-<text x='82.68' y='335.46' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='22.42px' lengthAdjust='spacingAndGlyphs'>Greece</text>
-<text x='129.01' y='276.88' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='14.34px' lengthAdjust='spacingAndGlyphs'>Italy</text>
-<text x='113.79' y='386.10' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='75.40px' lengthAdjust='spacingAndGlyphs'>Lao People's Dem. Rep.</text>
-<text x='150.16' y='361.04' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='19.68px' lengthAdjust='spacingAndGlyphs'>Latvia</text>
-<text x='147.15' y='346.27' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='30.06px' lengthAdjust='spacingAndGlyphs'>Lithuania</text>
-<text x='90.13' y='320.69' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='24.11px' lengthAdjust='spacingAndGlyphs'>Norway</text>
-<text x='159.03' y='334.90' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='21.99px' lengthAdjust='spacingAndGlyphs'>Poland</text>
-<text x='181.53' y='374.56' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='61.73px' lengthAdjust='spacingAndGlyphs'>Russian Federation</text>
-<text x='98.97' y='343.12' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='25.19px' lengthAdjust='spacingAndGlyphs'>Sweden</text>
-<text x='83.22' y='356.68' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='23.49px' lengthAdjust='spacingAndGlyphs'>Türkiye</text>
+<line x1='128.50' y1='286.39' x2='115.76' y2='298.96' style='stroke-width: 1.07;' />
+<line x1='146.71' y1='333.09' x2='127.65' y2='347.05' style='stroke-width: 1.07;' />
+<line x1='149.05' y1='372.75' x2='130.74' y2='380.27' style='stroke-width: 1.07;' />
+<text x='125.41' y='320.01' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='23.15px' lengthAdjust='spacingAndGlyphs'>Austria</text>
+<text x='114.93' y='308.61' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='26.14px' lengthAdjust='spacingAndGlyphs'>Belgium</text>
+<text x='130.24' y='374.91' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='26.84px' lengthAdjust='spacingAndGlyphs'>Bulgaria</text>
+<text x='113.87' y='356.90' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='23.81px' lengthAdjust='spacingAndGlyphs'>Canada</text>
+<text x='89.78' y='371.77' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='23.24px' lengthAdjust='spacingAndGlyphs'>Croatia</text>
+<text x='128.99' y='331.64' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='24.55px' lengthAdjust='spacingAndGlyphs'>Czechia</text>
+<text x='144.79' y='287.92' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='28.98px' lengthAdjust='spacingAndGlyphs'>Denmark</text>
+<text x='159.93' y='314.62' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='21.44px' lengthAdjust='spacingAndGlyphs'>France</text>
+<text x='159.39' y='299.28' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='28.85px' lengthAdjust='spacingAndGlyphs'>Germany</text>
+<text x='82.68' y='335.53' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='22.42px' lengthAdjust='spacingAndGlyphs'>Greece</text>
+<text x='128.72' y='276.49' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='14.34px' lengthAdjust='spacingAndGlyphs'>Italy</text>
+<text x='113.92' y='386.10' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='75.40px' lengthAdjust='spacingAndGlyphs'>Lao People's Dem. Rep.</text>
+<text x='150.15' y='360.89' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='19.68px' lengthAdjust='spacingAndGlyphs'>Latvia</text>
+<text x='147.84' y='346.16' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='30.06px' lengthAdjust='spacingAndGlyphs'>Lithuania</text>
+<text x='90.02' y='320.68' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='24.11px' lengthAdjust='spacingAndGlyphs'>Norway</text>
+<text x='159.50' y='334.81' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='21.99px' lengthAdjust='spacingAndGlyphs'>Poland</text>
+<text x='181.72' y='374.58' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='61.73px' lengthAdjust='spacingAndGlyphs'>Russian Federation</text>
+<text x='99.13' y='343.11' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='25.19px' lengthAdjust='spacingAndGlyphs'>Sweden</text>
+<text x='83.22' y='356.71' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='23.49px' lengthAdjust='spacingAndGlyphs'>Türkiye</text>
 <text x='200.29' y='325.81' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='13.11px' lengthAdjust='spacingAndGlyphs'>USA</text>
-<text x='179.67' y='357.67' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='24.90px' lengthAdjust='spacingAndGlyphs'>Ukraine</text>
-<text x='97.29' y='295.07' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='51.64px' lengthAdjust='spacingAndGlyphs'>United Kingdom</text>
+<text x='179.65' y='357.73' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='24.90px' lengthAdjust='spacingAndGlyphs'>Ukraine</text>
+<text x='97.29' y='295.03' text-anchor='middle' style='font-size: 5.69px; font-weight: bold; font-family: "DejaVu Sans";' textLength='51.64px' lengthAdjust='spacingAndGlyphs'>United Kingdom</text>
 <polygon points='383.53,387.16 423.15,387.16 423.04,387.16 423.46,387.14 423.86,387.06 424.25,386.91 424.60,386.71 424.92,386.45 425.19,386.14 425.42,385.79 425.58,385.41 425.68,385.01 425.71,384.60 425.71,384.60 425.71,370.82 425.71,370.82 425.68,370.41 425.58,370.01 425.42,369.63 425.19,369.28 424.92,368.97 424.60,368.71 424.25,368.50 423.86,368.36 423.46,368.27 423.15,368.26 383.53,368.26 383.84,368.27 383.43,368.26 383.02,368.31 382.62,368.42 382.25,368.60 381.91,368.83 381.61,369.12 381.37,369.45 381.18,369.81 381.05,370.20 380.98,370.61 380.97,370.82 380.97,384.60 380.98,384.39 380.98,384.81 381.05,385.21 381.18,385.60 381.37,385.97 381.61,386.30 381.91,386.58 382.25,386.82 382.62,386.99 383.02,387.11 383.43,387.16 ' style='stroke-width: 0.53; fill: #FFFFFF;' />
 <text x='403.34' y='382.89' text-anchor='middle' style='font-size: 14.23px; font-family: "DejaVu Sans";' textLength='36.20px' lengthAdjust='spacingAndGlyphs'>2011</text>
 <polygon points='383.53,387.16 423.15,387.16 423.04,387.16 423.46,387.14 423.86,387.06 424.25,386.91 424.60,386.71 424.92,386.45 425.19,386.14 425.42,385.79 425.58,385.41 425.68,385.01 425.71,384.60 425.71,384.60 425.71,370.82 425.71,370.82 425.68,370.41 425.58,370.01 425.42,369.63 425.19,369.28 424.92,368.97 424.60,368.71 424.25,368.50 423.86,368.36 423.46,368.27 423.15,368.26 383.53,368.26 383.84,368.27 383.43,368.26 383.02,368.31 382.62,368.42 382.25,368.60 381.91,368.83 381.61,369.12 381.37,369.45 381.18,369.81 381.05,370.20 380.98,370.61 380.97,370.82 380.97,384.60 380.98,384.39 380.98,384.81 381.05,385.21 381.18,385.60 381.37,385.97 381.61,386.30 381.91,386.58 382.25,386.82 382.62,386.99 383.02,387.11 383.43,387.16 ' style='stroke-width: 0.53; fill: #FFFFFF;' />

@@ -248,3 +248,7 @@ rsconnect/
 
 # Prevent users to commit snakemake logs ans metadata
 *.snakemake
+
+# Prevent undesired document
+*.docx
+*.afpub

@@ -44,7 +44,7 @@ for (fao_division in snakemake@params$fao_divisions) {
     annotate("text",
              x = max(data$period) + 0.4,
              y = data[data$period == max(data$period) &
-                        data$cmd == prod, ]$hhi_imp,
+                        data$cmd == prod, ]$hhi_imp + 0.01,
              label = "Imports",
              hjust = 0,
              size = 3,

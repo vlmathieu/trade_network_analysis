@@ -353,3 +353,9 @@ input_data_test = (
            .filter(pl.col('flow_code') == 'M')
            .select(pl.sum('primary_value'))
  )
+
+(contributor_profiles
+ .filter(pl.col('cmd') == 12, pl.col('period') == 2020)
+ .filter(pl.col('country').is_in(['New Zeland', 'Russian Federation', 'Cameroon', 'Brazil', 'Congo']))
+ .select(['country', 'nb_edge_exp', 'nb_edge_imp'])
+)

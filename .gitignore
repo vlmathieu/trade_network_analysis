@@ -235,7 +235,7 @@ rsconnect/
 # Additionnal ---
 
 # Keep toy scripts out
-sandbox/
+_sandbox/
 
 # Temporary files
 *~

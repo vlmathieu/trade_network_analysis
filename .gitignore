@@ -255,3 +255,4 @@ rsconnect/
 # Prevent undesired document
 *.docx
 *.afpub
+./writing/_archives/

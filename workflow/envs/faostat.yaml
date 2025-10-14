@@ -1,4 +1,0 @@
-channels:
-  - noemicazzaniga
-dependencies:
-  - faostat =1.1.2

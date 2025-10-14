@@ -256,3 +256,5 @@ rsconnect/
 *.docx
 *.afpub
 _archives/
+/.quarto/
+**/*.quarto_ipynb

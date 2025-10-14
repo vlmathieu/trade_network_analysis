@@ -10,10 +10,9 @@ HS_version: [1996, 2002, 2007, 2012, 2017, 2022]
 flowCode: ['M', 'X']
 
 # Product to keep (FAO classification)
-fao_divisions: ['011', '012']
+fao_divisions: ['012']
 # This keeps trade flows of roundwood products (FAO classification of forest
 # products 2022):
-# - Wood fuel (including wood for charcoal) (Division code: 011)
 # - Wood in the rough, other than wood fuel (Division code: 012)
 
 # World Bank series --> data of interest from World Bank

@@ -359,3 +359,24 @@ input_data_test = (
  .filter(pl.col('country').is_in(['New Zeland', 'Russian Federation', 'Cameroon', 'Brazil', 'Congo']))
  .select(['country', 'nb_edge_exp', 'nb_edge_imp'])
 )
+
+NZ_tot = (
+    input_data
+    .filter(pl.col('reporter_desc') == 'New Zealand', 
+            pl.col('flow_code') == 'X',
+            pl.col('fao_code') == '012',
+            pl.col('period') == '2022')
+    .select(pl.sum('primary_value'))
+)
+NZ_CHN = (
+    input_data
+    .filter(pl.col('reporter_desc') == 'New Zealand', 
+            pl.col('flow_code') == 'X',
+            pl.col('fao_code') == '012',
+            pl.col('period') == '2022',
+            pl.col('partner_desc') == 'China')
+    .select(pl.sum('primary_value'))
+)
+NZ_CHN / NZ_tot * 100
+sorted(input_data.select(pl.col('reporter_desc')).unique().to_series().to_list())
+input_data.columns

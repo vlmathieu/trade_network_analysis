@@ -234,6 +234,9 @@ rsconnect/
 
 # Additionnal ---
 
+# Keep toy scripts out
+sandbox/
+
 # Temporary files
 *~
 ~$*.doc*

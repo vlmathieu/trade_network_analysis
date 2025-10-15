@@ -1,6 +1,6 @@
 channel:
   - conda-forge
 dependencies:
-  - polars =1.2.1
-  - numpy =2.2.4
-  - networkx =3.4.2
+  - polars =1.33.1
+  - numpy =2.3.3
+  - networkx =3.5

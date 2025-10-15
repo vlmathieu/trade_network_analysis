@@ -20,7 +20,7 @@ shape_data <- function(network_contribution,
   main_contributors <- tibble::as_tibble(network_contribution) %>%
     dplyr::filter(
       cmd == prod,  # nolint
-      period >= max_year - 5, # nolint
+      period >= max_year - time_span, # nolint
       contrib_trade_value_imp > quantile(.$contrib_trade_value_imp, # nolint
                                          probs = 1 - min_contrib) |
       contrib_trade_value_exp > quantile(.$contrib_trade_value_imp, # nolint
@@ -200,8 +200,8 @@ for (fao_division in snakemake@params$fao_divisions) {
                     fontface = "bold"),
                 hjust = 0) +
       scale_x_continuous(
-        breaks = c(1996, 2000, 2005, 2010, 2015, 2020, 2022),
-        labels = c("1996", "2000", "2005", "2010", "2015", "2020", "2022")
+        breaks = c(1996, 2000, 2005, 2010, 2015, 2020, x_max),
+        labels = c("1996", "2000", "2005", "2010", "2015", "2020", as.character(x_max)) # nolint
       ) +
       scale_y_continuous(limits = c(0, y_max),
                          expand = c(0, 0)) +

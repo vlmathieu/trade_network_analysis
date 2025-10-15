@@ -105,8 +105,8 @@ for (fao_division in snakemake@params$fao_divisions) {
       # Set up scale colors, breaks, and limits + themes
       scale_color_manual(values = pal) +
       scale_x_continuous(
-        breaks = c(1996, 2000, 2005, 2010, 2015, 2020, 2022),
-        labels = c("1996", "2000", "2005", "2010", "2015", "2020", "2022")
+        breaks = c(1996, 2000, 2005, 2010, 2015, 2020, max(data$period)),
+        labels = c("1996", "2000", "2005", "2010", "2015", "2020", as.character(max(data$period))) # nolint
       ) +
       scale_y_continuous(limits = c(trunc(y_min - 1),
                                     round(y_max + 1)),

@@ -1,6 +1,13 @@
 from snakemake.script import snakemake
+import logging
 import polars as pl
 import wbgapi as wb
+
+# Log file edition
+logging.basicConfig(filename=snakemake.log[0],
+                    level=logging.INFO,
+                    format='%(asctime)s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
 
 wb_list = (
     [pl.DataFrame(
@@ -16,6 +23,7 @@ wb_list = (
 wb_series_data = (
     pl.concat(wb_list, how='align')
 )
+logging.info(f"\nWB series:\n {wb_series_data}\n")
 
 check = (
     sorted(snakemake.params['wb_series']) == 
@@ -23,10 +31,10 @@ check = (
 )
 
 if check:
-    print('Data have been checked.\n')
+    logging.info('Data have been checked.\n')
     wb_series_data.write_csv(snakemake.output[0], separator=';')
 else:
-    print('Issues found in data download.\n')
-    print(sorted(snakemake.params['wb_series']))
-    print(sorted([_ for _ in wb_series_data.columns 
-                  if _ not in {'economy', 'time'}]))
+    logging.info('Issues found in data download.\n')
+    logging.info(sorted(snakemake.params['wb_series']))
+    logging.info(sorted([_ for _ in wb_series_data.columns 
+                         if _ not in {'economy', 'time'}]))

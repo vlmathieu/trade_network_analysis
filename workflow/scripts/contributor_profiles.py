@@ -1,4 +1,5 @@
 from snakemake.script import snakemake
+import logging
 import polars as pl
 import pickle
 import networkx as nx
@@ -171,6 +172,12 @@ def contributor_profiles(
 
     return contributor_profiles
 
+# Log file edition
+logging.basicConfig(filename=snakemake.log[0],
+                    level=logging.INFO,
+                    format='%(asctime)s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
+
 # Load dictionary of edge lists
 with open(snakemake.input[0], 'rb') as f:
     edge_list_dict = pickle.load(f)
@@ -181,6 +188,7 @@ contributor_profiles = contributor_profiles(
     threshold = snakemake.params['threshold'],
     weight = snakemake.params['weight']
 )
+logging.info(f"\nContributor profiles:\n {contributor_profiles}\n")
 
 # Save contributor profiles
 contributor_profiles.write_csv(

@@ -1,4 +1,5 @@
 from snakemake.script import snakemake
+import logging
 import polars as pl
 
 def reshape_uvi_data(uvi_data: pl.dataframe.frame.DataFrame):
@@ -76,17 +77,27 @@ def deflate(uncomtrade_data: pl.dataframe.frame.DataFrame,
         
     return data_deflated
 
+# Log file edition
+logging.basicConfig(filename=snakemake.log[0],
+                    level=logging.INFO,
+                    format='%(asctime)s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
+
 # Load data and select unit value index data
 uvi_data = (
     pl.read_csv(snakemake.input[0], separator=';')
     .select(['economy', 'time', 'TM.UVI.MRCH.XD.WD', 'TX.UVI.MRCH.XD.WD'])
 )
+logging.info(f"\nUVI data:\n {uvi_data}\n")
 
 # Load trade data
 uncomtrade_data = pl.read_parquet(snakemake.input[1])
 
 # Deflate primary column in trade date in current USD into constant USD
 deflate_uncomtrade = deflate(uncomtrade_data, uvi_data)
+logging.info(f"\nDeflate dataframe head: \n {deflate_uncomtrade.head(5)}\n")
+logging.info(f"\nInitial dataframe size (rows, columns): {uncomtrade_data.shape}\n")
+logging.info(f"\nDeflate dataframe size (rows, columns): {deflate_uncomtrade.shape}\n")
 
 # Save processed data
 deflate_uncomtrade.write_parquet(

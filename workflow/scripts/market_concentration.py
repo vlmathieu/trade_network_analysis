@@ -1,4 +1,5 @@
 from snakemake.script import snakemake
+import logging
 import polars as pl
 import pickle
 import numpy as np
@@ -141,6 +142,12 @@ def market_concentration(
     
     return market_concentration
 
+# Log file edition
+logging.basicConfig(filename=snakemake.log[0],
+                    level=logging.INFO,
+                    format='%(asctime)s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
+
 # Load dictionary of edge lists
 with open(snakemake.input[0], 'rb') as f:
     edge_list_dict = pickle.load(f)
@@ -150,6 +157,7 @@ market_concentration = market_concentration(
     edge_list_dict= edge_list_dict,
     weight= snakemake.params['weight']
 )
+logging.info(f"\nMarket concentration:\n {market_concentration}\n")
 
 # Save market concentration stats
 market_concentration.write_csv(

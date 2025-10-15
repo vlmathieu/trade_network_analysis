@@ -1,4 +1,5 @@
 from snakemake.script import snakemake
+import logging
 import polars as pl
 import pickle
 import numpy as np
@@ -125,6 +126,12 @@ def network_connectivity(
     
     return network_connectivity
 
+# Log file edition
+logging.basicConfig(filename=snakemake.log[0],
+                    level=logging.INFO,
+                    format='%(asctime)s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
+
 # Load dictionary of edge lists
 with open(snakemake.input[0], 'rb') as f:
     edge_list_dict = pickle.load(f)
@@ -133,6 +140,7 @@ with open(snakemake.input[0], 'rb') as f:
 network_connectivity = network_connectivity(
     edge_list_dict= edge_list_dict
 )
+logging.info(f"\nNetwork connectivity:\n {network_connectivity}\n")
 
 # Save network_connectivity metrics
 network_connectivity.write_csv(

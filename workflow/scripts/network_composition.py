@@ -1,4 +1,5 @@
 from snakemake.script import snakemake
+import logging
 import polars as pl
 import pickle
 import networkx as nx
@@ -118,6 +119,12 @@ def network_composition(edge_list_dict: dict) -> pl.dataframe.frame.DataFrame:
 
     return network_composition
 
+# Log file edition
+logging.basicConfig(filename=snakemake.log[0],
+                    level=logging.INFO,
+                    format='%(asctime)s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
+
 # Load dictionary of edge lists
 with open(snakemake.input[0], 'rb') as f:
     edge_list_dict = pickle.load(f)
@@ -126,6 +133,7 @@ with open(snakemake.input[0], 'rb') as f:
 network_composition = network_composition(
     edge_list_dict= edge_list_dict
 )
+logging.info(f"\nNetwork composition:\n {network_composition}\n")
 
 # Save network composition
 network_composition.write_csv(

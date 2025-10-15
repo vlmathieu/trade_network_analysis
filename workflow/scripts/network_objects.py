@@ -1,4 +1,5 @@
 from snakemake.script import snakemake
+import logging
 import polars as pl
 import pickle
 
@@ -232,6 +233,12 @@ def edge_lists(data: pl.dataframe.frame.DataFrame,
     result = {k:v for elem in result_list for (k,v) in elem.items()}
     
     return result
+
+# Log file edition
+logging.basicConfig(filename=snakemake.log[0],
+                    level=logging.INFO,
+                    format='%(asctime)s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
     
 # Load input trade data
 input_data = pl.read_parquet(snakemake.input[0])
@@ -239,6 +246,7 @@ input_data = pl.read_parquet(snakemake.input[0])
 # Create mirror flows and edge lists
 mirror_flows = compute_mirror_flows(input_data)
 edge_lists = edge_lists(input_data)
+logging.info(f"\nMirror flows:\n {mirror_flows}\n")
 
 # Save mirror flows
 mirror_flows.write_csv(

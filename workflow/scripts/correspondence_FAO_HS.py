@@ -1,6 +1,13 @@
 from snakemake.script import snakemake
+import logging
 import polars as pl
 import polars.selectors as cs
+
+# Log file edition
+logging.basicConfig(filename=snakemake.log[0],
+                    level=logging.INFO,
+                    format='%(asctime)s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
 
 correspondence_classification = [
 
@@ -1294,7 +1301,7 @@ correspondence_classification_pl = (
 )
 
 with pl.Config(tbl_cols=-1):
-    print(correspondence_classification_pl)
+    logging.info(f"\nCorrespondence table:\n{correspondence_classification_pl}")
 
 # Saving correspondence classification
 correspondence_classification_pl.write_json(

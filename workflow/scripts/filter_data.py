@@ -1,4 +1,5 @@
 from snakemake.script import snakemake
+import logging
 import polars as pl
 import re
 
@@ -31,6 +32,12 @@ def format_col_names(col_names: list) -> dict:
     col_mapping = dict(zip(col_names, col_names_formated))
 
     return col_mapping
+
+# Log file edition
+logging.basicConfig(filename=snakemake.log[0],
+                    level=logging.INFO,
+                    format='%(asctime)s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
 
 # Load data
 merged_data = pl.read_parquet(snakemake.input[0])
@@ -71,6 +78,7 @@ min_weight, min_value = (
     .filter(pl.col('statistic') == '5%')
     .select(['net_wgt', 'primary_value'])
 )
+logging.info(f"\nMin weight: {min_weight}\n Min value: {min_value}\n")
 
 input_data = (
     input_data.filter(
@@ -93,6 +101,7 @@ input_data = (
     .group_by(groupby_cols)
     .agg(pl.sum(sum_cols))
  )
+logging.info(f"\nFinal data:\n {input_data}\n")
 
 # Save input data
 input_data.write_parquet(

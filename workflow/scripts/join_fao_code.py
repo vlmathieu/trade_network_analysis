@@ -1,4 +1,5 @@
 from snakemake.script import snakemake
+import logging
 import polars as pl
 import polars.selectors as cs
 
@@ -65,6 +66,12 @@ def join_uncomtrade_FAO(FAO_HS: pl.dataframe.frame.DataFrame,
 
     return uncomtrade_data_join
 
+# Log file edition
+logging.basicConfig(filename=snakemake.log[0],
+                    level=logging.INFO,
+                    format='%(asctime)s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
+
 # Load correspondance between HS codes and FAO forest product classification
 FAO_HS = pl.read_json(snakemake.input[0])
 
@@ -73,6 +80,8 @@ deflate_uncomtrade = pl.read_parquet(snakemake.input[1])
 
 # Join UNComtrade data with FAO_HS corresponding table
 merged_data = join_uncomtrade_FAO(FAO_HS, deflate_uncomtrade)
+logging.info(f"\nMerged dataframe head: \n {merged_data.head(5)}\n")
+logging.info(f"\nMerged dataframe size (rows, columns): {merged_data.shape}\n")
 
 # Save merged data
 merged_data.write_parquet(

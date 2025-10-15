@@ -1,4 +1,5 @@
 from snakemake.script import snakemake
+import logging
 import polars as pl
 import polars.selectors as cs
 import comtradeapicall
@@ -254,6 +255,12 @@ def get_uncomtrade_all(apikey: str,
 
     return uncomtrade_data, check_list
 
+# Log file edition
+logging.basicConfig(filename=snakemake.log[0],
+                    level=logging.INFO,
+                    format='%(asctime)s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
+
 UN_Comtrade_data, check_list = get_uncomtrade_all(
     snakemake.params['apikey'],
     snakemake.params['year_start'],
@@ -264,15 +271,15 @@ UN_Comtrade_data, check_list = get_uncomtrade_all(
     snakemake.params['fao_divisions']
 )
 
-print("\nDataframe head: \n\n", UN_Comtrade_data.head(5), "\n")
-print("\nDataframe size (rows, columns): ", UN_Comtrade_data.shape, "\n")
+logging.info(f"\nDataframe head: \n {UN_Comtrade_data.head(5)}\n")
+logging.info(f"\nDataframe size (rows, columns): {UN_Comtrade_data.shape}\n")
 
 # Save data if check list passed
 if all(check_list):
-    print('Data have been checked.\n')   
+    logging.info('Data have been checked.\n')   
     UN_Comtrade_data.write_parquet(
         snakemake.output[0],
         compression='gzip'
         )
 else:
-    print('Issues found in data download.\n')
+    logging.info('Issues found in data download.\n')

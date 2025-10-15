@@ -1,4 +1,5 @@
 from snakemake.script import snakemake
+import logging
 import polars as pl
 import pickle
 import numpy as np
@@ -237,6 +238,12 @@ def network_contribution(
     
     return network_contribution
 
+# Log file edition
+logging.basicConfig(filename=snakemake.log[0],
+                    level=logging.INFO,
+                    format='%(asctime)s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
+
 # Load dictionary of edge lists
 with open(snakemake.input[0], 'rb') as f:
     edge_list_dict = pickle.load(f)
@@ -246,6 +253,7 @@ network_contribution = network_contribution(
     edge_list_dict= edge_list_dict,
     weight= snakemake.params['weight']
 )
+logging.info(f"\nNetwork contribution:\n {network_contribution}\n")
 
 # Save market concentration stats
 network_contribution.write_csv(

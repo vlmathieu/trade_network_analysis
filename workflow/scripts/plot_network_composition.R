@@ -42,10 +42,10 @@ for (fao_division in snakemake@params$fao_divisions) {
 
     # End of chart labels = final values for each area
     annotate("text", x = max(data$period) + 0.4,
-             y = data[data$period == 2022 & data$cmd == prod, ]$tot_nb_nodes -
-               data[data$period == 2022 & data$cmd == prod, ]$nb_pure_imp / 2,
+             y = data[data$period == max(data$period) & data$cmd == prod, ]$tot_nb_nodes - # nolint
+               data[data$period == max(data$period) & data$cmd == prod, ]$nb_pure_imp / 2, # nolint
              label = paste(as.character(select(filter(data,
-                                                      period == 2022,
+                                                      period == max(data$period), # nolint
                                                       cmd == prod),
                                                nb_pure_imp)),
                            "pure importers",
@@ -239,7 +239,7 @@ for (fao_division in snakemake@params$fao_divisions) {
     scale_fill_manual(values = pal) +
     scale_x_continuous(
       breaks = c(min(data$period), 2000, 2005, 2010, 2015, 2020, max(data$period)), # nolint
-      labels = c("1996", "2000", "2005", "2010", "2015", "2020", "2022")
+      labels = c("1996", "2000", "2005", "2010", "2015", "2020", as.character(max(data$period))) # nolint
     ) +
     scale_y_continuous(expand = c(0, 0)) +
     labs(x = "Year",

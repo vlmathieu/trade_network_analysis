@@ -44,7 +44,7 @@ for (fao_division in snakemake@params$fao_divisions) {
     annotate("text",
              x = max(data$period) + 0.4,
              y = data[data$period == max(data$period) &
-                        data$cmd == prod, ]$hhi_imp + 0.01,
+                        data$cmd == prod, ]$hhi_imp,
              label = "Imports",
              hjust = 0,
              size = 3,
@@ -114,8 +114,8 @@ for (fao_division in snakemake@params$fao_divisions) {
 
     scale_color_manual(values = pal) +
     scale_x_continuous(
-      breaks = c(1996, 2000, 2005, 2010, 2015, 2020, 2022),
-      labels = c("1996", "2000", "2005", "2010", "2015", "2020", "2022")
+      breaks = c(1996, 2000, 2005, 2010, 2015, 2020, max(data$period)),
+      labels = c("1996", "2000", "2005", "2010", "2015", "2020", as.character(max(data$period))) # nolint
     ) +
     scale_y_continuous(limits = c(0,
                                   round(max(data[data$cmd == prod, ]$hhi_imp,

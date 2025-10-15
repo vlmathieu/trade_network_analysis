@@ -1,7 +1,7 @@
 # Years of trade
 years:
   start: 1996
-  stop: 2024  # process will consider stop year - 1 only
+  stop: 2025  # process will consider stop year - 2 only
 
 # HS code version --> different classifications according to the year
 HS_version: [1996, 2002, 2007, 2012, 2017, 2022]

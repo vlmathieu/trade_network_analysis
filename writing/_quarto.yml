@@ -1,0 +1,17 @@
+project:
+  type: manuscript
+
+execute:
+  freeze: auto
+
+format:
+  html:
+    toc: true
+  docx: default
+  elsevier-pdf:
+    keep-tex: true
+    journal:
+      name: Journal of Cleaner Production
+      formatting: review
+      model: 3p
+      cite-style: authoryear

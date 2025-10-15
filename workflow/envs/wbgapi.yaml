@@ -2,4 +2,5 @@ channel:
   - conda-forge
 dependencies:
   - polars =1.33.1
+  - pandas =2.2.1
   - wbgapi =1.0.12

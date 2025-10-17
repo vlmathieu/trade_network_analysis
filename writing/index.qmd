@@ -257,7 +257,7 @@ path <- file.path(dir, "results/network_analysis/output/network_composition.csv"
 net_compo <- read.csv(file = path, header = TRUE, sep = ";")
 
 # Filter data for product considered
-net_compo <- net_compo %>% filter(cmd == 12)
+net_compo <- net_compo |> filter(cmd == 12)
 
 # Collect information for results
 compo_tot_min <- min(net_compo$tot_nb_nodes)
@@ -270,37 +270,54 @@ compo_year_max <- max(net_compo$period)
 compo_tot_1996 <- net_compo[net_compo$period == min(net_compo$period), ]$tot_nb_nodes
 compo_tot_2008 <- net_compo[net_compo$period == 2008, ]$tot_nb_nodes
 compo_tot_2015 <- net_compo[net_compo$period == 2015, ]$tot_nb_nodes
-compo_tot_2022 <- net_compo[net_compo$period == max(net_compo$period), ]$tot_nb_nodes
+compo_tot_2022 <- net_compo[net_compo$period == 2022, ]$tot_nb_nodes
+compo_tot_2023 <- net_compo[net_compo$period == max(net_compo$period), ]$tot_nb_nodes
 
 inc_1996_2008 <- round(((compo_tot_2008 - compo_tot_1996) / compo_tot_1996 * 100), 2)
 dec_2015_2022 <- round(abs((compo_tot_2015 - compo_tot_2022) / compo_tot_2022 * 100), 2)
+inc_2022_2023 <- round((compo_tot_2023 - compo_tot_2022) / compo_tot_2023 * 100, 2)
 
 compo_exp_1996 <- net_compo[net_compo$period == min(net_compo$period), ]$nb_pure_exp
-compo_exp_2022 <- net_compo[net_compo$period == max(net_compo$period), ]$nb_pure_exp
-dec_exp_1996_2022 <- round(abs((compo_exp_2022 - compo_exp_1996) / compo_exp_1996 * 100))
-share_exp_2022 <- round(compo_exp_2022/ compo_tot_max * 100)
+compo_exp_2023 <- net_compo[net_compo$period == max(net_compo$period), ]$nb_pure_exp
+dec_exp_1996_2023 <- round(abs((compo_exp_2023 - compo_exp_1996) / compo_exp_1996 * 100))
+share_exp_2023 <- round(compo_exp_2023/ compo_tot_2023 * 100)
 share_exp_average <- round(mean(net_compo$nb_pure_exp / net_compo$tot_nb_nodes) * 100, 1)
 
 compo_imp_1996 <- net_compo[net_compo$period == min(net_compo$period), ]$nb_pure_imp
 compo_imp_2007 <- net_compo[net_compo$period == 2007, ]$nb_pure_imp
 compo_imp_2015 <- net_compo[net_compo$period == 2015, ]$nb_pure_imp
-compo_imp_2022 <- net_compo[net_compo$period == max(net_compo$period), ]$nb_pure_imp
+compo_imp_2023 <- net_compo[net_compo$period == max(net_compo$period), ]$nb_pure_imp
 dec_imp_1996_2007 <- round(abs((compo_imp_2007 - compo_imp_1996) / compo_imp_1996 * 100))
 inc_imp_2007_2015 <- round(abs((compo_imp_2015 - compo_imp_2007) / compo_imp_2007 * 100))
-dec_imp_2015_2022 <- round(abs((compo_imp_2022 - compo_imp_2015) / compo_imp_2015 * 100))
-share_imp_2022 <- round(compo_imp_2022/ compo_tot_max * 100)
+share_imp_2023 <- round(compo_imp_2023/ compo_tot_2023 * 100)
 share_imp_average <- round(mean(net_compo$nb_pure_imp / net_compo$tot_nb_nodes) * 100, 1)
 
 diff_imp_exp <- round(abs(mean(net_compo$nb_pure_imp) - mean(net_compo$nb_pure_exp)))
 
 compo_mix_1996 <- net_compo[net_compo$period == min(net_compo$period), ]$nb_mixed
-compo_mix_2022 <- net_compo[net_compo$period == max(net_compo$period), ]$nb_mixed
-inc_mix_1996_2022 <- round(abs((compo_mix_2022 - compo_mix_1996) / compo_mix_1996 * 100))
-share_mix_2022 <- round(compo_mix_2022/ compo_tot_max * 100)
+compo_mix_2023 <- net_compo[net_compo$period == max(net_compo$period), ]$nb_mixed
+inc_mix_1996_2023 <- round(abs((compo_mix_2023 - compo_mix_1996) / compo_mix_1996 * 100))
+share_mix_2023 <- round(compo_mix_2023/ compo_tot_2023 * 100)
 share_mix_average <- round(mean(net_compo$nb_mixed / net_compo$tot_nb_nodes) * 100, 1)
 ```
 
-Over the study period, the number of countries involved in the roundwood trade fluctuated slightly, ranging from `{r} compo_tot_min` in `{r} compo_tot_min_year` to `{r} compo_tot_max` in `{r} compo_tot_max_year[1]` and `{r} compo_tot_max_year[2]` (@fig-network-composition). On average, `{r} compo_tot_mean` countries were involved in roundwood trade from `{r} compo_year_min` to `{r} compo_year_max`. After a moderate increase in the number of countries involved in trade between `{r} compo_year_min` and 2008 (an increase of `{r} inc_1996_2008`%, from `{r} compo_tot_1996` to `{r} compo_tot_2008` countries), the number of countries stabilised until 2015. From 2015 to `{r} compo_year_max`, the number of trading countries decreased slightly from `{r} compo_tot_2015` to `{r} compo_tot_2022` (an `{r} dec_2015_2022`% decrease). Aside from these trends, we found short-term slight decreases in the number of trading countries after 2008, 2015, 2019, and 2021, which, as we will discuss later, can likely be attributed to major global events. In addition, we can observe several trends in the share of pure exporters, pure importers, and countries that both export and import roundwood. The number of pure exporters has decreased markedly since `{r} compo_year_min`, falling from `{r} compo_exp_1996` to `{r} compo_exp_2022` (a decline of around `{r} dec_exp_1996_2022`%). In `{r} compo_year_max`, pure exporters represented only `{r} share_exp_2022`% of trading countries compared to an average of `{r} share_exp_average`% over the studied period. In contrast, the number of pure importers decreased from `{r} compo_imp_1996` to `{r} compo_imp_2007` between `{r} min(net_compo$period)` and 2007 (a decline of `{r} dec_imp_1996_2007`%), before rising again to `{r} compo_imp_2015` between 2007 and 2015 (an increase of `{r} inc_imp_2007_2015`%). Since 2015, there has been a moderate decrease to `{r} compo_imp_2022` countries (a fall of `{r} dec_imp_2015_2022`%). In `{r} max(net_compo$period)`, pure importers represented a larger share (`{r} share_imp_2022`%) of trading countries than pure exporters (`{r} share_imp_average`% on average over the study period). Throughout the years, there were consistently more pure importers than pure exporters engaged in the international trade of roundwood, with an average difference of `{r} diff_imp_exp` countries. The number of countries that both export and import roundwood ("mixed countries") constituted the vast majority of trading countries (`{r} share_mix_average`% on average over the studied period, `{r} share_mix_2022`% in `{r} max(net_compo$period)`). The number of mixed countries has increased moderately since `{r} min(net_compo$period)`, rising from `{r} compo_mix_1996` to `{r} compo_mix_2022` (an increase of around `{r} inc_mix_1996_2022`%). As for the total number of trading countries, we noticed short terms drops in the number of pure exporters, pure importers, and mixed countries over the studied period. Some drops are common to pure importers and mixed countries (*e.g.*, following 2008 and 2019), while others are group-specific (*e.g.*, following 1997 for pure exporters and 2001 for pure importers).
+Over the study period, the number of countries involved in the roundwood trade fluctuated slightly, ranging from `{r} compo_tot_min` in `{r} compo_tot_min_year` to `{r} compo_tot_max` in `{r} compo_tot_max_year[1]` and `{r} compo_tot_max_year[2]` (@fig-network-composition). 
+On average, `{r} compo_tot_mean` countries were involved in roundwood trade from `{r} compo_year_min` to `{r} compo_year_max`. 
+After a moderate increase in the number of countries involved in trade between `{r} compo_year_min` and 2008 (an increase of `{r} inc_1996_2008`%, from `{r} compo_tot_1996` to `{r} compo_tot_2008` countries), the number of countries stabilised until 2015. 
+From 2015 to `{r} compo_year_max`, the number of trading countries decreased slightly from `{r} compo_tot_2015` to `{r} compo_tot_2022` (an `{r} dec_2015_2022`% decrease). 
+Aside from these trends, we found short-term slight decreases in the number of trading countries after 2008, 2015, 2019, and 2021, which, as we will discuss later, can likely be attributed to major global events. 
+
+In addition, we can observe several trends in the share of pure exporters, pure importers, and countries that both export and import roundwood. 
+The number of pure exporters has decreased markedly since `{r} compo_year_min`, falling from `{r} compo_exp_1996` to `{r} compo_exp_2023` (a decline of around `{r} dec_exp_1996_2023`%). 
+In `{r} compo_year_max`, pure exporters represented only `{r} share_exp_2023`% of trading countries compared to an average of `{r} share_exp_average`% over the studied period. 
+In contrast, the number of pure importers decreased from `{r} compo_imp_1996` to `{r} compo_imp_2007` between `{r} min(net_compo$period)` and 2007 (a decline of `{r} dec_imp_1996_2007`%), before rising again to `{r} compo_imp_2015` between 2007 and 2015 (an increase of `{r} inc_imp_2007_2015`%). 
+Since 2015, the number of pure importers has stabilised around `{r} compo_imp_2023` countries. 
+In `{r} max(net_compo$period)`, pure importers represented a larger share (`{r} share_imp_2023`%) of trading countries than pure exporters (`{r} share_imp_average`% on average over the study period). 
+Throughout the years, there were consistently more pure importers than pure exporters engaged in the international trade of roundwood, with an average difference of `{r} diff_imp_exp` countries. 
+The number of countries that both export and import roundwood ("mixed countries") constituted the vast majority of trading countries (`{r} share_mix_average`% on average over the studied period, `{r} share_mix_2023`% in `{r} max(net_compo$period)`). 
+The number of mixed countries has increased moderately since `{r} min(net_compo$period)`, rising from `{r} compo_mix_1996` to `{r} compo_mix_2023` (an increase of around `{r} inc_mix_1996_2023`%). 
+As for the total number of trading countries, we noticed short terms drops in the number of pure exporters, pure importers, and mixed countries over the studied period. 
+Some drops are common to pure importers and mixed countries (*e.g.*, following 2008 and 2019), while others are group-specific (*e.g.*, following 1997 for pure exporters and 2001 for pure importers).
 
 ![Number of trading countries in total and per group: pure exporters (red), pure importers (blue), mixed countries (grey); for each year of trade.](figures/fig-network-composition.png){#fig-network-composition width="100%" fig-pos="t"}
 

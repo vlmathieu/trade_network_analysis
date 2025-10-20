@@ -273,49 +273,50 @@ compo_tot_2015 <- net_compo[net_compo$period == 2015, ]$tot_nb_nodes
 compo_tot_2022 <- net_compo[net_compo$period == 2022, ]$tot_nb_nodes
 compo_tot_2023 <- net_compo[net_compo$period == max(net_compo$period), ]$tot_nb_nodes
 
-inc_1996_2008 <- round(((compo_tot_2008 - compo_tot_1996) / compo_tot_1996 * 100), 2)
-dec_2015_2022 <- round(abs((compo_tot_2015 - compo_tot_2022) / compo_tot_2022 * 100), 2)
-inc_2022_2023 <- round((compo_tot_2023 - compo_tot_2022) / compo_tot_2023 * 100, 2)
+inc_1996_2008 <- round(((compo_tot_2008 - compo_tot_1996) / compo_tot_1996 * 100), 1)
+dec_2015_2022 <- round(abs((compo_tot_2015 - compo_tot_2022) / compo_tot_2022 * 100), 1)
+inc_2022_2023 <- round((compo_tot_2023 - compo_tot_2022) / compo_tot_2023 * 100, 1)
 
 compo_exp_1996 <- net_compo[net_compo$period == min(net_compo$period), ]$nb_pure_exp
 compo_exp_2023 <- net_compo[net_compo$period == max(net_compo$period), ]$nb_pure_exp
-dec_exp_1996_2023 <- round(abs((compo_exp_2023 - compo_exp_1996) / compo_exp_1996 * 100))
-share_exp_2023 <- round(compo_exp_2023/ compo_tot_2023 * 100)
+dec_exp_1996_2023 <- round(abs((compo_exp_2023 - compo_exp_1996) / compo_exp_1996 * 100), 1)
+share_exp_2023 <- round(compo_exp_2023/ compo_tot_2023 * 100, 1)
 share_exp_average <- round(mean(net_compo$nb_pure_exp / net_compo$tot_nb_nodes) * 100, 1)
 
 compo_imp_1996 <- net_compo[net_compo$period == min(net_compo$period), ]$nb_pure_imp
 compo_imp_2007 <- net_compo[net_compo$period == 2007, ]$nb_pure_imp
 compo_imp_2015 <- net_compo[net_compo$period == 2015, ]$nb_pure_imp
 compo_imp_2023 <- net_compo[net_compo$period == max(net_compo$period), ]$nb_pure_imp
-dec_imp_1996_2007 <- round(abs((compo_imp_2007 - compo_imp_1996) / compo_imp_1996 * 100))
-inc_imp_2007_2015 <- round(abs((compo_imp_2015 - compo_imp_2007) / compo_imp_2007 * 100))
-share_imp_2023 <- round(compo_imp_2023/ compo_tot_2023 * 100)
+average_imp_2015_2023 <- round(mean(net_compo[net_compo$period >= 2015, ]$nb_pure_imp), 1)
+dec_imp_1996_2007 <- round(abs((compo_imp_2007 - compo_imp_1996) / compo_imp_1996 * 100), 1)
+inc_imp_2007_2015 <- round(abs((compo_imp_2015 - compo_imp_2007) / compo_imp_2007 * 100), 1)
+share_imp_2023 <- round(compo_imp_2023/ compo_tot_2023 * 100, 1)
 share_imp_average <- round(mean(net_compo$nb_pure_imp / net_compo$tot_nb_nodes) * 100, 1)
 
 diff_imp_exp <- round(abs(mean(net_compo$nb_pure_imp) - mean(net_compo$nb_pure_exp)))
 
 compo_mix_1996 <- net_compo[net_compo$period == min(net_compo$period), ]$nb_mixed
 compo_mix_2023 <- net_compo[net_compo$period == max(net_compo$period), ]$nb_mixed
-inc_mix_1996_2023 <- round(abs((compo_mix_2023 - compo_mix_1996) / compo_mix_1996 * 100))
-share_mix_2023 <- round(compo_mix_2023/ compo_tot_2023 * 100)
+inc_mix_1996_2023 <- round(abs((compo_mix_2023 - compo_mix_1996) / compo_mix_1996 * 100), 1)
+share_mix_2023 <- round(compo_mix_2023/ compo_tot_2023 * 100, 1)
 share_mix_average <- round(mean(net_compo$nb_mixed / net_compo$tot_nb_nodes) * 100, 1)
 ```
 
-Over the study period, the number of countries involved in the roundwood trade fluctuated slightly, ranging from `{r} compo_tot_min` in `{r} compo_tot_min_year` to `{r} compo_tot_max` in `{r} compo_tot_max_year[1]` and `{r} compo_tot_max_year[2]` (@fig-network-composition). 
+Over the study period, the number of countries involved in the roundwood trade fluctuated slightly, ranging from `{r} compo_tot_min` in `{r} compo_tot_min_year` to `{r} compo_tot_max` in `{r} compo_tot_max_year` (@fig-network-composition). 
 On average, `{r} compo_tot_mean` countries were involved in roundwood trade from `{r} compo_year_min` to `{r} compo_year_max`. 
 After a moderate increase in the number of countries involved in trade between `{r} compo_year_min` and 2008 (an increase of `{r} inc_1996_2008`%, from `{r} compo_tot_1996` to `{r} compo_tot_2008` countries), the number of countries stabilised until 2015. 
-From 2015 to `{r} compo_year_max`, the number of trading countries decreased slightly from `{r} compo_tot_2015` to `{r} compo_tot_2022` (an `{r} dec_2015_2022`% decrease). 
+From 2015 to 2022, the number of trading countries decreased slightly from `{r} compo_tot_2015` to `{r} compo_tot_2022` (an `{r} dec_2015_2022`% decrease) before increasing to `{r} compo_tot_2023` in `{r} compo_year_max` (an increase of `{r} inc_2022_2023`%). 
 Aside from these trends, we found short-term slight decreases in the number of trading countries after 2008, 2015, 2019, and 2021, which, as we will discuss later, can likely be attributed to major global events. 
 
 In addition, we can observe several trends in the share of pure exporters, pure importers, and countries that both export and import roundwood. 
 The number of pure exporters has decreased markedly since `{r} compo_year_min`, falling from `{r} compo_exp_1996` to `{r} compo_exp_2023` (a decline of around `{r} dec_exp_1996_2023`%). 
 In `{r} compo_year_max`, pure exporters represented only `{r} share_exp_2023`% of trading countries compared to an average of `{r} share_exp_average`% over the studied period. 
-In contrast, the number of pure importers decreased from `{r} compo_imp_1996` to `{r} compo_imp_2007` between `{r} min(net_compo$period)` and 2007 (a decline of `{r} dec_imp_1996_2007`%), before rising again to `{r} compo_imp_2015` between 2007 and 2015 (an increase of `{r} inc_imp_2007_2015`%). 
-Since 2015, the number of pure importers has stabilised around `{r} compo_imp_2023` countries. 
-In `{r} max(net_compo$period)`, pure importers represented a larger share (`{r} share_imp_2023`%) of trading countries than pure exporters (`{r} share_imp_average`% on average over the study period). 
+In contrast, the number of pure importers decreased from `{r} compo_imp_1996` to `{r} compo_imp_2007` between `{r} compo_year_min` and 2007 (a decline of `{r} dec_imp_1996_2007`%), before rising again to `{r} compo_imp_2015` between 2007 and 2015 (an increase of `{r} inc_imp_2007_2015`%). 
+Since 2015, the number of pure importers has stabilised around `{r} average_imp_2015_2023` countries on average. 
+In `{r} compo_year_max`, pure importers represented a larger share (`{r} share_imp_2023`%, `{r} compo_imp_2023` countries) of trading countries than pure exporters (`{r} share_imp_average`% on average over the study period). 
 Throughout the years, there were consistently more pure importers than pure exporters engaged in the international trade of roundwood, with an average difference of `{r} diff_imp_exp` countries. 
-The number of countries that both export and import roundwood ("mixed countries") constituted the vast majority of trading countries (`{r} share_mix_average`% on average over the studied period, `{r} share_mix_2023`% in `{r} max(net_compo$period)`). 
-The number of mixed countries has increased moderately since `{r} min(net_compo$period)`, rising from `{r} compo_mix_1996` to `{r} compo_mix_2023` (an increase of around `{r} inc_mix_1996_2023`%). 
+The number of countries that both export and import roundwood ("mixed countries") constituted the vast majority of trading countries (`{r} share_mix_average`% on average over the studied period, `{r} share_mix_2023`% in `{r} compo_year_max`). 
+The number of mixed countries has increased moderately since `{r} compo_year_min`, rising from `{r} compo_mix_1996` to `{r} compo_mix_2023` (an increase of around `{r} inc_mix_1996_2023`%). 
 As for the total number of trading countries, we noticed short terms drops in the number of pure exporters, pure importers, and mixed countries over the studied period. 
 Some drops are common to pure importers and mixed countries (*e.g.*, following 2008 and 2019), while others are group-specific (*e.g.*, following 1997 for pure exporters and 2001 for pure importers).
 
@@ -381,9 +382,28 @@ dec_edge_exp_RUS_2000_2020 <- round(abs((contrib_RUS_edge_exp_2020 - contrib_RUS
 dec_edge_imp_RUS_2000_2020 <- round(abs((contrib_RUS_edge_imp_2020 - contrib_RUS_edge_imp_2000) / contrib_RUS_edge_imp_2000 *100))
 ```
 
-While `{r} compo_tot_2020` countries were involved in the global roundwood trade in 2020, only `{r} nrow(contrib_2020)` countries (`{r} nrow(contrib_2020)/compo_tot_2020*100`% of the total) contributed to at least 1% of the export or import value (@fig-countries-profiles). This suggests a certain degree of market concentration in the trade of roundwood. These `{r} nrow(contrib_2020)` countries showed different behaviours, and we identified roughly three groups. First, Asian countries, namely China, India, Japan, the Republic of Korea and Vietnam, form a group of importers. Importers have a higher trade value for imports than for exports and have diversified their import connections more than their export connections. Second, several countries belong to the group of exporters. Their export value is higher than their import value, they have a higher number of export partners compared to their import partners, but their number of export trading partners varies. While `{r} contrib_2020_exp_min$country` only export to a limited number of `{r} contrib_2020_exp_min$nb_edge_exp` countries, net exporters such as Australia, New Zealand, Congo, Cameroon, Brazil and the Russian Federation, have moderately diversified their number of export trading partners (between 20 and 45). `{r} contrib_2020_exp_max_val$country[1]`,the `{r} contrib_2020_exp_max_val$country[2]`, and the `{r} contrib_2020_exp_max_val$country[3]` stand out as the world's three largest suppliers of roundwood. In particular, the USA shows a unique export pattern with a high diversification of its export trading partners (`{r} contrib_2020_exp_USA$nb_edge_exp` export connections). Finally, we can draw a third group of countries that tend to export as much as they import in trade value, with a balanced number of exporting and importing partners. This group is mainly made up of European countries but also includes countries such as Canada and Malaysia.
+While `{r} compo_tot_2020` countries were involved in the global roundwood trade in 2020, only `{r} nrow(contrib_2020)` countries (`{r} nrow(contrib_2020)/compo_tot_2020*100`% of the total) contributed to at least 1% of the export or import value (@fig-countries-profiles). 
+This suggests a certain degree of market concentration in the trade of roundwood. 
+These `{r} nrow(contrib_2020)` countries showed different behaviours, and we identified roughly three groups. 
+First, Asian countries, namely China, India, Japan, the Republic of Korea and Vietnam, form a group of importers. 
+Importers have a higher trade value for imports than for exports and have diversified their import connections more than their export connections. 
+Second, several countries belong to the group of exporters. 
+Their export value is higher than their import value, they have a higher number of export partners compared to their import partners, but their number of export trading partners varies. 
+While `{r} contrib_2020_exp_min$country` only export to a limited number of `{r} contrib_2020_exp_min$nb_edge_exp` countries, net exporters such as Australia, New Zealand, Congo, Cameroon, Brazil and the Russian Federation, have moderately diversified their number of export trading partners (between 20 and 45). 
+`{r} contrib_2020_exp_max_val$country[1]`, the `{r} contrib_2020_exp_max_val$country[2]`, and the `{r} contrib_2020_exp_max_val$country[3]` stand out as the world's three largest suppliers of roundwood. 
+In particular, the USA shows a unique export pattern with a high diversification of its export trading partners (`{r} contrib_2020_exp_USA$nb_edge_exp` export connections). 
+Finally, we can draw a third group of countries that tend to export as much as they import in trade value, with a balanced number of exporting and importing partners. 
+This group is mainly made up of European countries but also includes countries such as Canada and Malaysia.
 
-The trade situation has changed significantly between 2000 and 2020 (@fig-countries-profiles). In 20 years, China has overtaken Japan as the main importer of roundwood. Japan's import value decreased dramatically from more than \$`{r} round(contrib_JAP_val_2000/1000, 3)` billion in 2000 to about \$`{r} round(contrib_JAP_val_2020)` million in 2020, a decrease of `{r} dec_val_JAP_2000_2020`%. On the other hand, China's import value increased considerably from more than \$`{r} round(contrib_CHN_val_2000, 3)` billion in 2000 to more than \$`{r} round(contrib_CHN_val_2020, 3)` billion in 2020, an increase of about `{r} inc_val_CHN_2000_2020`%. Surprisingly, the number of China's export trading partners increased sharply by about `{r} inc_edge_exp_CHN_2000_2020`% between 2000 and 2020 (`{r} contrib_CHN_edge_exp_2020 - contrib_CHN_edge_exp_2000` new export trading partners), while the value of Chinese export trade decreased by more than \$`{r} round(abs((contrib_CHN_val_exp_2020 - contrib_CHN_val_exp_2000)/1000000), 1)` million on the same period (a decline of about `{r} dec_val_CHN_2000_2020`%), which seems unlikely. In terms of trade value, New Zealand has emerged as the world's top exporter of roundwood, while maintaining a relatively stable number of trading partners. Although the USA and the Russian Federation remained major exporters of roundwood, they appeared to be less integrated into global roundwood trade. Between 2000 and 2020, the USA has lost a large share of its trading partners to import (a fall of `{r} dec_edge_imp_USA_2000_2020`%), while slightly reducing its export diversification (a fall of only `{r} dec_edge_exp_USA_2000_2020`%). Similarly, the Russian Federation lost `{r} abs(contrib_RUS_edge_exp_2020 - contrib_RUS_edge_exp_2000)` export trading partners (`{r} dec_edge_exp_RUS_2000_2020`%) and `{r} abs(contrib_RUS_edge_imp_2020 - contrib_RUS_edge_imp_2000)` import trading partners (`{r} dec_edge_imp_RUS_2000_2020`%) in the same period.
+The trade situation has changed significantly between 2000 and 2020 (@fig-countries-profiles). 
+In 20 years, China has overtaken Japan as the main importer of roundwood. 
+Japan's import value decreased dramatically from more than \$`{r} round(contrib_JAP_val_2000/1000, 3)` billion in 2000 to about \$`{r} round(contrib_JAP_val_2020)` million in 2020, a decrease of `{r} dec_val_JAP_2000_2020`%. 
+On the other hand, China's import value increased considerably from more than \$`{r} round(contrib_CHN_val_2000, 3)` billion in 2000 to more than \$`{r} round(contrib_CHN_val_2020, 3)` billion in 2020, an increase of about `{r} inc_val_CHN_2000_2020`%. 
+Surprisingly, the number of China's export trading partners increased sharply by about `{r} inc_edge_exp_CHN_2000_2020`% between 2000 and 2020 (`{r} contrib_CHN_edge_exp_2020 - contrib_CHN_edge_exp_2000` new export trading partners), while the value of Chinese export trade decreased by more than \$`{r} round(abs((contrib_CHN_val_exp_2020 - contrib_CHN_val_exp_2000)/1000000), 1)` million on the same period (a decline of about `{r} dec_val_CHN_2000_2020`%), which seems unlikely. 
+In terms of trade value, New Zealand has emerged as the world's top exporter of roundwood, while maintaining a relatively stable number of trading partners. 
+Although the USA and the Russian Federation remained major exporters of roundwood, they appeared to be less integrated into global roundwood trade. 
+Between 2000 and 2020, the USA has lost a large share of its trading partners to import (a fall of `{r} dec_edge_imp_USA_2000_2020`%), while slightly reducing its export diversification (a fall of only `{r} dec_edge_exp_USA_2000_2020`%). 
+Similarly, the Russian Federation lost `{r} abs(contrib_RUS_edge_exp_2020 - contrib_RUS_edge_exp_2000)` export trading partners (`{r} dec_edge_exp_RUS_2000_2020`%) and `{r} abs(contrib_RUS_edge_imp_2020 - contrib_RUS_edge_imp_2000)` import trading partners (`{r} dec_edge_imp_RUS_2000_2020`%) in the same period.
 
 ![Bubble graph showing the profiles of trading countries in 2020 (top) and in 2000 (bottom). Countries are displayed according to the number of partners with whom the trade exports and imports. The size of the bubbles increases with the value of trade. Blue bubbles refer to imports and red bubbles refer to exports. Only countries accounting for at least 1% of the value of exports or imports in 1996 or 2022 are shown.](figures/fig-countries-profiles.png){#fig-countries-profiles height=90% fig-pos="p"}
 
@@ -403,15 +423,20 @@ connect <- read.csv(file = path, header = TRUE, sep = ";")
 connect <- connect %>% filter(cmd == 12)
 
 # Collect information for results
+connect_min_year <- min(connect$period)
+connect_max_year <- max(connect$period)
+
 connect_mean_exp_1996 <- connect[connect$period == 1996, ]$mean_exp
 connect_mean_exp_2008 <- connect[connect$period == 2008, ]$mean_exp
+connect_mean_exp_2023 <- connect[connect$period == connect_max_year, ]$mean_exp
 inc_mean_exp_1996_2008 <- round((connect_mean_exp_2008 - connect_mean_exp_1996) / connect_mean_exp_1996 * 100)
+dec_mean_exp_2008_2023 <- round(abs((connect_mean_exp_2023 - connect_mean_exp_2008) / connect_mean_exp_2008 * 100))
 
 connect_mean_imp_1996 <- connect[connect$period == 1996, ]$mean_imp
 connect_mean_imp_2008 <- connect[connect$period == 2008, ]$mean_imp
 inc_mean_imp_1996_2008 <- round((connect_mean_imp_2008 - connect_mean_imp_1996) / connect_mean_imp_1996 * 100)
-connect_mean_imp_2016 <- connect[connect$period == 2016, ]$mean_imp
-dec_mean_imp_2008_2016 <- round(abs((connect_mean_imp_2016 - connect_mean_imp_2008) / connect_mean_imp_2008 * 100))
+connect_mean_imp_2023 <- connect[connect$period == connect_max_year, ]$mean_imp
+dec_mean_imp_2008_2023 <- round(abs((connect_mean_imp_2023 - connect_mean_imp_2008) / connect_mean_imp_2008 * 100))
 
 connect_avg_mean_exp <- mean(connect$mean_exp)
 connect_avg_mean_imp <- mean(connect$mean_imp)
@@ -421,18 +446,46 @@ connect_avg_mean_exp_1996_2008 <- mean(connect[connect$period %in% seq(1996, 200
 connect_avg_mean_imp_1996_2008 <- mean(connect[connect$period %in% seq(1996, 2008), ]$mean_imp)
 diff_avg_mean_exp_imp_1996_2008 <- round((connect_avg_mean_exp_1996_2008 - connect_avg_mean_imp_1996_2008) / connect_avg_mean_imp_1996_2008 * 100)
 
-connect_avg_mean_exp_2008_2022 <- mean(connect[connect$period %in% seq(2008, 2022), ]$mean_exp)
-connect_avg_mean_imp_2008_2022 <- mean(connect[connect$period %in% seq(2008, 2022), ]$mean_imp)
-diff_avg_mean_exp_imp_2008_2022 <- round((connect_avg_mean_exp_2008_2022 - connect_avg_mean_imp_2008_2022) / connect_avg_mean_imp_2008_2022 * 100)
+connect_avg_mean_exp_2008_2023 <- mean(connect[connect$period %in% seq(2008, connect_max_year), ]$mean_exp)
+connect_avg_mean_imp_2008_2023 <- mean(connect[connect$period %in% seq(2008, connect_max_year), ]$mean_imp)
+diff_avg_mean_exp_imp_2008_2023 <- round((connect_avg_mean_exp_2008_2023 - connect_avg_mean_imp_2008_2023) / connect_avg_mean_imp_2008_2023 * 100)
 ```
 
-Results for mean, variance, skewness, and kurtosis of the connections per country are presented in @fig-network-connectivity. Three general observations can be made regarding the average number of connections per country over time. Firstly, both exporters and importers of roundwood observed an increase in their mean connectivity during the first half of the study period (from 1996 to 2008). During this period, mean connectivity of exporters increased by `{r} inc_mean_exp_1996_2008`% for exporters (from `{r} round(connect_mean_exp_1996, 1)` to `{r} round(connect_mean_exp_2008, 1)` connections per exporter), while that of importers increased by `{r} inc_mean_imp_1996_2008`% (from `{r} round(connect_mean_imp_1996, 1)` to `{r} round(connect_mean_imp_2008, 1)` connections per importer). The average number of connections per country then stabilised for exporters. Conversely, mean connectivity of importers decreased by `{r} dec_mean_imp_2008_2016`% (from `{r} round(connect_mean_imp_2008, 1)` to `{r} round(connect_mean_imp_2016, 1)` connections per importer) from 2008 to 2016 and has since stabilised. Secondly, exporters were, on average, `{r} diff_avg_mean_exp_imp`% more connected than importers throughout the study period (`{r} round(connect_avg_mean_exp, 1)` connections per exporter versus `{r} round(connect_avg_mean_imp, 1)` connections per importer). The gap widened between the first and second halves of the study period (`{r} diff_avg_mean_exp_imp_1996_2008`% between 1996 and 2008, `{r} diff_avg_mean_exp_imp_2008_2022`% between 2008 and 2022). Thirdly, aside from general trends, short-term increases and decreases in mean connectivity were observed from year to year, with some shared by both by exporters and importers. For example, mean connectivity of both exporters and importers dropped in the years following 2008, 2016, and 2019.
+Results for mean, variance, skewness, and kurtosis of the connections per country are presented in @fig-network-connectivity. 
+Three general observations can be made regarding the average number of connections per country over time. 
+Firstly, both exporters and importers of roundwood observed an increase in their mean connectivity during the first half of the study period (from 1996 to 2008). 
+During this period, mean connectivity of exporters increased by `{r} inc_mean_exp_1996_2008`% for exporters (from `{r} round(connect_mean_exp_1996, 1)` to `{r} round(connect_mean_exp_2008, 1)` connections per exporter), while that of importers increased by `{r} inc_mean_imp_1996_2008`% (from `{r} round(connect_mean_imp_1996, 1)` to `{r} round(connect_mean_imp_2008, 1)` connections per importer). 
+The average number of connections per country then slightly decreased by `{r} dec_mean_exp_2008_2023`% for exporters (from `{r} round(connect_mean_exp_2008, 1)` to `{r} round(connect_mean_exp_2023, 1)`). 
+Mean connectivity of importers decreased further by `{r} dec_mean_imp_2008_2023`% (from `{r} round(connect_mean_imp_2008, 1)` to `{r} round(connect_mean_imp_2023, 1)` connections per importer) from 2008 to 2016 and has since stabilised. 
+Secondly, exporters were, on average, `{r} diff_avg_mean_exp_imp`% more connected than importers throughout the study period (`{r} round(connect_avg_mean_exp, 1)` connections per exporter versus `{r} round(connect_avg_mean_imp, 1)` connections per importer). 
+The gap widened between the first and second halves of the study period (`{r} diff_avg_mean_exp_imp_1996_2008`% between 1996 and 2008, `{r} diff_avg_mean_exp_imp_2008_2023`% between 2008 and 2023). 
+Thirdly, aside from general trends, short-term increases and decreases in mean connectivity were observed from year to year, with some shared by both by exporters and importers. 
+For example, mean connectivity of both exporters and importers dropped in the years following 2008, 2016, and 2019.
 
-The variance in the number of connections per node provides additional information on how the connectivity of each country diverges from the overall average. Overall, we observe higher variance in connectivity per country for exporters and importers. Exporters and importers comprise countries with a wide range of trading partners, some of which have a significantly lower number of connections than average (poorly connected countries), while others have a significantly higher number of connections than average (highly connected countries). Variance in the connectivity per country increased for importers from 1996 to 2003 and for exporters until 2010, before decreasing until 2022. Between 1996 and 2005, variance in connectivity per country was, on average, higher for importers than for exporters. This suggests that, during this time period, importers showed greater spread in connectivity compared to the mean. After 2005, exporters and importers displayed similar variances in connectivity. Similar short-term increases and decreases to those observed in mean connectivity per node were seen in the variance from year to year.
+The variance in the number of connections per node provides additional information on how the connectivity of each country diverges from the overall average. 
+Overall, we observe high variance in connectivity per country for exporters and importers. 
+Exporters and importers comprise countries with a wide range of trading partners, some of which have a significantly lower number of connections than average (poorly connected countries), while others have a significantly higher number of connections than average (highly connected countries). 
+Variance in the connectivity per country increased for importers from 1996 to 2003 and for exporters until 2008, before decreasing until 2023. 
+Between 1996 and 2005, variance in connectivity per country was, on average, higher for importers than for exporters. 
+This suggests that, during this time period, importers showed greater spread in connectivity compared to the mean. 
+After 2005, exporters and importers displayed similar variances in connectivity. 
+Similar short-term increases and decreases to those observed in mean connectivity per node were seen in the variance from year to year.
 
-Skewness provides information about the distribution of highly and poorly connected nodes within a network. Skewness in connections per country is always positive for both exporters and importers, indicating a greater proportion of countries with low to high connectivity. It remained stable on average for both exporters and importers between 1996 and 2005, followed by an increase until 2010 for exporters and until 2013 for importers. Until 2010, the degree of skewness in connectivity was similar for exporters and importers. Since 2010, the skewness in connectivity has become, on average, higher for importers than for exporters, has slightly increased for importers and has decreased moderately for exporters. That is, there was a greater proportion of poorly connected countries among importers than among exporters, which supports and complements our findings regarding the mean number of connections.
+Skewness provides information about the distribution of highly and poorly connected nodes within a network. 
+Skewness in connections per country is always positive for both exporters and importers, indicating a greater proportion of countries with low to high connectivity. 
+It remained stable on average for both exporters and importers between 1996 and 2005, followed by an increase until 2010 for exporters and until 2012 for importers. 
+Until 2010, the degree of skewness in connectivity was similar for exporters and importers. 
+Since 2010, the skewness in connectivity has become, on average, higher for importers than for exporters, has slightly increased for importers, and has decreased moderately for exporters. 
+That is, there was a greater proportion of poorly connected countries among importers than among exporters, which supports and complements our findings regarding the mean number of connections.
 
-Kurtosis indicates whether countries diverge from the mean connectivity in a scarce or abundant manner. During the study period, kurtosis of connections per country remained positive for both exporters and importers. This suggests that countries whose connectivity diverges from the mean connectivity are rarer than those whose connectivity is close to the mean. From 1996 to 2014, skewness of connectivity was higher for exporters than for importers, meaning that exporters diverging from the mean connectivity were, on average, rarer than importers. The reverse was true after 2014. Until 2022, kurtosis of connectivity decreased, while remaining positive. This fall is steeper for exporters than for importers. As with our other network metrics, we observed several short-term fluctuations in skewness and kurtosis over time from year to year, though these were less pronounced.
+Kurtosis indicates whether countries diverge from the mean connectivity in a scarce or abundant manner. 
+During the study period, kurtosis of connections per country remained positive for both exporters and importers. 
+This suggests that countries whose connectivity diverges from the mean connectivity are rarer than those whose connectivity is close to the mean. 
+From 1996 to 2014, skewness of connectivity was higher for exporters than for importers, meaning that exporters diverging from the mean connectivity were, on average, rarer than importers. 
+The reverse was true after 2014. 
+Until 2022, kurtosis of connectivity decreased, while remaining positive. 
+This fall is steeper for exporters than for importers. 
+As with our other network metrics, we observed several short-term fluctuations in skewness and kurtosis over time from year to year, though these were less pronounced.
 
 ## Market concentration in roundwood trade over time
 
@@ -450,6 +503,8 @@ hhi <- read.csv(file = path, header = TRUE, sep = ";")
 hhi <- hhi %>% filter(cmd == 12)
 
 # Collect information for results
+hhi_max_year <- max(hhi$period)
+
 hhi_exp_1996 <- hhi[hhi$period == 1996, ]$hhi_exp
 hhi_exp_1998 <- hhi[hhi$period == 1998, ]$hhi_exp
 dec_hhi_exp_1996_1998 <- round(abs((hhi_exp_1998 - hhi_exp_1996) / hhi_exp_1996 * 100))
@@ -461,7 +516,7 @@ dec_hhi_imp_1996_1998 <- round(abs((hhi_imp_1998 - hhi_imp_1996) / hhi_imp_1996 
 hhi_exp_2006 <- hhi[hhi$period == 2006, ]$hhi_exp
 hhi_exp_2011 <- hhi[hhi$period == 2011, ]$hhi_exp
 
-mean_hhi_exp_2011_2022 <- mean(hhi[hhi$period %in% seq(2011,2022), ]$hhi_exp)
+mean_hhi_exp_2011_2023 <- mean(hhi[hhi$period %in% seq(2011, hhi_max_year), ]$hhi_exp)
 
 hhi_imp_2009 <- hhi[hhi$period == 2009, ]$hhi_imp
 hhi_imp_2013 <- hhi[hhi$period == 2013, ]$hhi_imp
@@ -472,10 +527,16 @@ hhi_imp_2017 <- hhi[hhi$period == 2017, ]$hhi_imp
 
 mean_hhi_imp_2017_2021 <- mean(hhi[hhi$period %in% seq(2017,2021), ]$hhi_imp)
 
-hhi_imp_2022 <- hhi[hhi$period == 2022, ]$hhi_imp
+hhi_imp_2023 <- hhi[hhi$period == hhi_max_year, ]$hhi_imp
 ```
 
-Between 1996 and 1998, the Herfindahl-Hirschman Index (HHI) initially fell for both exports (a decline of `{r} dec_hhi_exp_1996_1998`%, from `{r} round(hhi_exp_1996, 2)` to `{r} round(hhi_exp_1998, 2)`) and imports (a decline of `{r} dec_hhi_imp_1996_1998`%, from `{r} round(hhi_imp_1996, 2)` to `{r} round(hhi_imp_1998, 2)`) indicating a rapid shift from moderate to low market concentration in roundwood trade (@fig-market-concentration). This decline was followed by an increase in the HHI for exporters until 2006, reaching a HHI of `{r} round(hhi_exp_2006, 2)`, before falling again until 2011 and reaching a HHI of `{r} round(hhi_exp_2011, 2)`. Market of roundwood exports then remained stable and lowly concentrated until 2022, with an average HHI of `{r} round(mean_hhi_exp_2011_2022, 2)` since 2011. In contrast, market concentration of roundwood imports increased sharply, becoming moderately concentrated after 2009 (HHI of `{r} round(hhi_imp_2009, 2)`) and highly concentrated after 2013 (HHI of `{r} round(hhi_imp_2013, 2)`). After a steep decline from a HHI of `{r} round(hhi_imp_2015, 2)` to `{r} round(hhi_imp_2016, 2)` between 2015 and 2016, market concentration level recovered the following year to reach a HHI of `{r} round(hhi_imp_2017, 2)`. From 2017 to 2021, imports remained highly concentrated, with an average HHI of `{r} round(mean_hhi_imp_2017_2021, 2)`, before falling to `{r} round(hhi_imp_2022, 2)` in 2022. On average, over the last decade, imports have remained highly concentrated, whereas exports have remained lowly concentrated for 26 years.
+Between 1996 and 1998, the Herfindahl-Hirschman Index (HHI) initially fell for both exports (a decline of `{r} dec_hhi_exp_1996_1998`%, from `{r} round(hhi_exp_1996, 2)` to `{r} round(hhi_exp_1998, 2)`) and imports (a decline of `{r} dec_hhi_imp_1996_1998`%, from `{r} round(hhi_imp_1996, 2)` to `{r} round(hhi_imp_1998, 2)`) indicating a rapid shift from moderate to low market concentration in roundwood trade (@fig-market-concentration). 
+This decline was followed by an increase in the HHI for exporters until 2006, reaching a HHI of `{r} round(hhi_exp_2006, 2)`, before falling again until 2011 and reaching a HHI of `{r} round(hhi_exp_2011, 2)`. 
+Market of roundwood exports then remained stable and lowly concentrated until 2023, with an average HHI of `{r} round(mean_hhi_exp_2011_2023, 2)` since 2011. 
+In contrast, market concentration of roundwood imports increased sharply, becoming moderately concentrated after 2009 (HHI of `{r} round(hhi_imp_2009, 2)`) and highly concentrated after 2013 (HHI of `{r} round(hhi_imp_2013, 2)`). 
+After a steep decline from a HHI of `{r} round(hhi_imp_2015, 2)` to `{r} round(hhi_imp_2016, 2)` between 2015 and 2016, market concentration level recovered the following year to reach a HHI of `{r} round(hhi_imp_2017, 2)`. 
+From 2017 to 2021, imports remained highly concentrated, with an average HHI of `{r} round(mean_hhi_imp_2017_2021, 2)`, before falling to `{r} round(hhi_imp_2023, 2)` in 2023. 
+On average, over the last decade, imports have remained highly concentrated, whereas exports have remained lowly concentrated for 27 years.
 
 ![Contribution of different countries to the total traded value of the network. Only countries that have contributed to more than 5% of the total traded value at least once during the study period are shown. The envelope corresponds to the uncertainty in the reported values. Contributions are displayed by group of countries: importers (top); mixed countries (middle); and exporters (bottom).](figures/fig-network-contribution.png){#fig-network-contribution height=90% fig-pos="p"}
 
@@ -493,55 +554,75 @@ contrib <- contrib %>%
   mutate(contrib_trade_value = round((contrib_trade_value_exp + contrib_trade_value_imp) / 2, 2) * 100)
 
 # Collect information for results
+contrib_max_year <- max(contrib$period)
 
 jpn_1996 <- contrib[contrib$country == "Japan" & contrib$period == 1996, ]$contrib_trade_value
-jpn_2022 <- contrib[contrib$country == "Japan" & contrib$period == 2022, ]$contrib_trade_value
+jpn_2023 <- contrib[contrib$country == "Japan" & contrib$period == contrib_max_year, ]$contrib_trade_value
 
 ind_1996 <- contrib[contrib$country == "India" & contrib$period == 1996, ]$contrib_trade_value
 ind_2012 <- contrib[contrib$country == "India" & contrib$period == 2012, ]$contrib_trade_value
-ind_2022 <- contrib[contrib$country == "India" & contrib$period == 2022, ]$contrib_trade_value
+ind_2023 <- contrib[contrib$country == "India" & contrib$period == contrib_max_year, ]$contrib_trade_value
 
 chn_1996 <- contrib[contrib$country == "China" & contrib$period == 1996, ]$contrib_trade_value
 chn_2021 <- contrib[contrib$country == "China" & contrib$period == 2021, ]$contrib_trade_value
-chn_2022 <- contrib[contrib$country == "China" & contrib$period == 2022, ]$contrib_trade_value
+chn_2023 <- contrib[contrib$country == "China" & contrib$period == contrib_max_year, ]$contrib_trade_value
 
+fra_avg <- round(mean(contrib[contrib$country == "France", ]$contrib_trade_value), 1)
 ger_1996 <- contrib[contrib$country == "Germany" & contrib$period == 1996, ]$contrib_trade_value
-ger_2022 <- contrib[contrib$country == "Germany" & contrib$period == 2022, ]$contrib_trade_value
+ger_2023 <- contrib[contrib$country == "Germany" & contrib$period == contrib_max_year, ]$contrib_trade_value
 cze_1996 <- contrib[contrib$country == "Czechia" & contrib$period == 1996, ]$contrib_trade_value
-cze_2022 <- contrib[contrib$country == "Czechia" & contrib$period == 2022, ]$contrib_trade_value
+cze_2023 <- contrib[contrib$country == "Czechia" & contrib$period == contrib_max_year, ]$contrib_trade_value
 aus_1996 <- contrib[contrib$country == "Austria" & contrib$period == 1996, ]$contrib_trade_value
-aus_2022 <- contrib[contrib$country == "Austria" & contrib$period == 2022, ]$contrib_trade_value
+aus_2023 <- contrib[contrib$country == "Austria" & contrib$period == contrib_max_year, ]$contrib_trade_value
+swe_1996 <- contrib[contrib$country == "Sweden" & contrib$period == 1996, ]$contrib_trade_value
+swe_2023 <- contrib[contrib$country == "Sweden" & contrib$period == contrib_max_year, ]$contrib_trade_value
+pol_1996 <- contrib[contrib$country == "Poland" & contrib$period == 1996, ]$contrib_trade_value
+pol_2023 <- contrib[contrib$country == "Poland" & contrib$period == contrib_max_year, ]$contrib_trade_value
+
+# contrib[contrib$country %in% c("Germany", "Czechia", "Austria", "Sweden", "France", "Poland") & contrib$period == 1996, c("country", "contrib_trade_value")]
+# contrib[contrib$country %in% c("Germany", "Czechia", "Austria", "Sweden", "France", "Poland") & contrib$period == contrib_max_year, c("country", "contrib_trade_value")]
 
 usa_1996 <- contrib[contrib$country == "USA" & contrib$period == 1996, ]$contrib_trade_value
 usa_2007 <- contrib[contrib$country == "USA" & contrib$period == 2007, ]$contrib_trade_value
-mean_usa_2007_2022 <- round(mean(contrib[contrib$country == "USA" & contrib$period %in% seq(2007, 2022), ]$contrib_trade_value), 1)
+mean_usa_2007_2023 <- round(mean(contrib[contrib$country == "USA" & contrib$period %in% seq(2007, contrib_max_year), ]$contrib_trade_value), 1)
 
 can_1996 <- contrib[contrib$country == "Canada" & contrib$period == 1996, ]$contrib_trade_value
 can_2002 <- contrib[contrib$country == "Canada" & contrib$period == 2002, ]$contrib_trade_value
 can_2007 <- contrib[contrib$country == "Canada" & contrib$period == 2007, ]$contrib_trade_value
-mean_can_2007_2022 <- round(mean(contrib[contrib$country == "Canada" & contrib$period %in% seq(2007, 2022), ]$contrib_trade_value), 1)
+mean_can_2007_2023 <- round(mean(contrib[contrib$country == "Canada" & contrib$period %in% seq(2007, contrib_max_year), ]$contrib_trade_value), 1)
 
 nz_1996 <- contrib[contrib$country == "New Zealand" & contrib$period == 1996, ]$contrib_trade_value
 nz_1998 <- contrib[contrib$country == "New Zealand" & contrib$period == 1998, ]$contrib_trade_value
-nz_2022 <- contrib[contrib$country == "New Zealand" & contrib$period == 2022, ]$contrib_trade_value
+nz_2023 <- contrib[contrib$country == "New Zealand" & contrib$period == contrib_max_year, ]$contrib_trade_value
 mean_nz_1998_2008 <- round(mean(contrib[contrib$country == "New Zealand" & contrib$period %in% seq(1998, 2008), ]$contrib_trade_value), 1)
 
 rf_1996 <- contrib[contrib$country == "Russian Federation" & contrib$period == 1996, ]$contrib_trade_value
 rf_2007 <- contrib[contrib$country == "Russian Federation" & contrib$period == 2007, ]$contrib_trade_value
 rf_2012 <- contrib[contrib$country == "Russian Federation" & contrib$period == 2012, ]$contrib_trade_value
 mean_rf_2012_2018 <- round(mean(contrib[contrib$country == "Russian Federation" & contrib$period %in% seq(2012, 2018), ]$contrib_trade_value), 1)
-rf_2022 <- contrib[contrib$country == "Russian Federation" & contrib$period == 2022, ]$contrib_trade_value
+rf_2023 <- contrib[contrib$country == "Russian Federation" & contrib$period == contrib_max_year, ]$contrib_trade_value
 
 # contrib[contrib$country == "Russian Federation", c("period", "contrib_trade_value")]
 ```
 
-Contributions from individual countries to the total network trade value provide a more detailed picture of market concentration (@fig-network-contribution). These contributions correspond to the proportion of the network's total trade value that would be lost if a particular country is omitted from the network, *i.e.*, the proportion of total trade value flowing through that country. Over the study period, only ten countries contributed at least 5% to the network's total trade value once. Referring to @fig-countries-profiles, main contributors to the total trade value can be divided into three groups: importers (China, India and Japan); European countries (Germany, Czechia and Austria); and traditional wood exporters (Canada, New Zealand, the Russian Federation, and the USA).
+Contributions from individual countries to the total network trade value provide a more detailed picture of market concentration (@fig-network-contribution). 
+These contributions correspond to the proportion of the network's total trade value that would be lost if a particular country is omitted from the network, *i.e.*, the proportion of total trade value flowing through that country. 
+Over the study period, only thirteen countries contributed at least 5% to the network's total trade value once. 
+Referring to @fig-countries-profiles, main contributors to the total trade value can be divided into three groups: importers (China, India and Japan); European countries (Germany, Czechia, Austria, Sweden, France, Poland); and traditional wood exporters (Canada, New Zealand, the Russian Federation, and the USA).
 
-Among importers, Japan's share of total trade value decreased considerably from around `{r} jpn_1996`% in 1996 to less than `{r} jpn_2022`% in 2022. On the other hand, India's contribution increased steadily from around `{r} ind_1996`% in 1996 to around `{r} ind_2012`% in 2012, after decreasing to `{r} ind_2022`% in 2022. Most notably, China's share of the total trade value increased sharply, from around `{r} chn_1996`% in 1996 to more than `{r} chn_2021`% in 2021, before decreasing to `{r} chn_2022`% in 2022. Together with results from Figures [-@fig-countries-profiles] and [-@fig-market-concentration], this indicated that around `{r} chn_2021`% of the total trade value flowed through China in 2021 due to its imports, which is consistent with the high level of market concentration in roundwood imports in over the past decade.
+Among importers, Japan's share of total trade value decreased considerably from around `{r} jpn_1996`% in 1996 to less than `{r} jpn_2023`% in 2023. 
+On the other hand, India's contribution increased steadily from around `{r} ind_1996`% in 1996 to around `{r} ind_2012`% in 2012, after decreasing to `{r} ind_2023`% in 2023. 
+Most notably, China's share of the total trade value increased sharply, from around `{r} chn_1996`% in 1996 to more than `{r} chn_2021`% in 2021, before decreasing to `{r} chn_2023`% in 2023. 
+Together with results from Figures [-@fig-countries-profiles] and [-@fig-market-concentration], this indicated that around `{r} chn_2021`% of the total trade value flowed through China in 2021 due to its imports, which is consistent with the high level of market concentration in roundwood imports in over the past decade. The decline in the concentration of roundwood imports since 2021 is likely due to China's decreased trade contribution.
 
-Among European countries, on average, the contribution of Germany and the Czech Republic increased steadily from around `{r} ger_1996`% and `{r} cze_1996`% in 1996 to around `{r} ger_2022`% and `{r} cze_2022`% in 2022, respectively. In contrast, Austria's contribution rose only slightly from around `{r} aus_1996`% to `{r} aus_2022`% over the same period. These levels of contribution remain relatively low compared to those of main importers such as China.
+Germany stands out among European countries with a `{r} ger_2023`% contribution to trade in 2023.
+The Czech Republic, Austria, Sweden, France, and Poland present similar contributions, between 5% and 8%. 
+While France's contribution to trade remained stable at around `{r} fra_avg`% over the study period, other European countries increased their contributions.
+The contribution of Austria and Sweden moderatly increased from around `{r} aus_1996`% both to `{r} aus_2023`% and `{r} swe_2023`%, respectively.
+The sharpest increases in contribution to trade among European countries are observed for Germany (from `{r} ger_1996`% in 1996 to `{r} ger_2023`% in 2023), the Czech Republic (from `{r} cze_1996`% in 1996 to `{r} cze_2023`% in 2023), and Poland (from `{r} pol_1996`% in 1996 to `{r} pol_2023`% in 2023).
+These levels of contribution remain relatively low compared to those of main importers such as China.
 
-Among exporters, the contribution of the USA significantly decreased over the studied period, falling from `{r} usa_1996`% in 1996 to `{r} usa_2007`% in 2007. It then stabilized at an average of around `{r} mean_usa_2007_2022`% over the 2007-2022 period. Canada's contribution to total trade value increased from `{r} can_1996`% in 1996 to `{r} can_2002`% in 2002, before decreasing to `{r} can_2007`% in 2007. It has remained stable since then, averaging around `{r} mean_can_2007_2022`%. By contrast, New Zealand's contribution initially slightly fell from `{r} nz_1996`% in 1996 to `{r} nz_1998`% in 1998, then stabilised at an average of around `{r} mean_nz_1998_2008`% between 1998 and 2008, before rising significantly to `{r} nz_2022`% in 2022. On the other hand, Russia exhibits a unique pattern of varying contributions to the total trade value throughout the studied period. Initially, Russian contributions increased from `{r} rf_1996`% in 1996 to `{r} rf_2007`% in 2007, before dropping sharply to `{r} rf_2012`% in 2012. This figure then stabilised at an average of around `{r} mean_rf_2012_2018`% between 2012 and 2018, before dropping again to below `{r} rf_2022`% in 2022. This correlates with findings presented in @fig-countries-profiles, which suggests that Russian trade integration has decreased over time. Except for Russia, which appears to be influenced by short-term shocks, all contributors to the roundwood trade exhibit long-term variations in their contribution.
+Among exporters, the contribution of the USA significantly decreased over the studied period, falling from `{r} usa_1996`% in 1996 to `{r} usa_2007`% in 2007. It then stabilized at an average of around `{r} mean_usa_2007_2023`% over the 2007-2022 period. Canada's contribution to total trade value increased from `{r} can_1996`% in 1996 to `{r} can_2002`% in 2002, before decreasing to `{r} can_2007`% in 2007. It has remained stable since then, averaging around `{r} mean_can_2007_2023`%. By contrast, New Zealand's contribution initially slightly fell from `{r} nz_1996`% in 1996 to `{r} nz_1998`% in 1998, then stabilised at an average of around `{r} mean_nz_1998_2008`% between 1998 and 2008, before rising significantly to `{r} nz_2023`% in 2022. On the other hand, Russia exhibits a unique pattern of varying contributions to the total trade value throughout the studied period. Initially, Russian contributions increased from `{r} rf_1996`% in 1996 to `{r} rf_2007`% in 2007, before dropping sharply to `{r} rf_2012`% in 2012. This figure then stabilised at an average of around `{r} mean_rf_2012_2018`% between 2012 and 2018, before dropping again to below `{r} rf_2023`% in 2022. This correlates with findings presented in @fig-countries-profiles, which suggests that Russian trade integration has decreased over time. Except for Russia, which appears to be influenced by short-term shocks, all contributors to the roundwood trade exhibit long-term variations in their contribution.
 
 # Discussion
 

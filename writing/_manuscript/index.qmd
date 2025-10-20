@@ -618,11 +618,20 @@ Together with results from Figures [-@fig-countries-profiles] and [-@fig-market-
 Germany stands out among European countries with a `{r} ger_2023`% contribution to trade in 2023.
 The Czech Republic, Austria, Sweden, France, and Poland present similar contributions, between 5% and 8%. 
 While France's contribution to trade remained stable at around `{r} fra_avg`% over the study period, other European countries increased their contributions.
-The contribution of Austria and Sweden moderatly increased from around `{r} aus_1996`% both to `{r} aus_2023`% and `{r} swe_2023`%, respectively.
-The sharpest increases in contribution to trade among European countries are observed for Germany (from `{r} ger_1996`% in 1996 to `{r} ger_2023`% in 2023), the Czech Republic (from `{r} cze_1996`% in 1996 to `{r} cze_2023`% in 2023), and Poland (from `{r} pol_1996`% in 1996 to `{r} pol_2023`% in 2023).
+The contribution of Austria and Sweden moderatly increased from around `{r} aus_1996`% to `{r} aus_2023`% and `{r} swe_2023`%, respectively.
+The sharpest increases in contributions to trade among European countries are observed for Germany (rising from `{r} ger_1996`% in 1996 to `{r} ger_2023`% in 2023), the Czech Republic (rising from `{r} cze_1996`% in 1996 to `{r} cze_2023`% in 2023), and Poland (rising from `{r} pol_1996`% in 1996 to `{r} pol_2023`% in 2023).
 These levels of contribution remain relatively low compared to those of main importers such as China.
 
-Among exporters, the contribution of the USA significantly decreased over the studied period, falling from `{r} usa_1996`% in 1996 to `{r} usa_2007`% in 2007. It then stabilized at an average of around `{r} mean_usa_2007_2023`% over the 2007-2022 period. Canada's contribution to total trade value increased from `{r} can_1996`% in 1996 to `{r} can_2002`% in 2002, before decreasing to `{r} can_2007`% in 2007. It has remained stable since then, averaging around `{r} mean_can_2007_2023`%. By contrast, New Zealand's contribution initially slightly fell from `{r} nz_1996`% in 1996 to `{r} nz_1998`% in 1998, then stabilised at an average of around `{r} mean_nz_1998_2008`% between 1998 and 2008, before rising significantly to `{r} nz_2023`% in 2022. On the other hand, Russia exhibits a unique pattern of varying contributions to the total trade value throughout the studied period. Initially, Russian contributions increased from `{r} rf_1996`% in 1996 to `{r} rf_2007`% in 2007, before dropping sharply to `{r} rf_2012`% in 2012. This figure then stabilised at an average of around `{r} mean_rf_2012_2018`% between 2012 and 2018, before dropping again to below `{r} rf_2023`% in 2022. This correlates with findings presented in @fig-countries-profiles, which suggests that Russian trade integration has decreased over time. Except for Russia, which appears to be influenced by short-term shocks, all contributors to the roundwood trade exhibit long-term variations in their contribution.
+Among exporters, the contribution of the USA significantly decreased over the studied period, falling from `{r} usa_1996`% in 1996 to `{r} usa_2007`% in 2007. 
+It then stabilized at an average of around `{r} mean_usa_2007_2023`% over the 2007-2023 period. 
+Canada's contribution to total trade value increased from `{r} can_1996`% in 1996 to `{r} can_2002`% in 2002, before decreasing to `{r} can_2007`% in 2007. 
+It has remained stable since then, averaging around `{r} mean_can_2007_2023`%. 
+By contrast, New Zealand's contribution initially slightly fell from `{r} nz_1996`% in 1996 to `{r} nz_1998`% in 1998, then stabilised at an average of around `{r} mean_nz_1998_2008`% between 1998 and 2008, before rising significantly to `{r} nz_2023`% in 2023. 
+On the other hand, Russia exhibits a unique pattern of varying contributions to the total trade value throughout the studied period. 
+Initially, Russian contributions increased from `{r} rf_1996`% in 1996 to `{r} rf_2007`% in 2007, before dropping sharply to `{r} rf_2012`% in 2012. 
+This figure then stabilised at an average of around `{r} mean_rf_2012_2018`% between 2012 and 2018, before dropping again to below `{r} rf_2023`% in 2023. 
+This correlates with findings presented in @fig-countries-profiles, which suggests that Russian trade integration has decreased over time. 
+Except for Russia, which appears to be influenced by short- to medium-term shocks, all contributors to the roundwood trade exhibit long-term variations in their contribution.
 
 # Discussion
 

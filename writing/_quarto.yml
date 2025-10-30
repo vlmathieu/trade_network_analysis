@@ -7,11 +7,13 @@ execute:
 format:
   html:
     toc: true
-  docx: default
   elsevier-pdf:
-    keep-tex: true
+    # keep-tex: true
     journal:
-      name: Journal of Cleaner Production
+      name: Forest Policy and Economics
       formatting: review
       model: 3p
       cite-style: authoryear
+    include-in-header: 
+      text: |
+        \newpageafter{author}

@@ -108,20 +108,7 @@
 \bibliographystyle{elsarticle-harv}
 
 
-\usepackage{booktabs}
-\usepackage{longtable}
-\usepackage{array}
-\usepackage{multirow}
-\usepackage{wrapfig}
-\usepackage{float}
-\usepackage{colortbl}
-\usepackage{pdflscape}
-\usepackage{tabu}
-\usepackage{threeparttable}
-\usepackage{threeparttablex}
-\usepackage[normalem]{ulem}
-\usepackage{makecell}
-\usepackage{xcolor}
+\newpageafter{author}
 \makeatletter
 \@ifpackageloaded{caption}{}{\usepackage{caption}}
 \AtBeginDocument{%
@@ -163,15 +150,15 @@
 \@ifpackageloaded{caption}{}{\usepackage{caption}}
 \@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
 \makeatother
-\journal{Journal of Cleaner Production}
+\journal{Forest Policy and Economics}
 \usepackage{bookmark}
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 \urlstyle{same}
 \hypersetup{
-  pdftitle={Resilient structure and increasing concentration of the roundwood trade: a network analysis perspective},
+  pdftitle={Rise (and Fall?) of China's Demand for Imported Timber: A Network Analysis of the International Roundwood Trade},
   pdfauthor={Valentin Mathieu; David Shanafelt},
   pdfkeywords={Globalization, Trade, Wood products, Network
-theory, Forest policy},
+theory, Structural resilience, Market concentration, Forest policy},
   colorlinks=true,
   linkcolor={blue},
   filecolor={Maroon},
@@ -184,8 +171,8 @@ theory, Forest policy},
 \begin{document}
 
 \begin{frontmatter}
-\title{Resilient structure and increasing concentration of the roundwood
-trade: a network analysis perspective}
+\title{Rise (and Fall?) of China's Demand for Imported Timber: A Network
+Analysis of the International Roundwood Trade}
 \author[1,2]{Valentin Mathieu%
 \corref{cor1}%
 }
@@ -207,33 +194,29 @@ BETA},addressline={54000},city={Nancy},country={France},countrysep={,},postcodes
 
         
 \begin{abstract}
-{[}TO EDIT{]} While the use of wood products is increasingly linked to
-sustainability and climate change issues, forest resources are unevenly
-distributed among countries and have different regional forest dynamics.
-Redistributing surpluses resulting from overproduction of wood products
-to countries with demand deficits to address sustainability issues can
-be achieved through trade. The literature offers a comprehensive study
-of the international timber trade, but few studies to date consider the
-physical structure of the trade network in their analyses. We conduct a
-diagnosis of the international roundwood trade from 1997 to 2017 using a
-network-theoretic approach, which provides a deeper understanding of the
-inherent structure of the trade of wood products and complements the
-existing literature. We expect the global roundwood trade network to be
-concentrated and to follow global trends in economic growth, but also to
-be sensitive to major economic and political events and natural
-disasters. Our results show that the roundwood trade network has
-increased in value, while varying slightly in size, and has become more
-interconnected over the study period. We also observed changes in
-network structure over time that can be explained by three broad
-categories of events: economic disruptions, political events, and
-natural disasters. Most importantly, our results show the growing market
-power of China: in 2017, more than 50\% of the network's total trade
-value was due to Chinese imports, China was among the most connected
-countries, and countries preferentially traded with China. Lastly, our
-results have implications for forest policy, as the structure of the
-network may dictate potential cascades of local or regional shocks to
-the global trade market, and as the growing polarization around China
-exacerbates trade tensions in roundwood.
+The international trade of wood products is an increasingly complex and
+interdependent component of the global economy, deeply linked to
+environmental issues, geopolitical shifts, changing competitive
+landscape, and macroeconomic trends. While the literature offers
+comprehensive studies on the international timber trade, few to date
+consider the physical structure of the trade network in their analyses,
+leaving its structural evolution poorly understood. To address this gap,
+we employ a network-theoretic approach to model global roudnwood trade
+flows between countries, providing a unique diagnosis of the trade's key
+structural properties and their temporal evolution from 1996 to 2023.
+The analysis reveals that the network has developed short-term
+resilience while becoming consistently more interconnected and
+structurally concentrated over the long term. Crucially, the structure
+is highly polarized around China's market dominance, which rapidly grew
+to concentrate over 56\% of total trade value by 2021, due to its import
+demand. This centralization, coupled with the structural withdrawal of
+major exporter Russia, created a single point of vulnerability in the
+global supply chain. The recent decline in China's contribution
+post-2021---a result of geopolitical shocks, domestic self-sufficiency
+policies, and structural economic shifts---signals a fundamental shift
+in the international roundwood trade. These findings underscore the need
+for exporters to implement market diversification strategies to mitigate
+policy risks in the global roundwood value chain.
 \end{abstract}
 
 
@@ -242,7 +225,7 @@ exacerbates trade tensions in roundwood.
 
 \begin{keyword}
     Globalization \sep Trade \sep Wood products \sep Network
-theory \sep 
+theory \sep Structural resilience \sep Market concentration \sep 
     Forest policy
 \end{keyword}
 \end{frontmatter}
@@ -250,8 +233,8 @@ theory \sep
 
 \section{Introduction}\label{introduction}
 
-International wood product trade stands as an increasingly complex and
-interdependent component of the global economy, intricately tied to
+The international wood products trade stands as an increasingly complex
+and interdependent component of the global economy, intricately tied to
 environmental concerns, geopolitical shifts, evolving competition
 schemes, and macroeconomic trends. The uneven global distribution of
 forest resources, concentrated in a few countries (\emph{e.g.}, Russia,
@@ -347,9 +330,10 @@ indicating strong underlying demand and inherent resilience
 \citep{unecefao_forest_2022}. However, the war in Ukraine from mid-2022
 exacerbated supply chain disruptions, intensified inflation, and eroded
 consumer confidence, leading to a demand decline
-\citep{unecefao_forest_2022} Climate change impact on forests ecosystems
-worsens such instability, increasing the frequency and severity of
-natural disturbances like storms, wildfires, and pest outbreaks
+\citep{unecefao_forest_2022}. Climate change impact on forests
+ecosystems worsens such instability, increasing the frequency and
+severity of natural disturbances like storms, wildfires, and pest
+outbreaks
 \citep{seidl_unraveling_2011, seidl_climate_2017, curtis_classifying_2018, tyukavina_global_2022, patacca_significant_2023},
 directly disrupting timber supply chains and market stability and
 deteriorating wood quality \citep{garcia-jacome_forest_2025}. This
@@ -362,8 +346,8 @@ Understanding the intricate web of these relationships and trade flows
 is paramount for policy formulation and strategic planning. The
 literature extensively studies the international timber market and
 trade, spanning from global to subnational scales and various wood
-products \citep[\emph{e.g.},][
-\citet{shen_structural_2022}]{muller_longterm_2004, raunikar_global_2010, caurla_stimulating_2013, van_kooten_global_2014, buongiorno_global_2015, rougieux_modelling_2017, rougieux_impacts_2021}.
+products
+\citep[\emph{e.g.},][]{muller_longterm_2004, raunikar_global_2010, caurla_stimulating_2013, van_kooten_global_2014, buongiorno_global_2015, rougieux_modelling_2017, rougieux_impacts_2021, shen_structural_2022}.
 These studies employ three primary perspectives: trade mechanism
 analysis, forecasting, and policy analysis
 \citep{buongiorno_gravity_2016, riviere_representations_2020, mathieu_meta-analysis_2023}.
@@ -450,8 +434,8 @@ harvested from forests --- represents the primary commodity in global
 forest product supply chains, directly linked to sustainable forest
 management and deforestation issues. As the second most traded wood
 product by volume over the last decade,\footnote{According to FAOSTAT
-  data} roundwood forms the foundational stratum of international forest
-product trade, linking forest resource extraction with processing
+  data.} roundwood forms the foundational stratum of international
+forest product trade, linking forest resource extraction with processing
 industries through complex international trade relationships. The lack
 of detailed analysis on roundwood trade patterns, both structurally and
 over time, is a major gap in forest economics research, limiting policy
@@ -459,7 +443,7 @@ insights for sustainable forest governance.
 
 The present work addresses this gap through a comprehensive network
 analysis of global roundwood trade dynamics spanning the period
-1996--2022. First, we conduct a multidimensional network topology
+1996--2023. First, we conduct a multidimensional network topology
 analysis using complementary quantitative metrics to systematically
 characterize roundwood trade network structural properties and their
 temporal evolution. This employs graph theory-based methodologies
@@ -486,7 +470,7 @@ using the Python package ``comtradeapicall'' 1.2.1
 \citep{untradestats_comtradeapicall_2024}.\footnote{The Python package
   ``comtradeapicall'' extracts and downloads UN Comtrade data through
   API calls.} The UN Comtrade data provides detailed information on
-bilateral trade flows by recording the trade reports from almost 200
+bilateral trade flows by recording the trade reports from more than 200
 countries. National statistical reports of trade may be produced on an
 annual or monthly basis. They cover a wide range of traded commodities,
 including wood products. Traded commodities are commonly classified
@@ -543,16 +527,16 @@ We extract the corresponding HS product codes for FAO code 012, ``Wood
 in the rough other than wood fuel'' (hereafter referred to as
 ``roundwood''), and we ensure consistency between different HS codes
 across the successive editions of the HS nomenclature.\footnote{Data
-  were extracted on June 2025.} The correspondence between FAO product
-code 012 and HS product codes across successive HS nomenclature editions
-is provided in supplementary material X. All trade flows are then
-aggregated by HS product codes, enabling the analysis to focus on
+  were extracted on October 2025.} The correspondence between FAO
+product code 012 and HS product codes across successive HS nomenclature
+editions is provided in supplementary material X. All trade flows are
+then aggregated by FAO product code, enabling the analysis to focus on
 roundwood trade flows as defined by the FAO's Classification of Forest
 Products. This approach ensures the sectorial relevance and continuity
 of the time series for the analysis.
 
 As country reports in the UN Comtrade database can be updated or
-corrected within two years, we collect trade data from 1996 to 2022 to
+corrected within two years, we collect trade data from 1996 to 2023 to
 base our analysis on consolidated data. We only extract data on imports
 and exports. We also remove poorly specified trade flows, \emph{e.g.},
 those with a ``non-elsewhere specified'' (NES) partners. Finally, to
@@ -580,7 +564,7 @@ with \(N\) edges in year \(t\). Each edge represents a trade flow
 (either export or import) between nodes (countries), from the country of
 origin (\emph{i.e.}, the exporter, indexed \(o\)), to the country of
 destination, (\emph{i.e.}, the importer, indexed \(d\)), in year
-\(t \in {1996,1998,…,2022}\). The elements of the edge list are nodes
+\(t \in {1996,1998,…,2023}\). The elements of the edge list are nodes
 that represent countries that engaged in either the export or import of
 roundwood, in a given year \(t\).
 
@@ -609,7 +593,7 @@ we consider the traded value to be the ``weight'' of the trade flow.
 This is in contrast to using the net weight in metric tons, which is not
 an appropriate unit of volume for roundwood as the mass of the roundwood
 depends on its moisture content.\footnote{UN Comtrade data provides an
-  alternative ``quantity'' variable (encoded \emph{qty})to the net
+  alternative ``quantity'' variable (encoded \emph{qty}) to the net
   weight of the trade flows. However, this variable is poorly reported:
   (i) units may differ depending on the reporter and range from cubic
   metres to metres to kilograms, and so on; (ii) the ``quantity''
@@ -767,40 +751,54 @@ for analyzing trade network structure, as many network metrics tend to
 be correlated \citep{baggio_landscape_2011}. The metrics used and their
 interpretations are summarized in Table~\ref{tbl-network-metrics}.
 
-\begin{table}
-
-\caption{\label{tbl-network-metrics}List of the metrics used to describe
-the trade network and their interpretation.}
-
-\centering{
-
-\begin{tabu} to \linewidth {>{\raggedright}X>{\raggedright}X}
-\toprule
-Network metrics & Interpretation\\
-\midrule
-\addlinespace[0.3em]
-\multicolumn{2}{l}{\textbf{Trade network composition}}\\
-\hspace{1em}Number of nodes & Number of countries involved in trade.\\
-\hspace{1em}Number of pure exporter & Number of countries that only export roundwood.\\
-\hspace{1em}Number of pure importer & Number of countries that only import roundwood.\\
-\hspace{1em}Number of mixed countries & Number of countries that both export and import roundwood.\\
-\hspace{1em}Country profiles & Trade behaviour of countries in relation to exports and imports.\\
-\addlinespace[0.3em]
-\multicolumn{2}{l}{\textbf{Trade network connectivity}}\\
-\hspace{1em}Mean number of connections per node & Average number of trading partners per country; indicator of the overall connectedness of the network.\\
-\hspace{1em}Variance in the number of connections per node & Variation in the number of trading partners relative to the mean.\\
-\hspace{1em}Skewness in the number of connections per node & Proportion of low to highly connected countries in the network.\\
-\hspace{1em}Kurtosis in the number of connections per node & Scarcity or abundance of countries that diverge from the mean connectivity.\\
-\addlinespace[0.3em]
-\multicolumn{2}{l}{\textbf{Market concentration}}\\
-\hspace{1em}Herfindahl-Hirschman index & Market concentration in the trade of roundwood.\\
-\hspace{1em}Country contributions to trade value & Share of total trade value that 'flows' through a given country.\\
-\bottomrule
-\end{tabu}
-
-}
-
-\end{table}%
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.4286}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.5714}}@{}}
+\caption{List of the metrics used to describe the trade network and
+their interpretation.}\label{tbl-network-metrics}\tabularnewline
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Network metrics
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Interpretation
+\end{minipage} \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Network metrics
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Interpretation
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\textbf{Trade network composition} & \\
+Number of nodes & Number of countries involved in trade. \\
+Number of pure exporter & Number of countries that only export
+roundwood. \\
+Number of pure importer & Number of countries that only import
+roundwood. \\
+Number of mixed countries & Number of countries that both export and
+import roundwood. \\
+Country profiles & Trade behaviour of countries in relation to exports
+and imports. \\
+\textbf{Trade network connectivity} & \\
+Mean number of connections per node & Average number of trading partners
+per country; indicator of the overall connected-ness of the network. \\
+Variance in the number of connections per node & Variation in the number
+of trading partners relative to the mean. \\
+Skewness in the number of connections per node & Proportion of low to
+highly connected countries in the network. \\
+Kurtosis in the number of connections per node & Scarcity or abundance
+of countries that diverge from the mean connectivity. \\
+\textbf{Market concentration} & \\
+Herfindahl-Hirschman index & Market concentration in the trade of
+roundwood. \\
+Country contributions to trade value & Share of total trade value that
+`flows' through a given country. \\
+\end{longtable}
 
 \subsection{Computational workflow and
 reproducibility}\label{computational-workflow-and-reproducibility}
@@ -826,7 +824,7 @@ involved in roundwood trade from 1996 to 2023. After a moderate increase
 in the number of countries involved in trade between 1996 and 2008 (an
 increase of 11.5\%, from 192 to 214 countries), the number of countries
 stabilised until 2015. From 2015 to 2022, the number of trading
-countries decreased slightly from 213 to 198 (an 7.6\% decrease) before
+countries decreased slightly from 213 to 198 (an 7\% decrease) before
 increasing to 209 in 2023 (an increase of 5.3\%). Aside from these
 trends, we found short-term slight decreases in the number of trading
 countries after 2008, 2015, 2019, and 2021, which, as we will discuss
@@ -1020,7 +1018,7 @@ the mean connectivity are rarer than those whose connectivity is close
 to the mean. From 1996 to 2014, skewness of connectivity was higher for
 exporters than for importers, meaning that exporters diverging from the
 mean connectivity were, on average, rarer than importers. The reverse
-was true after 2014. Until 2022, kurtosis of connectivity decreased,
+was true after 2014. Until 2023, kurtosis of connectivity decreased,
 while remaining positive. This fall is steeper for exporters than for
 importers. As with our other network metrics, we observed several
 short-term fluctuations in skewness and kurtosis over time from year to
@@ -1110,16 +1108,16 @@ decreased trade contribution.
 
 Germany stands out among European countries with a 14\% contribution to
 trade in 2023. The Czech Republic, Austria, Sweden, France, and Poland
-present similar contributions, between 5\% and 8\%. While France's
-contribution to trade remained stable at around 4.7\% over the study
-period, other European countries increased their contributions. The
-contribution of Austria and Sweden moderatly increased from around 4\%
-to 8\% and 7\%, respectively. The sharpest increases in contributions to
-trade among European countries are observed for Germany (rising from 6\%
-in 1996 to 14\% in 2023), the Czech Republic (rising from 2\% in 1996 to
-6\% in 2023), and Poland (rising from 0\% in 1996 to 5\% in 2023). These
-levels of contribution remain relatively low compared to those of main
-importers such as China.
+present similar contributions, between 5\% and 8\% in 2023. While
+France's contribution to trade remained stable at around 4.7\% over the
+study period, other European countries increased their contributions.
+The contribution of Austria and Sweden moderatly increased from around
+4\% in 1996 to 8\% and 7\% in 2023, respectively. The sharpest increases
+in contributions to trade among European countries are observed for
+Germany (rising from 6\% in 1996 to 14\% in 2023), the Czech Republic
+(rising from 2\% in 1996 to 6\% in 2023), and Poland (rising from 0\% in
+1996 to 5\% in 2023). These levels of contribution remain relatively low
+compared to those of main importers such as China.
 
 Among exporters, the contribution of the USA significantly decreased
 over the studied period, falling from 33\% in 1996 to 13\% in 2007. It
@@ -1141,135 +1139,258 @@ integration has decreased over time. Except for Russia, which appears to
 be influenced by short- to medium-term shocks, all contributors to the
 roundwood trade exhibit long-term variations in their contribution.
 
-\section{Discussion}\label{discussion}
+\section{Conclusion and Discussion}\label{conclusion-and-discussion}
 
-Contrary to our expectations, the global roundwood trade network
-demonstrated significant resilience to exogenous disruptions. Rather
-than major short-term shifts, the network continued its long-term trend
-toward a greater concentration and polarization around China, whose
-market power has grown substantially in recent decades.
+Contrary to our expectations, our results suggest that the global
+roundwood trade network displayed significant resilience to exogenous
+disruptions. Primarily, we show that the trade network followed its
+long-term trend toward greater import concentration and polarization
+around China, rather than experiencing major short-term shifts.
+Interestingly, despite China's substantial growth in market power in
+recent decades, our findings suggest that its influence on the roundwood
+trade has declined in recent years, suggesting an impending shift.
 
-We found that while the number of countries participating in the
-roundwood trade network remained relatively stable, its composition
-changed significantly, with countries engaging more in both imports and
-exports (Figures \ref{fig-network-composition},
-\ref{fig-countries-profiles}). The network's connectivity tightened at
-the turn of the 21st century (Figure~\ref{fig-network-connectivity}), a
-trend consistent with broader globalization
-\citep{prestemon_international_2003}.
+Certainly, the network structural metrics showed low to moderate
+sensitivity to shocks and disruptions. The number of pure exporters,
+pure importers, and mixed countries, showed slight short-term drops over
+the studied period (Figure~\ref{fig-network-composition}). Short-term
+increases and decreases in connectivity or market concentration metrics
+were also observed from year to year (Figures
+\ref{fig-network-connectivity}, \ref{fig-market-concentration}). These
+rises and falls in the network structure likely result from three broad
+categories of events. First are economic disruptions, such as financial
+or banking crises (\emph{e.g.}, the 2008 global financial crisis or the
+2016 Chinese financial crisis) and supply chain disruptions
+(\emph{e.g.}, the Covid-19 pandemic). Second are political events, such
+as trade disputes
+\citep{van_kooten_global_2014, johnston_impact_2017, pan_impacts_2021}
+or bilateral agreements, which affect trade relationships between
+countries. Third are ecological disasters. Hurricanes, tsunamis, and
+earthquakes can result in direct and indirect damage, as well as periods
+of reconstruction that can intensify the need for imports or the ability
+to export. Forest fires and storms may affect the availability of
+roundwood, thereby altering exports and imports throughout the supply
+and production chains. However, these shocks seem to have no lasting
+impact on the network structure, only affecting it in the short term,
+with a quick recovery the following year. This suggests that the trade
+network is resilient to exogenous shocks.
 
-Our analysis of network connectivity further revealed a consistent
-structure: a few highly-connected countries (the hubs) dominate trade, a
-pattern that sharply diverges from the network's low overall mean
-connectivity (Figure~\ref{fig-network-connectivity}). These hubs play a
-critical role in the network's functionality \citep{huang_static_2024},
-and potentially have huge market power. Many of the major hubs in the
-international market, such as the USA, Canada, Western Europe,
-Scandinavia, and Russia, maintained a high number of trading partners
-throughout the study period.
+In fact, our results rather show that the roundwood trade network has
+followed long-term trends over the past decades. In the long term, we
+found that while the number of countries participating in the roundwood
+trade network remained relatively stable, it underwent a notable shift
+in composition, with countries engaging more in both exports and imports
+(Figure~\ref{fig-network-composition}), suggesting a better integration
+of countries in the network and trade intensification. Indeed, the
+network's connectivity tightened at the turn of the 21st century
+(Figure~\ref{fig-network-connectivity}), a trend consistent with broader
+globalization \citep{prestemon_international_2003}. Our analysis of
+network composition and connectivity further reveals an uneven
+structure: a few highly-connected countries (the hubs) dominate and
+concentrate trade, while most of the network consists of
+poorly-connected countries that barely contribute to roundwood trade
+volumes (Figures \ref{fig-countries-profiles},
+\ref{fig-network-connectivity}). These hubs play a critical role in
+network's functionality \citep{huang_static_2024} and can wield
+considerable market power, with potential anti-competitive effects on
+poorly-connected countries, which constitute the majority of the trade
+network.
 
-However, our findings also highlight a significant shift in the trade
-landscape over recent decades. We observed a decline among traditional
-core importers and exporters, including Japan, Russia, and the USA,
-concurrent with the rise of new key players like China and New Zealand
-(Figures \ref{fig-countries-profiles}, \ref{fig-network-contribution}).
-China, in particular, has become \emph{the} central player in the
-roundwood trade, substantially increasing its number of import and
-export partners. By 2021, China's imports accounted for 56\% of the
-total roundwood trade value, leading to a highly concentrated and
+Throughout the study period, many major hubs in the international
+market, including the USA, Canada, Western Europe, Scandinavia, and
+Russia, maintained a high number of trading partners. However, our
+findings highlight long-term shifts in the trade landscape over recent
+decades. We observed a decline among traditional core importers and
+exporters, including Japan, Russia, and the USA, concurrent with the
+rise of new key players like China and New Zealand (Figures
+\ref{fig-countries-profiles}, \ref{fig-network-contribution}).
+Especially, our findings show that China has become \emph{the} central
+player in the roundwood trade, substantially increasing its number of
+import and export partners. By 2021, China's imports accounted for 56\%
+of the total roundwood trade value, leading to a highly concentrated and
 polarized import market (Figures \ref{fig-market-concentration},
 \ref{fig-network-contribution}). This confirms findings from other
 studies
-\citep{long_exploring_2019, zhou_spatial_2021, shen_structural_2022, huang_static_2024}.
+\citep{ke_changes_2019, long_exploring_2019, zhou_spatial_2021, shen_structural_2022, huang_static_2024}.
 
-This could appear as a paradox: despite forest resources being
-geographically concentrated in a few countries, the roundwood export
-market is not similarly concentrated. Instead, the import market is
-highly concentrated, primarily due to demand from China, which
-paradoxically also possesses the fifth-highest forest endowment and
+This could appear as a paradox: although forest resources are
+geographically concentrated in a few countries, our results show that
+the roundwood export market is not similarly concentrated
+(Figure~\ref{fig-market-concentration}). The relatively low export
+market concentration levels observed during the last decade are
+presumably due to Russia's withdrawal from the export market initiated
+in 2007. The increase in export market concentration at the beginning of
+the 20th century coincided with Russia's growing contribution to trade
+(Figures \ref{fig-market-concentration},
+\ref{fig-network-contribution}). In 2007, Russian roundwood exports
+represented 34\% of the global roundwood export volumes. Russia
+contribution to roundwood trade then fell from 31\% in 2007 to less than
+1\% in 2023 due to successive export tax increases on roundwood, which
+preceded a complete export ban in 2022
+(Figure~\ref{fig-network-contribution})
+\citep{lin_incidence_2017, unecefao_forest_2022, unecefao_forest_2022-1, fao_state_2024, guan_impact_2024}.
+Russia's position as the main exporter of roundwood has since been
+overtaken by New Zealand, which accounted for 20\% of total exports in
+2023. In 2023, other roundwood exporters significantly contributed to
+global export volumes: the USA (15\% of global roundwood exports),
+Germany (10\%), Czechia (6\%), France and Canada (4\% each), Poland,
+Latvia, and Norway (3\% each), and Papua New Guinea (2\%). Such
+distribution of export volumes may explain the relatively low
+concentration levels of the roundwood export market.
+
+In contrast, our findings suggest that the import market has become
+highly concentrated primarily due to demand from China (Figures
+\ref{fig-market-concentration}, \ref{fig-network-contribution}), which,
+paradoxically, also possesses the fifth-highest forest endowment and
 presents the first-highest average annual net gain in forest area
 \citep{fao_state_2024}. Indeed, due to Chinese government efforts in
 spending, as well as China's market and policy reforms driven by forest
-conservation demand, China has operated an drastic expansion of its
+conservation demand, China has operated a drastic expansion of its
 forestry and planted forest extensive margins over the last decades
-\citep{demurger_forest_2009, zhang_chinas_2019, zhao_large-scale_2022}.
+\citep{demurger_forest_2009, ke_changes_2019, zhang_chinas_2019, zhao_large-scale_2022}.
 However, despite an increase in China's forest area and volume, low
 economic tree planting efficiency and poor forest management have
 resulted in low stand quality and growth rates
-\citep{hoffmann_adapting_2018, hou_intensifying_2019, zhang_chinas_2019}.
+\citep{hoffmann_adapting_2018, hou_intensifying_2019, ke_changes_2019, zhang_chinas_2019}.
 As a result, domestic timber consumption --- primarily for industrial
 and construction uses --- has outpaced domestic production, making China
 highly dependent on imported wood products, which now account for
 approximately half of its total timber supply
-\citep{demurger_forest_2009, he_projection_2011, hoffmann_adapting_2018, hou_intensifying_2019}.
+\citep{demurger_forest_2009, he_projection_2011, hoffmann_adapting_2018, hou_intensifying_2019, ke_changes_2019}.
+
+Such demand for imported roundwood fosters co-dependence between China
+and roundwood exporting countries. In fact, China serves as the main
+trading partner for most major exporters, making them highly reliant on
+its demand. For instance, in 2020, China imported 46\% of roundwood
+exports from the USA, 67\% from Russia, 77\% from Congo, 78\% from Papua
+New Guinea, and 86\% from New Zealand. The case of New Zealand perfectly
+illustrates this co-dependence. Its rise as a major exporter is closely
+tied to China's increasing demand and Russia's concurrent withdrawal
+from the roundwood export market. The share of New Zealand's roundwood
+exports to China surged from just 1.2\% in 1996 to 90.3\% in 2023. To
+mitigate risks from potential disruptions caused by hubs like China or
+to limit co-dependence, countries can diversify their trade
+relationships \citep{huang_static_2024}. The United States appears to
+have pursued this strategy throughout the study period, as shown in our
+results (Figure~\ref{fig-countries-profiles}).
 
 This overall suggests that roundwood trade flows are predominantly
 demand-driven rather than supply-pushed. In the case of China, the
 primary use of wood for industrial and construction uses
 \citep{hou_intensifying_2019} echoes the role of population and
-urbanization in shaping demand for materials, which has been identified
-in the literature
+urbanization in shaping demand for materials
+\citep{steinberger_global_2010}, which has been identified in the
+literature
 \citep{unecefao_forest_2022-1, mathieu_meta-analysis_2023, villamor_preparing_2024}.
-Explain a bit more, suggest that this will mechanically attract wood
-trade flows to regions that are increasing in population and getting
-urbanised, such as Africa and Asia. Explain that while these regions are
-(becoming) centers of gravity for wood trade flows, the role of
-countries may shift. In particular, China seems to initiate a decline in
-2022 (Figure~\ref{fig-network-contribution}) which could announce the
-beginning of new phase in the development of the international trade of
-roundwood. Such decline may be relative to the building of more
-comprehensive domestic supply chains or to structural mutation, such as
-the ageing of the Chinese population and the industrial crisis.
+Urbanization, through the growth, maintenance, and operation of
+buildings, infrastructure, and durable goods, is a major determinant of
+material consumption
+\citep{fernandez_resource_2007, hu_input_2010, krausmann_global_2017, deetman_modelling_2020},
+which may have a considerable impact on roundwood trade. Regions of the
+world undergoing population increase and urbanization, such as emerging
+markets in Asia \citep{deetman_modelling_2020, unecefao_forest_2022-1},
+are or are becoming centers of gravity that attract roundwood trade
+flows, with potential shifts in the role of countries within the trade
+network.
 
-Our findings reveal that the network's excessive reliance on China is a
-key feature, as its demand drives trade flows and influences global
-roundwood resource allocation \citep{huang_static_2024}. China's market
-power is significant enough to exacerbate disruption risks for
-less-connected countries, redirect trade flows in a competitive
-environment, and foster trade co-dependence. In fact, China serves as
-the main trading partner for most major exporters, making them highly
-reliant on its demand. For example, in 2020, China imported 46\% of
-roundwood exports from the USA, 67\% from Russia, 77\% from Congo, 78\%
-from Papua New Guinea, and 86\% from New Zealand. The case of New
-Zealand perfectly illustrates this co-dependence. Its rise as a major
-exporter is closely tied to China's increasing demand. The share of New
-Zealand's roundwood exports to China surged from just 1.2\% in 1996 to
-89.3\% in 2022. This increasing co-dependence raises concerns about a
-potential ``after-China'' era for these exporters
-\citep{villamor_preparing_2024}: where would their roundwood go if not
-to China? To mitigate risks from potential disruptions caused by hubs
-like China or to limit co-dependence, countries can diversify their
-trade relationships \citep{huang_static_2024}. The United States appears
-to have pursued this strategy throughout the study period, as shown in
-our results (Figure~\ref{fig-countries-profiles}).
+Most interestingly, China's contribution to the roundwood trade appears
+to have begun a decline after 2021
+(Figure~\ref{fig-network-contribution}), potentially signaling a new
+phase in the global roundwood market. Three concurrent and reinforcing
+circomstances may drive this decline: external geopolitical disruptions,
+domestic self-sufficiency policies, and domestic structural economic
+changes.
 
-While we expected the network to exhibit structural sensitivity to
-exogenous disruption events, we found that the roundwood trade network
-was rather resilient to such disruptions and has followed long-term
-trends over the past decades. Certainly, the network structural metrics
-showed low to moderate sensitivity to shocks and disruptions. The number
-of pure exporters, pure importers, and mixed countries, showed slight
-short-term drops over the studied period (Figure 3). Short-term
-increases and decreases in connectivity metrics were also observed from
-year to year. Yet, such shocks seems to only impact the network
-structure on the short-term,
+The initial decline likely stems from major external trade shocks. Most
+notably, Russia's 2022 roundwood export ban significantly reduced
+China's import volumes; in 2021, Russia was China's third main supplier,
+accounting for 7.2\% of its roundwood imports (a share that fell to
+3.2\% in 2022). Consequently, China appears to be shifting its import
+strategy from raw logs to processed wood products, absorbing significant
+volumes of Russian plywood, for example, that were previously destined
+for Western markets following Ukraine war-related sanctions
+\citep{scott_against_2024}. This shock was likely exacerbated by the
+still ongoing 2018 US-China trade war
+\citep{muhammad_end_2021, pan_impacts_2021}. While the U.S. share of
+China's imports increased from 8.5\% in 2021 to 10.9\% in 2023 (possibly
+to compensate for Russian withdrawal from the export market), China's
+import volume from the U.S. has dropped by 29\% over the same period.
+Given the current geopolitical climate, a Russian ban lift is unlikely,
+and escalating U.S.-China trade barriers are expected to cause further
+significant trade disruptions and diversions in the medium term
+\citep{attinasi_navigating_2024, world_bank_global_2025, world_trade_organization_global_2025}.
 
-``From 2002 to 2021, China became a superpower in importing upstream
-wood forest products, ranking first in import volume {[}\ldots{]} This
-achievement indicates that China was highly dependent on wood imports
-and had strong resistance and recovery capabilities to deal with
-shocks.''
+A second, more policy-driven factor is China's strategic ambition to
+enhance self-sufficiency and reduce reliance on wood imports by relying
+on domestic demand and more comprehensive domestic supply chains
+\citep{fao_society_2021, unecefao_forest_2022-1, attinasi_navigating_2024}.
+High reliance on imports, particularly with sourcing concentration risks
+intensifying, presents geopolitical risks for China. In this regard,
+China announced its Plan for the Construction of the National Reserve
+Forest Project in 2018. This project aims to foster a net increase of
+200 million m\textsuperscript{3} per year by 2035 from 20 million newly
+planted hectares of national reserve forest-an amount designed to cover
+China's current total net imports of forest products. This domestic
+focus aims to make the country less export-oriented and mitigate
+sourcing risks.
 
-By considering multiple network metrics, we obtain a clearer picture of
-the evolution of the network's structure than using a single metric
+Thirdly, China's contribution decline in roundwood trade network may
+result from demestic economic crisis and structural changes. For the
+last four years, China has known a real estate crisis which, coupled
+with slowed productivity growth, ageing population and high debt levels,
+has significantly slowed its domestic demand for roundwood
+\citep{world_bank_global_2025}, which again echoes the role of
+urbanization in fueling demand for materials such as wood. Furthermore,
+while China's position in global value chains has been fueled by
+labour-intensive industry development \citep{su_assessment_2020},
+last-decades increases in labour costs and investments in research and
+development towards advanced technologies has led China to pivot from
+consumer goods production and exports to technology-intensive capital
+production and exports
+\citep{fao_society_2021, attinasi_navigating_2024}. In fact,
+labour-intensive consumer goods production is currently moving out of
+China, such as Vietnam
+\citep{fao_society_2021, attinasi_navigating_2024}.
+
+Finally, the decline may be compounded by domestic economic crises and
+structural shifts. Over the past four years, the real estate crisis in
+China, coupled with slower productivity growth, an aging population, and
+high debt levels, has significantly dampened domestic demand for
+roundwood \citep{world_bank_global_2025}, which again highlights the
+role of urbanization in driving demand for materials such as wood.
+Furthermore, China is undergoing a structural pivot: driven by rising
+labor costs and investments in research and development towards advanced
+technologies, China is shifting from labor-intensive consumer goods
+production and exports \citep{su_assessment_2020} to
+technology-intensive capital production and exports
+\citep{fao_society_2021, attinasi_navigating_2024}.\footnote{In fact,
+  labour-intensive consumer goods production is currently moving out of
+  China, to countries such as Vietnam
+  \citep{fao_society_2021, attinasi_navigating_2024}.} This structural
+change inherently reduces the domestic manufacturing sector's demand for
+imported roundwood.
+
+In light of these persistent factors, China's declining integration into
+the roundwood trade network is likely to continue. A potential
+``post-China'' era in the global roundwood market raises crucial
+concerns: the potential contours of a fragmented trade world marked by
+policy uncertainty
+\citep{attinasi_navigating_2024, world_trade_organization_global_2025}
+and the necessity of identifying new, sustainable markets for timber
+supply for major exporters, such as New Zealand
+\citep{villamor_preparing_2024}.
+
+By considering multiple network metrics, we obtained a clearer picture
+of the evolution of the network's structure than using a single metric
 alone \citep{shanafelt_-it-yourself_2017, salau_taking_2022}. The mean
 number of connections gives us a global measure of network connectivity,
 but tells nothing of the distribution of connections throughout the
 network. By measuring variance, skewness, and kurtosis we observed
 changes in the variation of connections per node, the proportion of
 poorly to highly-connected nodes, and the scarcity or abundance of
-countries that diverge from the mean connectivity over time. As a
-complement to traditional market concentration indexes, measuring a
+countries that diverge from the mean connectivity over time. This
+provides a thorough diagnosis of the situation of the trade network. As
+a complement to traditional market concentration indexes, measuring a
 country's contribution to traded value provides a detailed overview of
 each trader's relative market power. It is crucial to recognize that
 network analysis should not be viewed as a replacement for traditional
@@ -1290,14 +1411,14 @@ While network analysis partly deals with data discrepancies by
 simultaneously taking into account exports and imports, it reveals data
 discrepancies such as inconsistent reporting, missing values, and
 outliers \citep{kallio_reliability_2018, chen_advancing_2022}. Hence,
-our results showed that China exported to 32 more countries in 2020
-compared to 2000, while simultaneously reporting a decrease of \$1.2
-million in export value on the same period (a decline of about 16\%),
-which seems unlikely (Figure~\ref{fig-countries-profiles}). This further
-highlights the caution that should be brought by modelers and data
-scientists when analysing bilateral trade data, while emphasizes the
-need for methods to process trade data and correct quality issues or for
-harmonized and consistent data
+our results show that China exported roundwood to 32 more countries in
+2020 compared to 2000, while simultaneously reporting a decrease of
+\$1.2 million in export value on the same period (a decline of about
+16\%), which seems unlikely (Figure~\ref{fig-countries-profiles}). This
+further highlights the caution that should be brought by modelers and
+data scientists when analysing bilateral trade data, while emphasizes
+the need for methods to process trade data and correct quality issues or
+for harmonized and consistent databases
 \citep{gaulier_baci_2010, rougieux_forest_2017}.
 
 Similarly, our results suggest that the country-level perspective is not
@@ -1306,28 +1427,80 @@ highlight the singular trade balance of many European countries, which
 export as much roundwood as they import. This would suggest to rather
 consider the European Union as a whole, in order to get a clear vision
 that is not blurred by individual European countries behaviours and that
-will better reflect the trade weight of the European continent.
+will better reflect the European continent's trade weight and openess.
 
-Network analysis capture complexity and describe its organisation but
-further exploration of the determinants and dynamics are necessary to
-understand what rule complexity organisation. ``To comprehensively
-analyze the resilience of the global wood and forest products trade
-network, future research is required to refine and improve the
-construction of indicator systems.''
-
-\section{Conclusion}\label{conclusion}
-
-\textbf{Declaration of generative AI and AI-assisted technologies in the
-writing process} During the preparation of this work the author(s) used
-{[}NAME TOOL / SERVICE{]} in order to {[}REASON{]}. After using this
-tool/service, the author(s) reviewed and edited the content as needed
-and take(s) full responsibility for the content of the publication.
+While network analysis captures complexity and describes its
+organisation, further exploration of the determinants and dynamics is
+necessary to understand the rules that govern trade organisation, as
+well as to develop a unified indicator system, as network metrics are
+diverse. Multi-layer networks, in particular, could provide a more
+comprehensive analysis of global wood product supply chains by linking
+each wood product network according to value chain logics.
 
 \section*{References}\label{references}
 \addcontentsline{toc}{section}{References}
 
 \renewcommand{\bibsection}{}
 \bibliography{references.bib}
+
+\newpage{}
+
+\section{Information}\label{information}
+
+\subsection{Funding statement}\label{funding-statement}
+
+This study was supported by two grants from the French Grand Est Region
+(N° 19\_GE8\_019 20P05044) and the Lab of Excellence ARBRE (N°
+WP4/20PN17), by the French National Research Institute for Agriculture,
+Food and Environment (INRAE), and by AgroParisTech.
+
+\subsection{CRediT authorship contribution
+statement}\label{credit-authorship-contribution-statement}
+
+Valentin Mathieu: Conceptualization, Methodology, Software, Validation,
+Formal analysis, Investigation, Data Curation, Writing - Original Draft,
+Writing - Review \& Editing, Visualization, Supervision, Project
+administration.
+
+David W. Shanafelt: Conceptualization, Methodology, Formal analysis,
+Investigation, Writing - Original Draft, Writing - Review \& Editing,
+Supervision.
+
+\subsection{Declaration of competing
+interest}\label{declaration-of-competing-interest}
+
+The authors declare that they have no known competing financial
+interests or personal relationships that could have appeared to
+influence the work reported in this paper.
+
+\subsection{Declaration of generative AI and AI-assisted technologies in
+the writing
+process}\label{declaration-of-generative-ai-and-ai-assisted-technologies-in-the-writing-process}
+
+During the preparation of this work the authors used (1) Asta in order
+to review the litterature aside traditional litterature search tools
+such as Scopus and Google Scholar and (2) Gemini and DeepL tools to
+improve English writing. After using this tool/service, the authors
+reviewed and edited the content as needed and take full responsibility
+for the content of the publication.
+
+\subsection{Data availability}\label{data-availability}
+
+Data and code are available on
+\href{https://github.com/vlmathieu/trade_network_analysis}{GitHub}.
+
+\subsection{Acknowledgements}\label{acknowledgements}
+
+We thank Felix Bastit and Clément Nedoncelle for their helpful and
+relevant comments and suggestions, as well as the following audience:
+BETA internal environment, Labex ARBRE, Chaire RENEL, the 9th annual
+conference of the French Association of Environmental and Resource
+Economists (FAERE), DEEPSURF 2022 Energy and Ecological transition
+international conference, and the 16th social science research days
+(JRSS), Paris-Saclay Conference on Trade and Environment, 26th World
+Congress of the International Union of Forest Research Organizations
+(IUFRO) - Forests and Society towards 2050. All remaining errors are our
+own.
 
 
 

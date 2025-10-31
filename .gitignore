@@ -263,4 +263,4 @@ _archives/
 **/*.quarto_ipynb
 
 # Prevent writing directory
-../writing/
+_writing/

@@ -90,4 +90,14 @@ The `results` subfolder separate `global` output that consists into resources th
 
 ## How to run the workflow
 
-To write.
+This work relies on [Snakemake workflow management system](https://snakemake.readthedocs.io/en/stable/) and requires an API key to download in bulk the UN Comtrade data.
+
+However, since raw UN Comtrade data are available in `resources` folder, you can render a random API key as an environment parameter and all subsequent jobs can be run one by one using snakemake commands.
+
+To run a particular rule, you need to have [installed Snakemake](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html), then run in your terminal the following command:
+
+```zsh
+snakemake rule_name --sdm conda
+```
+
+Further information can be asked to the authors: [valentin.mathieu@agroparistech.fr](mailto:valentin.mathieu@agroparistech.fr)

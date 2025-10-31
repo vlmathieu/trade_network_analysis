@@ -261,3 +261,6 @@ _sandbox/
 _archives/
 /.quarto/
 **/*.quarto_ipynb
+
+# Prevent writing directory
+writing/

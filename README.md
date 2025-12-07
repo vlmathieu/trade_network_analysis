@@ -2,7 +2,7 @@
 
 ## Paper in brief
 
-**Authors**: Valentin Mathieu, David Shanafelt
+<!-- **Authors**: Valentin Mathieu, David Shanafelt -->
 
 **Abstract**:
 
@@ -19,7 +19,7 @@ These findings underscore the need for exporters to implement market diversifica
 
 ## Information
 
-### Funding statement
+<!-- ### Funding statement
 
 This study was supported by two grants from the French Grand Est Region (N° 19_GE8_019 20P05044) and the Lab of Excellence ARBRE (N° WP4/20PN17), by the French National Research Institute for Agriculture, Food and Environment (INRAE), and by AgroParisTech.
 
@@ -27,7 +27,7 @@ This study was supported by two grants from the French Grand Est Region (N° 19_
 
 Valentin Mathieu: Conceptualization, Methodology, Software, Validation, Formal analysis, Investigation, Data Curation, Writing - Original Draft, Writing - Review & Editing, Visualization, Supervision, Project administration. 
 
-David W. Shanafelt: Conceptualization, Methodology, Formal analysis, Investigation, Writing - Original Draft, Writing - Review & Editing, Supervision.
+David W. Shanafelt: Conceptualization, Methodology, Formal analysis, Investigation, Writing - Original Draft, Writing - Review & Editing, Supervision. -->
 
 ### Declaration of competing interest
 
@@ -41,9 +41,9 @@ During the preparation of this work the authors used (1) Asta in order to review
 
 Data and code are available on [GitHub](https://github.com/vlmathieu/trade_network_analysis).
 
-### Acknowledgements
+<!-- ### Acknowledgements
 
-We thank Felix Bastit and Clément Nedoncelle for their helpful and relevant comments and suggestions, as well as the following audience: BETA internal environment, Labex ARBRE, Chaire RENEL, the 9th annual conference of the French Association of Environmental and Resource Economists (FAERE), DEEPSURF 2022 Energy and Ecological transition international conference, and the 16th social science research days (JRSS), Paris-Saclay Conference on Trade and Environment, 26th World Congress of the International Union of Forest Research Organizations (IUFRO) - Forests and Society towards 2050. All remaining errors are our own.
+We thank Felix Bastit and Clément Nedoncelle for their helpful and relevant comments and suggestions, as well as the following audience: BETA internal environment, Labex ARBRE, Chaire RENEL, the 9th annual conference of the French Association of Environmental and Resource Economists (FAERE), DEEPSURF 2022 Energy and Ecological transition international conference, and the 16th social science research days (JRSS), Paris-Saclay Conference on Trade and Environment, 26th World Congress of the International Union of Forest Research Organizations (IUFRO) - Forests and Society towards 2050. All remaining errors are our own. -->
 
 ## Folder structure
 The folder is organized as follows:
@@ -100,4 +100,4 @@ To run a particular rule, you need to have [installed Snakemake](https://snakema
 snakemake rule_name --sdm conda
 ```
 
-Further information can be asked to the authors: [valentin.mathieu@agroparistech.fr](mailto:valentin.mathieu@agroparistech.fr)
+<!-- Further information can be asked to the authors: [valentin.mathieu@agroparistech.fr](mailto:valentin.mathieu@agroparistech.fr) -->

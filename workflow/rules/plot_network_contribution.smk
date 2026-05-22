@@ -4,10 +4,10 @@ rule plot_network_contribution:
         'results/network_analysis/output/contributor_profiles.csv'
     output:
         expand('results/network_analysis/plot/{fao_div}/network_contribution.{ext}',
-               fao_div = config['fao_divisions'],
+               fao_div = config['fao_divisions_agg'],
                ext = ['png', 'svg'])
     params:
-        fao_divisions   = config['fao_divisions'],
+        fao_divisions   = config['fao_divisions_agg'],
         ext             = ['png', 'svg']
     threads: 1
     conda:

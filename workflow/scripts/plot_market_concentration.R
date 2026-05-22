@@ -19,138 +19,145 @@ for (fao_division in snakemake@params$fao_divisions) {
   # Convert fao_division to numeric to filter data
   prod <- as.numeric(fao_division)
 
-  # Data processing for plotting
-  plot_mkt <- data |>
-    # Filter data for the given commodity
-    filter(cmd == prod) |>
-    # Select relevant columns
-    select(c("period", "hhi_imp", "hhi_exp")) |>
-    # Convert wide to long dataframe
-    melt(id.vars = "period",
-         variable.name = "trader_type",
-         value.name = "hhi") |>
-    arrange(period) |>
-    # Convert trader_type to factor and order its values
-    mutate(trader_type = factor(trader_type, levels = order)) |>
+  for (wgt in snakemake@params$wgt) {
 
-    # Create ggplot line plot
-    ggplot(aes(x = period,
-               y = hhi,
-               color = trader_type,
-               label = trader_type)) +
-    geom_line() +
+    # Data processing for plotting
+    plot_mkt <- data |>
+      # Filter data for the given commodity
+      filter(cmd == prod) |>
+      # Filter data for the given weight
+      filter(weight == wgt) |>
+      # Select relevant columns
+      select(c("period", "hhi_imp", "hhi_exp")) |>
+      # Convert wide to long dataframe
+      melt(id.vars = "period",
+           variable.name = "trader_type",
+           value.name = "hhi") |>
+      arrange(period) |>
+      # Convert trader_type to factor and order its values
+      mutate(trader_type = factor(trader_type, levels = order)) |>
 
-    # End of chart labels
-    annotate("text",
-             x = max(data$period) + 0.4,
-             y = data[data$period == max(data$period) &
-                        data$cmd == prod, ]$hhi_imp,
-             label = "Imports",
-             hjust = 0,
-             size = 3,
-             lineheight = .8,
-             fontface = "bold",
-             color = pal[1]) +
+      # Create ggplot line plot
+      ggplot(aes(x = period,
+                 y = hhi,
+                 color = trader_type,
+                 label = trader_type)) +
+      geom_line() +
 
-    annotate("text",
-             x = max(data$period) + 0.4,
-             y = data[data$period == max(data$period) &
-                        data$cmd == prod, ]$hhi_exp,
-             label = "Exports",
-             hjust = 0,
-             size = 3,
-             lineheight = .8,
-             fontface = "bold",
-             color = pal[2]) +
+      # End of chart labels
+      annotate("text",
+               x = max(data$period) + 0.4,
+               y = data[data$period == max(data$period) &
+                          data$cmd == prod &
+                          data$weight == wgt, ]$hhi_imp,
+               label = "Imports",
+               hjust = 0,
+               size = 3,
+               lineheight = .8,
+               fontface = "bold",
+               color = pal[1]) +
 
-    # Horizontal lines to indicate HHI thresholds
-    geom_segment(aes(x = min(data$period),
-                     y = 0.25,
-                     xend = max(data$period),
-                     yend = 0.25),
-                 color = "black",
-                 linetype = "dotted") +
-    annotate("text",
-             x = max(data$period) + 0.4,
-             y = 0.25,
-             label = "HHI = 0.25",
-             hjust = 0,
-             size = 3,
-             lineheight = .8,
-             fontface = "bold",
-             color = "black") +
+      annotate("text",
+               x = max(data$period) + 0.4,
+               y = data[data$period == max(data$period) &
+                          data$cmd == prod &
+                          data$weight == wgt, ]$hhi_exp,
+               label = "Exports",
+               hjust = 0,
+               size = 3,
+               lineheight = .8,
+               fontface = "bold",
+               color = pal[2]) +
 
-    geom_segment(aes(x = min(data$period),
-                     y = 0.15,
-                     xend = max(data$period),
-                     yend = 0.15),
-                 color = "black",
-                 linetype = "dotted") +
-    annotate("text",
-             x = max(data$period) + 0.4,
-             y = 0.15,
-             label = "HHI = 0.15",
-             hjust = 0,
-             size = 3,
-             lineheight = .8,
-             fontface = "bold",
-             color = "black") +
+      # Horizontal lines to indicate HHI thresholds
+      geom_segment(aes(x = min(data$period),
+                       y = 0.25,
+                       xend = max(data$period),
+                       yend = 0.25),
+                   color = "black",
+                   linetype = "dotted") +
+      annotate("text",
+               x = max(data$period) + 0.4,
+               y = 0.25,
+               label = "HHI = 0.25",
+               hjust = 0,
+               size = 3,
+               lineheight = .8,
+               fontface = "bold",
+               color = "black") +
 
-    geom_segment(aes(x = min(data$period),
-                     y = 0.01,
-                     xend = max(data$period),
-                     yend = 0.01),
-                 color = "black",
-                 linetype = "dotted") +
-    annotate("text",
-             x = max(data$period) + 0.4,
-             y = 0.01,
-             label = "HHI = 0.01",
-             hjust = 0,
-             size = 3,
-             lineheight = .8,
-             fontface = "bold",
-             color = "black") +
+      geom_segment(aes(x = min(data$period),
+                       y = 0.15,
+                       xend = max(data$period),
+                       yend = 0.15),
+                   color = "black",
+                   linetype = "dotted") +
+      annotate("text",
+               x = max(data$period) + 0.4,
+               y = 0.15,
+               label = "HHI = 0.15",
+               hjust = 0,
+               size = 3,
+               lineheight = .8,
+               fontface = "bold",
+               color = "black") +
 
-    scale_color_manual(values = pal) +
-    scale_x_continuous(
-      breaks = c(1996, 2000, 2005, 2010, 2015, 2020, max(data$period)),
-      labels = c("1996", "2000", "2005", "2010", "2015", "2020", as.character(max(data$period))) # nolint
-    ) +
-    scale_y_continuous(limits = c(0,
-                                  round(max(data$hhi_imp,
-                                            data$hhi_exp) +
-                                          0.05, 1)),
-                       expand = c(0, 0)) +
-    labs(x = "Year",
-         y = "Herfindahl-Hirschman Index") +
-    coord_cartesian(clip = "off") +
-    theme_ipsum(axis_title_size = 11) +
-    theme(legend.position = "none",
-          plot.margin = margin(40, 80, 20, 20))
+      geom_segment(aes(x = min(data$period),
+                       y = 0.01,
+                       xend = max(data$period),
+                       yend = 0.01),
+                   color = "black",
+                   linetype = "dotted") +
+      annotate("text",
+               x = max(data$period) + 0.4,
+               y = 0.01,
+               label = "HHI = 0.01",
+               hjust = 0,
+               size = 3,
+               lineheight = .8,
+               fontface = "bold",
+               color = "black") +
 
-  # Save plot to all file extensions
-  for (ext in snakemake@params$ext) {
+      scale_color_manual(values = pal) +
+      scale_x_continuous(
+        breaks = c(1996, 2000, 2005, 2010, 2015, 2020, max(data$period)),
+        labels = c("1996", "2000", "2005", "2010", "2015", "2020", as.character(max(data$period))) # nolint
+      ) +
+      scale_y_continuous(limits = c(0,
+                                    round(max(data$hhi_imp,
+                                              data$hhi_exp) +
+                                            0.05, 1)),
+                         expand = c(0, 0)) +
+      labs(x = "Year",
+           y = "Herfindahl-Hirschman Index") +
+      coord_cartesian(clip = "off") +
+      theme_ipsum(axis_title_size = 11) +
+      theme(legend.position = "none",
+            plot.margin = margin(40, 80, 20, 20))
 
-    ggsave(
-      paste(sub(pattern = "(.*)\\..*$",
-                replacement = "\\1",
-                basename(snakemake@output[[1]])),
-            ext,
-            sep = "."),
-      plot = plot_mkt,
-      device = ext,
-      path = paste(dirname(dirname(snakemake@output[[1]])),
-                   fao_division,
-                   sep = "/"),
-      create.dir = TRUE,
-      scale = 1,
-      width = 2480 * 1.1,
-      height = 1240 * 1.5,
-      units = c("px"),
-      dpi = 300,
-      limitsize = TRUE,
-      bg = "white"
-    )
+    # Save plot to all file extensions
+    for (ext in snakemake@params$ext) {
+
+      ggsave(
+        paste(sub(pattern = "(.*)\\..*$",
+                  replacement = "\\1",
+                  basename(snakemake@output[[1]])),
+              ext,
+              sep = "."),
+        plot = plot_mkt,
+        device = ext,
+        path = paste(dirname(dirname(dirname(snakemake@output[[1]]))),
+                     paste(fao_division, wgt, sep = "/"),
+                     sep = "/"),
+        create.dir = TRUE,
+        scale = 1,
+        width = 2480 * 1.1,
+        height = 1240 * 1.5,
+        units = c("px"),
+        dpi = 300,
+        limitsize = TRUE,
+        bg = "white"
+      )
+    }
   }
 }

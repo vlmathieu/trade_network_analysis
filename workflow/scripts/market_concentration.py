@@ -3,7 +3,7 @@ import logging
 import polars as pl
 import pickle
 import numpy as np
-import networkx as nx
+import networkx as nx # pyright: ignore[reportMissingModuleSource]
 
 def unit_market_concentration(
         unit_edge_list_dict: dict, 
@@ -63,28 +63,29 @@ def unit_market_concentration(
     ]
 
     # Compute total traded value for exports and imports
-    traded_value_exp = sum(degree_weighted_exp)
-    traded_value_imp = sum(degree_weighted_imp)
+    tot_exp = sum(degree_weighted_exp)
+    tot_imp = sum(degree_weighted_imp)
 
     # Build dictionnary of tot traded value and market concentration indices
     unit_market_concentration = pl.from_dict(
             {
                 "period": period,
                 "cmd": cmd,
+                "weight": weight,
                 # Assign total circulating value for exports and imports
-                "traded_value_exp": traded_value_exp,
-                "traded_value_imp": traded_value_imp,
+                "tot_exp": tot_exp,
+                "tot_imp": tot_imp,
                 # Compute Herfindahl-Hirschmann index for exports and imports
-                "hhi_exp": sum([(x/traded_value_exp)**2 
+                "hhi_exp": sum([(x/tot_exp)**2 
                                 for x in degree_weighted_exp]),
-                "hhi_imp": sum([(x/traded_value_imp)**2 
+                "hhi_imp": sum([(x/tot_imp)**2 
                                 for x in degree_weighted_imp]),
                 # Compute Shannon index for exports and imports
                 'shannon_exp': -sum(
-                    [((x / traded_value_exp) * np.log(x / traded_value_exp)) 
+                    [((x / tot_exp) * np.log(x / tot_exp)) 
                      for x in degree_weighted_exp if x > 0]),
                 'shannon_imp': -sum(
-                    [((x / traded_value_imp) * np.log(x / traded_value_imp)) 
+                    [((x / tot_imp) * np.log(x / tot_imp)) 
                      for x in degree_weighted_imp if x > 0])
             }
     )
@@ -153,10 +154,20 @@ with open(snakemake.input[0], 'rb') as f:
     edge_list_dict = pickle.load(f)
 
 # Compute market concentration stats based on dictionnary of edge lists
-market_concentration = market_concentration(
-    edge_list_dict= edge_list_dict,
-    weight= snakemake.params['weight']
-)
+market_concentration = pl.concat(
+        [
+            market_concentration(
+                edge_list_dict= edge_list_dict,
+                weight= wgt
+            )
+            for wgt in snakemake.params['weight']
+        ],
+        how = 'vertical_relaxed'
+    )
+# market_concentration = market_concentration(
+#     edge_list_dict= edge_list_dict,
+#     weight= snakemake.params['weight']
+# )
 logging.info(f"\nMarket concentration:\n {market_concentration}\n")
 
 # Save market concentration stats

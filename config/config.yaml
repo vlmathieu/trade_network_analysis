@@ -10,7 +10,7 @@ HS_version: [1996, 2002, 2007, 2012, 2017, 2022]
 flowCode: ['M', 'X']
 
 # Product to keep (FAO classification)
-fao_divisions: ['012']
+fao_divisions: ['012', '051', '052', '053', '071', '072', '073', '074', '075', '076', '077']
 # This keeps trade flows of roundwood products (FAO classification of forest
 # products 2022):
 # - Wood in the rough, other than wood fuel (Division code: 012)
@@ -40,8 +40,8 @@ col_keep: ['period',
            'flowCode', 
            'partnerISO', 
            'partnerDesc',
-           'FAO Code',
-           'FAO Product',  
+           'FAO Code Agg',    # Alternative: 'FAO Code' ~ product level
+           'FAO Product Agg', # Alternative: 'FAO Product' ~ product level
            'netWgt', 
            'primaryValue', 
            'primaryValue_deflated']

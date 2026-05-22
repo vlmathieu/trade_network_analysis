@@ -58,10 +58,13 @@ def join_uncomtrade_FAO(FAO_HS: pl.dataframe.frame.DataFrame,
         ]
     )
 
-    # Concatenate all batch
-    uncomtrade_data_join = pl.concat(
-        [df for df in uncomtrade_joined_batch if df.shape != (0,0)],
-        how='vertical_relaxed'
+    # Concatenate all batch and remove potential duplicates
+    uncomtrade_data_join = (
+        pl.concat(
+            [df for df in uncomtrade_joined_batch if df.shape != (0,0)],
+            how='vertical_relaxed'
+        )
+        .unique(uncomtrade_data.columns)
     )
 
     return uncomtrade_data_join

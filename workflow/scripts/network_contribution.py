@@ -99,6 +99,7 @@ def unit_network_contribution(
             {
                 "period": period,
                 "cmd": cmd,
+                "weight": weight,
                 # Country on which contribution is calculated
                 "country": to_omit,
                 # Assign total number of edges in network
@@ -109,12 +110,12 @@ def unit_network_contribution(
                                      - sum(degree_unweighted_omit)),
                 # Assign total circulating value for exports and imports
                 # Without omission
-                "traded_value_exp": sum(degree_weighted_exp),
-                "traded_value_imp": sum(degree_weighted_imp),
+                "tot_exp": sum(degree_weighted_exp),
+                "tot_imp": sum(degree_weighted_imp),
                 # With omission
-                "traded_value_exp_country": (sum(degree_weighted_exp) -
+                "tot_exp_country": (sum(degree_weighted_exp) -
                                              sum(degree_weighted_exp_omit)),
-                "traded_value_imp_country": (sum(degree_weighted_imp) -
+                "tot_imp_country": (sum(degree_weighted_imp) -
                                              sum(degree_weighted_imp_omit))
             }
     )
@@ -123,10 +124,10 @@ def unit_network_contribution(
     unit_network_contribution = unit_network_contribution.with_columns(
         (pl.col("nb_edges_country") / 
         pl.col("nb_edges")).alias("contrib_nb_edges"),
-        (pl.col("traded_value_exp_country") / 
-        pl.col("traded_value_exp")).alias("contrib_trade_value_exp"),
-        (pl.col("traded_value_imp_country") / 
-        pl.col("traded_value_imp")).alias("contrib_trade_value_imp")
+        (pl.col("tot_exp_country") / 
+        pl.col("tot_exp")).alias("contrib_tot_exp"),
+        (pl.col("tot_imp_country") / 
+        pl.col("tot_imp")).alias("contrib_tot_imp")
     )
 
     return unit_network_contribution
@@ -249,10 +250,16 @@ with open(snakemake.input[0], 'rb') as f:
     edge_list_dict = pickle.load(f)
 
 # Compute market concentration stats based on dictionnary of edge lists
-network_contribution = network_contribution(
-    edge_list_dict= edge_list_dict,
-    weight= snakemake.params['weight']
-)
+network_contribution = pl.concat(
+        [
+            network_contribution(
+                edge_list_dict= edge_list_dict,
+                weight= wgt
+            )
+            for wgt in snakemake.params['weight']
+        ],
+        how = 'vertical_relaxed'
+    )
 logging.info(f"\nNetwork contribution:\n {network_contribution}\n")
 
 # Save market concentration stats

@@ -114,7 +114,7 @@ def compute_mirror_flows(data: pl.dataframe.frame.DataFrame,
 
 def unit_edge_list(unit_mirror_flows: pl.dataframe.frame.DataFrame,
                    year_col: str = 'period',
-                   cmd_col: str = 'fao_code',
+                   cmd_col: str = 'fao_code_agg',
                    country_desc: str = '_desc'):
     '''
     Functions that computes nodes, edge list, adjacency list, and adjacency 
@@ -155,7 +155,7 @@ def unit_edge_list(unit_mirror_flows: pl.dataframe.frame.DataFrame,
             )
     
     # Get product code
-    product = int(unit_mirror_flows.select(cmd_col).unique().item())
+    product = unit_mirror_flows.select(cmd_col).unique().item()
 
     # Get year of trade
     year = int(unit_mirror_flows.select(year_col).unique().item())
@@ -183,7 +183,7 @@ def unit_edge_list(unit_mirror_flows: pl.dataframe.frame.DataFrame,
 
 def edge_lists(data: pl.dataframe.frame.DataFrame,
                year_col: str = 'period',
-               cmd_col: str = 'fao_code',
+               cmd_col: str = 'fao_code_agg',
                country_desc: str = '_desc'):
     '''
     Functions that computes edge list (weighted by export or import reports)

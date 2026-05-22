@@ -3,10 +3,10 @@ rule plot_market_concentration:
         'results/network_analysis/output/market_concentration.csv'
     output:
         expand('results/network_analysis/plot/{fao_div}/market_concentration.{ext}',
-               fao_div = config['fao_divisions'],
+               fao_div = config['fao_divisions_agg'],
                ext = ['png', 'svg'])
     params:
-        fao_divisions   = config['fao_divisions'],
+        fao_divisions   = config['fao_divisions_agg'],
         ext             = ['png', 'svg']
     threads: 1
     conda:

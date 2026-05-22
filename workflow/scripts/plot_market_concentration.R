@@ -20,18 +20,18 @@ for (fao_division in snakemake@params$fao_divisions) {
   prod <- as.numeric(fao_division)
 
   # Data processing for plotting
-  plot_mkt <- data %>%
+  plot_mkt <- data |>
     # Filter data for the given commodity
-    filter(cmd == prod) %>%
+    filter(cmd == prod) |>
     # Select relevant columns
-    select(c("period", "hhi_imp", "hhi_exp")) %>%
+    select(c("period", "hhi_imp", "hhi_exp")) |>
     # Convert wide to long dataframe
     melt(id.vars = "period",
          variable.name = "trader_type",
-         value.name = "hhi") %>%
-    arrange(period) %>%
+         value.name = "hhi") |>
+    arrange(period) |>
     # Convert trader_type to factor and order its values
-    mutate(trader_type = factor(trader_type, levels = order)) %>%
+    mutate(trader_type = factor(trader_type, levels = order)) |>
 
     # Create ggplot line plot
     ggplot(aes(x = period,
@@ -118,8 +118,8 @@ for (fao_division in snakemake@params$fao_divisions) {
       labels = c("1996", "2000", "2005", "2010", "2015", "2020", as.character(max(data$period))) # nolint
     ) +
     scale_y_continuous(limits = c(0,
-                                  round(max(data[data$cmd == prod, ]$hhi_imp,
-                                            data[data$cmd == prod, ]$hhi_exp) +
+                                  round(max(data$hhi_imp,
+                                            data$hhi_exp) +
                                           0.05, 1)),
                        expand = c(0, 0)) +
     labs(x = "Year",

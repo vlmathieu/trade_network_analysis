@@ -2,7 +2,7 @@ from snakemake.script import snakemake
 import logging
 import polars as pl
 import pickle
-import networkx as nx
+import networkx as nx # pyright: ignore[reportMissingModuleSource]
 
 def unit_contributor_profiles(unit_edge_list_dict: dict,
                               threshold: float,

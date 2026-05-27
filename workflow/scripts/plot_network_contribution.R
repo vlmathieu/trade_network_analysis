@@ -8,6 +8,7 @@ library("tidyverse")
 # Function to shape data for plotting
 shape_data <- function(network_contribution,
                        prod,
+                       wgt = "primary_value",
                        time_span = 5,
                        min_contrib = .05,
                        span = .5) {
@@ -20,11 +21,12 @@ shape_data <- function(network_contribution,
   main_contributors <- tibble::as_tibble(network_contribution) %>%
     dplyr::filter(
       cmd == prod,  # nolint
+      weight == wgt, # nolint
       period >= max_year - time_span, # nolint
-      contrib_trade_value_imp > quantile(.$contrib_trade_value_imp, # nolint
-                                         probs = 1 - min_contrib) |
-      contrib_trade_value_exp > quantile(.$contrib_trade_value_imp, # nolint
-                                         probs = 1 - min_contrib)
+      contrib_tot_imp > quantile(.$contrib_tot_imp, # nolint
+                                 probs = 1 - min_contrib) |
+      contrib_tot_exp > quantile(.$contrib_tot_exp, # nolint
+                                 probs = 1 - min_contrib)
     ) %>%
     select("country") %>%
     {unique(c(.$country))} # nolint
@@ -33,14 +35,15 @@ shape_data <- function(network_contribution,
   # and smooth values for nicer plotting
   shape_data <- tibble::as_tibble(network_contribution) %>%
     dplyr::filter(cmd == prod,  # nolint
+                  weight == wgt, # nolint
                   country %in% main_contributors) %>%  # nolint
-    mutate(contrib = (contrib_trade_value_exp +  # nolint
-                        contrib_trade_value_imp) / 2 * 100) %>%  # nolint
+    mutate(contrib = (contrib_tot_exp +  # nolint
+                        contrib_tot_imp) / 2 * 100) %>%  # nolint
     rowwise() %>%
-    mutate(contrib_min = (min(contrib_trade_value_imp,
-                              contrib_trade_value_exp) * 100),
-           contrib_max = (max(contrib_trade_value_imp,
-                              contrib_trade_value_exp) * 100))
+    mutate(contrib_min = (min(contrib_tot_imp,
+                              contrib_tot_exp) * 100),
+           contrib_max = (max(contrib_tot_imp,
+                              contrib_tot_exp) * 100))
 
   shape_data <- shape_data %>%  # nolint
     group_by(country) %>%  # nolint
@@ -131,130 +134,134 @@ contributor_profiles <- read.csv(file = snakemake@input[[2]],
 
 for (fao_division in snakemake@params$fao_divisions) {
 
-  # Format data
-  plot_data <- shape_data(network_contribution,
-                          prod = as.numeric(fao_division))
+  for (wgt in snakemake@params$wgt) {
 
-  # Group main contributors
-  country_groups <- grouping_countries(plot_data,
-                                       contributor_profiles,
-                                       prod = as.numeric(fao_division))
+    # Format data
+    plot_data <- shape_data(network_contribution,
+                            prod = as.numeric(fao_division),
+                            wgt = wgt)
 
-  # Get max year and contribution to scale plot axis
-  y_max <- round(max(plot_data$contrib_max_pred, plot_data$contrib_max))
-  x_max <- max(plot_data$period)
+    # Group main contributors
+    country_groups <- grouping_countries(plot_data,
+                                         contributor_profiles,
+                                         prod = as.numeric(fao_division))
 
-  # Create emply list to store plot
-  plot_lst <- list()
+    # Get max year and contribution to scale plot axis
+    y_max <- round(max(plot_data$contrib_max_pred, plot_data$contrib_max))
+    x_max <- max(plot_data$period)
 
-  # Create plot for every connectivity metric
-  for (group in country_groups) {
+    # Create emply list to store plot
+    plot_lst <- list()
 
-    plot_contribution <-  plot_data %>%
-      # Filter data to keep main contributors from country_group
-      dplyr::filter(
-        country %in% group
-      ) %>%
+    # Create plot for every connectivity metric
+    for (group in country_groups) {
 
-      ggplot(aes(x = period,
-                 y = contrib_pred,
-                 ymin = contrib_min_pred,
-                 ymax = contrib_max_pred,
-                 group = country)
-      ) +
-      geom_line(aes(x = period,
-                    y = contrib_pred,
-                    linetype = country,
-                    color = country)) +
-      geom_ribbon(aes(x = period,
-                      ymin = contrib_min_pred,
-                      ymax = contrib_max_pred,
-                      fill = country),
-                  alpha = 0.5) +
-      geom_point(aes(x = period,
-                     y = contrib_pred,
-                     shape = country,
-                     color = country)) +
-      geom_point(aes(x = period,
-                     y = contrib_min,
-                     shape = country,
-                     color = country,
-                     alpha = 0.2)) +
-      geom_point(aes(x = period,
-                     y = contrib_max,
-                     shape = country,
-                     color = country,
-                     alpha = 0.2)) +
+      plot_contribution <-  plot_data %>%
+        # Filter data to keep main contributors from country_group
+        dplyr::filter(
+          country %in% group
+        ) %>%
 
-      # Set up scale colors, breaks, and limits + themes
-      scale_color_grey() +
-      scale_fill_grey() +
-      geom_text(data = plot_data %>%
-                  filter(period == x_max,
-                         country %in% group),
-                aes(label = country,
-                    x = period + .5,
-                    y = contrib_pred,
-                    color = "black",
-                    lineheight = .8,
-                    fontface = "bold"),
-                hjust = 0) +
-      scale_x_continuous(
-        breaks = c(1996, 2000, 2005, 2010, 2015, 2020, x_max),
-        labels = c("1996", "2000", "2005", "2010", "2015", "2020", as.character(x_max)) # nolint
-      ) +
-      scale_y_continuous(limits = c(0, y_max),
-                         expand = c(0, 0)) +
-      labs(x = "Year",
-           y = "Contribution to global traded value (in %)") +
-      coord_cartesian(clip = "off") +
-      theme_ipsum(axis_title_size = 11) +
-      theme(legend.position = "none",
-            plot.margin = margin(10, 100, 10, 20))
+        ggplot(aes(x = period,
+                   y = contrib_pred,
+                   ymin = contrib_min_pred,
+                   ymax = contrib_max_pred,
+                   group = country)
+        ) +
+        geom_line(aes(x = period,
+                      y = contrib_pred,
+                      linetype = country,
+                      color = country)) +
+        geom_ribbon(aes(x = period,
+                        ymin = contrib_min_pred,
+                        ymax = contrib_max_pred,
+                        fill = country),
+                    alpha = 0.5) +
+        geom_point(aes(x = period,
+                       y = contrib_pred,
+                       shape = country,
+                       color = country)) +
+        geom_point(aes(x = period,
+                       y = contrib_min,
+                       shape = country,
+                       color = country,
+                       alpha = 0.2)) +
+        geom_point(aes(x = period,
+                       y = contrib_max,
+                       shape = country,
+                       color = country,
+                       alpha = 0.2)) +
 
-    # Store plot in list
-    plot_lst[[which(sapply(country_groups,
-                           identical,
-                           group))]] <- plot_contribution
+        # Set up scale colors, breaks, and limits + themes
+        scale_color_grey() +
+        scale_fill_grey() +
+        geom_text(data = plot_data %>%
+                    filter(period == x_max,
+                           country %in% group),
+                  aes(label = country,
+                      x = period + .5,
+                      y = contrib_pred,
+                      color = "black",
+                      lineheight = .8,
+                      fontface = "bold"),
+                  hjust = 0) +
+        scale_x_continuous(
+          breaks = c(1996, 2000, 2005, 2010, 2015, 2020, x_max),
+          labels = c("1996", "2000", "2005", "2010", "2015", "2020", as.character(x_max)) # nolint
+        ) +
+        scale_y_continuous(limits = c(0, y_max),
+                           expand = c(0, 0)) +
+        labs(x = "Year",
+             y = "Contribution to global traded value (in %)") +
+        coord_cartesian(clip = "off") +
+        theme_ipsum(axis_title_size = 11) +
+        theme(legend.position = "none",
+              plot.margin = margin(10, 100, 10, 20))
 
-  }
+      # Store plot in list
+      plot_lst[[which(sapply(country_groups,
+                             identical,
+                             group))]] <- plot_contribution
 
-  # Produce composite plot using patchwork
-  if (length(plot_lst) == 3) {
-    patchwork_plot <- plot_lst[[1]] + plot_lst[[2]] + plot_lst[[3]] +
-      plot_layout(ncol = 1)
-    scale <- 3.3
-  } else if (length(plot_lst) == 2) {
-    patchwork_plot <- plot_lst[[1]] + plot_lst[[2]] +
-      plot_layout(ncol = 1)
-    scale <- 2.2
-  } else {
-    patchwork_plot <- plot_lst[[1]] + plot_layout(ncol = 1)
-    scale <- 1.1
-  }
+    }
 
-  # Save plot to all file extensions
-  for (ext in snakemake@params$ext) {
+    # Produce composite plot using patchwork
+    if (length(plot_lst) == 3) {
+      patchwork_plot <- plot_lst[[1]] + plot_lst[[2]] + plot_lst[[3]] +
+        plot_layout(ncol = 1)
+      scale <- 3.3
+    } else if (length(plot_lst) == 2) {
+      patchwork_plot <- plot_lst[[1]] + plot_lst[[2]] +
+        plot_layout(ncol = 1)
+      scale <- 2.2
+    } else {
+      patchwork_plot <- plot_lst[[1]] + plot_layout(ncol = 1)
+      scale <- 1.1
+    }
 
-    ggsave(
-      paste(sub(pattern = "(.*)\\..*$",
-                replacement = "\\1",
-                basename(snakemake@output[[1]])),
-            ext,
-            sep = "."),
-      plot = patchwork_plot,
-      device = ext,
-      path = paste(dirname(dirname(snakemake@output[[1]])),
-                   fao_division,
-                   sep = "/"),
-      create.dir = TRUE,
-      scale = 1,
-      width = 2480 * 1.1,
-      height = 1240 * scale,
-      units = c("px"),
-      dpi = 300,
-      limitsize = TRUE,
-      bg = "white"
-    )
+    # Save plot to all file extensions
+    for (ext in snakemake@params$ext) {
+
+      ggsave(
+        paste(sub(pattern = "(.*)\\..*$",
+                  replacement = "\\1",
+                  basename(snakemake@output[[1]])),
+              ext,
+              sep = "."),
+        plot = patchwork_plot,
+        device = ext,
+        path = paste(dirname(dirname(dirname(snakemake@output[[1]]))),
+                     paste(fao_division, wgt, sep = "/"),
+                     sep = "/"),
+        create.dir = TRUE,
+        scale = 1,
+        width = 2480 * 1.1,
+        height = 1240 * scale,
+        units = c("px"),
+        dpi = 300,
+        limitsize = TRUE,
+        bg = "white"
+      )
+    }
   }
 }

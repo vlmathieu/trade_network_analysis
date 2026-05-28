@@ -3,7 +3,7 @@ import logging
 import polars as pl
 import pickle
 import numpy as np
-import networkx as nx
+import networkx as nx # pyright: ignore[reportMissingModuleSource]
 
 def unit_network_contribution(
         unit_edge_list_dict: dict,
@@ -246,24 +246,31 @@ logging.basicConfig(filename=snakemake.log[0],
                     datefmt='%Y-%m-%d %H:%M:%S')
 
 # Load dictionary of edge lists
-with open(snakemake.input[0], 'rb') as f:
-    edge_list_dict = pickle.load(f)
+edge_list_dicts = []
+for p in snakemake.input:
+    with open(p, 'rb') as f:
+        edge_list_dicts.append(pickle.load(f))
 
 # Compute market concentration stats based on dictionnary of edge lists
-network_contribution = pl.concat(
+network_contribution = [
+    pl.concat(
         [
             network_contribution(
-                edge_list_dict= edge_list_dict,
-                weight= wgt
-            )
+                edge_list_dict=edge_list_dict,
+                weight=wgt
+                ) 
             for wgt in snakemake.params['weight']
-        ],
-        how = 'vertical_relaxed'
-    )
-logging.info(f"\nNetwork contribution:\n {network_contribution}\n")
+        ], 
+        how='vertical_relaxed') 
+    for edge_list_dict in edge_list_dicts
+]
+logging.info(f"\nNetwork contribution country level:\n {network_contribution[0]}\n")
+logging.info(f"\nNetwork contribution aggregated eu:\n {network_contribution[1]}\n")
 
 # Save market concentration stats
-network_contribution.write_csv(
-    snakemake.output[0],
-    separator=';'
-)
+for data, path in zip(network_contribution, snakemake.output):
+    data.write_csv(path, separator=';')
+# network_contribution.write_csv(
+#     snakemake.output[0],
+#     separator=';'
+# )

@@ -239,21 +239,23 @@ logging.basicConfig(filename=snakemake.log[0],
                     level=logging.INFO,
                     format='%(asctime)s %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
-    
+
 # Load input trade data
-input_data = pl.read_parquet(snakemake.input[0])
+input_data = [pl.read_parquet(_) for _ in snakemake.input]
 
 # Create mirror flows and edge lists
-mirror_flows = compute_mirror_flows(input_data)
-edge_lists = edge_lists(input_data)
-logging.info(f"\nMirror flows:\n {mirror_flows}\n")
+mirror_flows = [compute_mirror_flows(_) for _ in input_data]
+edge_lists = [edge_lists(_) for _ in input_data]
+logging.info(f"\nMirror flows country level:\n {mirror_flows[0]}\n")
+logging.info(f"\nMirror flows europe aggregated:\n {mirror_flows[1]}\n")
 
 # Save mirror flows
-mirror_flows.write_csv(
-    snakemake.output[0],
-    separator=';'
-    )
+mirror_flow_path = [_ for _ in snakemake.output if 'mirror_flows' in _]
+for data, path in zip(mirror_flows, mirror_flow_path):
+    data.write_csv(path, separator=';')
 
 # Save edge list dictionnary
-with open(snakemake.output[1], 'wb') as f:
-    pickle.dump(edge_lists, f)
+edge_list_path = [_ for _ in snakemake.output if 'edge_lists' in _]
+for data, path in zip(edge_lists, edge_list_path):
+    with open(path, 'wb') as f:
+        pickle.dump(data, f)

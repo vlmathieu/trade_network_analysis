@@ -2,7 +2,7 @@ rule filter_data:
     input:
         'results/global/merged_data.parquet.gzip'
     output:
-        'results/network_analysis/input/input_data.parquet.gzip'
+        'results/network_analysis/country_lvl/input/input_data.parquet.gzip'
     params:
         year_start      = config['years']['start'],
         year_stop       = config['years']['stop'],

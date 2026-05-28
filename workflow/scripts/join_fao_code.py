@@ -24,32 +24,6 @@ def join_uncomtrade_FAO(FAO_HS: pl.dataframe.frame.DataFrame,
         to HS codes.
     '''
 
-    # Correct classificationCode column
-    # uncomtrade_data = (
-    #     uncomtrade_data
-    #     .with_columns(
-    #         pl.when(pl.col('refYear') < 1996).then(pl.lit('H0')).otherwise(pl.col('classificationCode')).alias('classificationCode')
-    #     )
-    #     .with_columns(
-    #         pl.when((pl.col('refYear') >= 1996) & (pl.col('refYear') < 2002)).then(pl.lit('H1')).otherwise(pl.col('classificationCode')).alias('classificationCode')
-    #     )
-    #     .with_columns(
-    #         pl.when((pl.col('refYear') >= 2002) & (pl.col('refYear') < 2007)).then(pl.lit('H2')).otherwise(pl.col('classificationCode')).alias('classificationCode')
-    #     )
-    #     .with_columns(
-    #         pl.when((pl.col('refYear') >= 2007) & (pl.col('refYear') < 2012)).then(pl.lit('H3')).otherwise(pl.col('classificationCode')).alias('classificationCode')
-    #     )
-    #     .with_columns(
-    #         pl.when((pl.col('refYear') >= 2012) & (pl.col('refYear') < 2017)).then(pl.lit('H4')).otherwise(pl.col('classificationCode')).alias('classificationCode')
-    #     )
-    #     .with_columns(
-    #         pl.when((pl.col('refYear') >= 2017) & (pl.col('refYear') < 2022)).then(pl.lit('H5')).otherwise(pl.col('classificationCode')).alias('classificationCode')
-    #     )
-    #     .with_columns(
-    #         pl.when(pl.col('refYear') >= 2022).then(pl.lit('H6')).otherwise(pl.col('classificationCode')).alias('classificationCode')
-    #     )
-    # )
-
     # Collect HS classification version code in uncomtrade data (H0, H1, ...)
     HS_vers_code = (sorted(
         uncomtrade_data.select('classificationCode')

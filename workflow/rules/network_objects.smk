@@ -1,9 +1,12 @@
 rule network_objects:
     input:
-        'results/network_analysis/input/input_data.parquet.gzip'
+        expand('results/network_analysis/{agg_lvl}/input/input_data.parquet.gzip',
+                agg_lvl  = config['agg_lvl'])
     output:
-        'results/network_analysis/intermediary/mirror_flows.csv',
-        'results/network_analysis/intermediary/edge_lists.pkl'
+        expand('results/network_analysis/{agg_lvl}/intermediary/mirror_flows.csv',
+                agg_lvl  = config['agg_lvl']),
+        expand('results/network_analysis/{agg_lvl}/intermediary/edge_lists.pkl',
+                agg_lvl  = config['agg_lvl'])
     log:
         'workflow/logs/network_objects.log'
     threads: 4

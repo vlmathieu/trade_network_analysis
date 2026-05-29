@@ -270,7 +270,3 @@ logging.info(f"\nNetwork contribution aggregated eu:\n {network_contribution[1]}
 # Save market concentration stats
 for data, path in zip(network_contribution, snakemake.output):
     data.write_csv(path, separator=';')
-# network_contribution.write_csv(
-#     snakemake.output[0],
-#     separator=';'
-# )

@@ -1,8 +1,10 @@
 rule market_concentration:
     input:
-        'results/network_analysis/intermediary/edge_lists.pkl'
+        expand('results/network_analysis/{agg_lvl}/intermediary/edge_lists.pkl',
+                agg_lvl  = config['agg_lvl'])
     output:
-        'results/network_analysis/output/market_concentration.csv'
+        expand('results/network_analysis/{agg_lvl}/output/market_concentration.csv',
+                agg_lvl  = config['agg_lvl'])
     params:
         weight      = config['weight']
     log:

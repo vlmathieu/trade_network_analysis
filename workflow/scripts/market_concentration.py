@@ -150,28 +150,28 @@ logging.basicConfig(filename=snakemake.log[0],
                     datefmt='%Y-%m-%d %H:%M:%S')
 
 # Load dictionary of edge lists
-with open(snakemake.input[0], 'rb') as f:
-    edge_list_dict = pickle.load(f)
+edge_list_dicts = []
+for p in snakemake.input:
+    with open(p, 'rb') as f:
+        edge_list_dicts.append(pickle.load(f))
 
 # Compute market concentration stats based on dictionnary of edge lists
-market_concentration = pl.concat(
+market_concentration = [
+    pl.concat(
         [
             market_concentration(
                 edge_list_dict= edge_list_dict,
-                weight= wgt
-            )
+                weight= wgt) 
             for wgt in snakemake.params['weight']
-        ],
+        ], 
         how = 'vertical_relaxed'
-    )
-# market_concentration = market_concentration(
-#     edge_list_dict= edge_list_dict,
-#     weight= snakemake.params['weight']
-# )
-logging.info(f"\nMarket concentration:\n {market_concentration}\n")
+    ) 
+    for edge_list_dict in edge_list_dicts
+]
+
+logging.info(f"\nMarket concentration country level:\n {market_concentration[0]}\n")
+logging.info(f"\nMarket concentration aggregated eu:\n {market_concentration[1]}\n")
 
 # Save market concentration stats
-market_concentration.write_csv(
-    snakemake.output[0],
-    separator=';'
-    )
+for data, path in zip(market_concentration, snakemake.output):
+    data.write_csv(path, separator=';')

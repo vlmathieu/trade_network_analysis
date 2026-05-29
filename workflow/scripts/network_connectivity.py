@@ -3,9 +3,9 @@ import logging
 import polars as pl
 import pickle
 import numpy as np
-import networkx as nx
-from scipy.stats import kurtosis
-from scipy.stats import skew
+import networkx as nx # pyright: ignore[reportMissingModuleSource]
+from scipy.stats import kurtosis # pyright: ignore[reportMissingImports]
+from scipy.stats import skew # pyright: ignore[reportMissingImports]
 
 
 def unit_network_connectivity(
@@ -133,17 +133,19 @@ logging.basicConfig(filename=snakemake.log[0],
                     datefmt='%Y-%m-%d %H:%M:%S')
 
 # Load dictionary of edge lists
-with open(snakemake.input[0], 'rb') as f:
-    edge_list_dict = pickle.load(f)
+edge_list_dicts = []
+for p in snakemake.input:
+    with open(p, 'rb') as f:
+        edge_list_dicts.append(pickle.load(f))
 
 # Compute network connectivity metrics based on dictionnary of edge lists
-network_connectivity = network_connectivity(
-    edge_list_dict= edge_list_dict
-)
-logging.info(f"\nNetwork connectivity:\n {network_connectivity}\n")
+network_connectivity = [
+    network_connectivity(edge_list_dict= edge_list_dict) 
+    for edge_list_dict in edge_list_dicts
+]
+logging.info(f"\nNetwork connectivity country level:\n {network_connectivity[0]}\n")
+logging.info(f"\nNetwork connectivity aggregates eu:\n {network_connectivity[1]}\n")
 
 # Save network_connectivity metrics
-network_connectivity.write_csv(
-    snakemake.output[0],
-    separator=';'
-    )
+for data, path in zip(network_connectivity, snakemake.output):
+    data.write_csv(path, separator=';')

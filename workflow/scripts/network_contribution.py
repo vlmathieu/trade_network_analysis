@@ -251,7 +251,7 @@ for p in snakemake.input:
     with open(p, 'rb') as f:
         edge_list_dicts.append(pickle.load(f))
 
-# Compute market concentration stats based on dictionnary of edge lists
+# Compute network contribution based on dictionnary of edge lists
 network_contribution = [
     pl.concat(
         [
@@ -267,6 +267,6 @@ network_contribution = [
 logging.info(f"\nNetwork contribution country level:\n {network_contribution[0]}\n")
 logging.info(f"\nNetwork contribution aggregated eu:\n {network_contribution[1]}\n")
 
-# Save market concentration stats
+# Save network contributions
 for data, path in zip(network_contribution, snakemake.output):
     data.write_csv(path, separator=';')

@@ -1,12 +1,22 @@
 rule plot_network_composition:
     input:
-        'results/network_analysis/output/network_composition.csv'
+        expand('results/network_analysis/{agg_lvl}/output/network_composition.csv',
+                agg_lvl  = config['agg_lvl'])
     output:
-        expand('results/network_analysis/plot/{fao_div}/network_composition.{ext}',
-               fao_div = config['fao_divisions'],
-               ext = ['png', 'svg'])
+        expand('results/network_analysis/{agg_lvl}/plot/{fao_div}/network_composition.{ext}',
+                agg_lvl = config['agg_lvl'],
+                fao_div = config['fao_divisions_agg'],
+                ext     = ['png', 'svg']),
+        expand('results/network_analysis/{agg_lvl}/plot/{fao_div}/network_mirrored_desc_stat.{ext}',
+                agg_lvl = config['agg_lvl'],
+                fao_div = config['fao_divisions_agg'],
+                ext     = ['png', 'svg']),
+        expand('results/network_analysis/{agg_lvl}/plot/{fao_div}/network_price_desc_stat.{ext}',
+                agg_lvl = config['agg_lvl'],
+                fao_div = config['fao_divisions_agg'],
+                ext     = ['png', 'svg'])
     params:
-        fao_divisions   = config['fao_divisions'],
+        fao_divisions   = config['fao_divisions_agg'],
         ext             = ['png', 'svg']
     threads: 1
     conda:

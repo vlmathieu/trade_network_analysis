@@ -17,3 +17,5 @@ dependencies:
  - r-geosphere=1.5
 #  - r-CoordinateCleaner=3.0.1
  - r-reshape2=1.4.4
+ - r-tibble=3.3.0
+ - r-scales=1.4.0

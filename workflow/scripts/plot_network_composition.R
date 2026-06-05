@@ -448,7 +448,7 @@ for (input_file in snakemake@input) {
       )
 
     # Palette and labels: all trader types + total
-    pal_price    <- c(pal_vol["main_exp"], pal_vol["balanced"], pal_vol["main_imp"],
+    pal_price    <- c(pal_vol["main_exp"], pal_vol["balanced"], pal_vol["main_imp"], # nolint
                       total = "black")
     price_labels <- c(vol_labels["main_exp"], vol_labels["balanced"],
                       vol_labels["main_imp"], total = "Total")

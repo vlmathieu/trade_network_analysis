@@ -54,6 +54,11 @@ def unit_network_composition(
           nb_main_exp   : Number of main exporters
           nb_main_imp   : Number of main importers
           nb_balanced   : Number of balanced countries
+
+        Country lists (sorted alphabetically, serialised as strings in CSV):
+          list_main_exp : Sorted list of main exporter country codes
+          list_main_imp : Sorted list of main importer country codes
+          list_balanced : Sorted list of balanced country codes
  
         Network totals (denominators for share computation):
           tot_net_wgt        : Total net weight traded in the network
@@ -186,6 +191,10 @@ def unit_network_composition(
             'nb_main_exp' : len(main_exporters),
             'nb_main_imp' : len(main_importers),
             'nb_balanced' : len(balanced),
+            # Country lists (sorted alphabetically for reproducibility)
+            'list_main_exp': [sorted(main_exporters)],
+            'list_main_imp': [sorted(main_importers)],
+            'list_balanced': [sorted(balanced)],
             # Network totals
             **tot_flows,
             # Source-attributed flow totals (supply-side perspective)
@@ -335,4 +344,8 @@ logging.info(f"\nNetwork composition:\n {network_composition}\n")
 
 # Save network composition
 for data, path in zip(network_composition, snakemake.output):
-    data.write_csv(path, separator=';')
+    data.with_columns([
+        pl.col('list_main_exp').list.join(', '),
+        pl.col('list_main_imp').list.join(', '),
+        pl.col('list_balanced').list.join(', '),
+    ]).write_csv(path, separator=';')

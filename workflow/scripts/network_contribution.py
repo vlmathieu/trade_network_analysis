@@ -2,271 +2,175 @@ from snakemake.script import snakemake
 import logging
 import polars as pl
 import pickle
-import numpy as np
-import networkx as nx # pyright: ignore[reportMissingModuleSource]
+import networkx as nx  # pyright: ignore[reportMissingModuleSource]
 
-def unit_network_contribution(
-        unit_edge_list_dict: dict,
-        to_omit: str,
-        weight: str = 'primary_value') -> pl.dataframe.frame.DataFrame:
-    '''
-    Function that returns a polar data frame of a country's contribution to 
-    total traded value for exports and imports and total number of edges based 
-    on an edge list describing a trade network for a given year and traded 
-    product. The weight to be taken into account when calculating the total 
-    traded value is given by the weight parameter. The network refers to the 
-    trade of one year and one product and is directed and weighted.
 
-    Parameters
-    ----------
-    unit_edge_list_dict : dictionnary
-        A dictionnary that associates (i) a tuple (cmd, period) of the commodity
-        code and the year of trade and (ii) the associated edge list describing 
-        the network and on which network total traded value and market 
-        concentration indices are calculated.
-    to_omit : string
-        The name of the country on which network contribution is calculated,
-        i.e., the country to omit in order to measure its contribution in the
-        netork total traded value and number of edges.
-    weight : string
-        The weight on which network total traded value and market concentration 
-        indices are calculated. The default value is "primary_value".
-
-    Returns
-    -------
-    unit_market_concentration : polars data frame
-        A polars data frame of a country's contribution to total traded value 
-        for exports and imports and total number of edges for a given year and 
-        traded product.
-        
-    '''
-
-    # Extract keys and edge list from dict
-    [[keys, edge_list]] = unit_edge_list_dict.items()
-
-    # Extract commodity code (=cmd) and year (=period)
-    cmd, period = keys
-
-    # Build directed network based on edge_list
-    net = nx.from_edgelist(edge_list, create_using=nx.DiGraph)
-
-    # Replace None weights by 0
-    for _,_,d in net.edges(data=True):
+def _replace_none_weights(graph: nx.DiGraph) -> None:
+    """Replace None edge attributes with 0 in-place."""
+    for _, _, d in graph.edges(data=True):
         for key in d:
             if d[key] is None:
                 d[key] = 0
 
-    # Remove country on which contribution is calculated from network
-    net_omit = nx.from_edgelist(edge_list, create_using=nx.DiGraph)
-    net_omit.remove_node(to_omit)
 
-    # Replace None weights by 0
-    for _,_,d in net_omit.edges(data=True):
-        for key in d:
-            if d[key] is None:
-                d[key] = 0
+def network_contribution_single(
+        edge_list: list,
+        cmd,
+        period,
+        weight: str = 'primary_value') -> pl.DataFrame:
+    """
+    Compute every country's contribution to total traded value and edge count
+    for one (cmd, period) network.
 
-    # Build unweighted degree lists for exp=out_degree | imp=in_degree
-    # Without omission
-    degree_unweighted = [
-        net.out_degree(x) for x in net.nodes()
-    ]
-    # With omission
-    degree_unweighted_omit = [
-        net_omit.out_degree(x) for x in net_omit.nodes()
-    ]
+    The contribution of a country is the reduction in total trade value that
+    would result from removing it from the network. Analytically this equals:
 
-    # Build weighted degree lists for exporters=out_degree | importers=in_degree
-    # Without omission
-    degree_weighted_exp = [
-        net.out_degree(x, weight = f'{weight}_exp') for x in net.nodes()
-    ]
-    degree_weighted_imp = [
-        net.in_degree(x, weight = f'{weight}_imp') for x in net.nodes()
-    ]
-    # With omission
-    degree_weighted_exp_omit = [
-        net_omit.out_degree(x, weight = f'{weight}_exp') 
-        for x in net_omit.nodes()
-    ]
-    degree_weighted_imp_omit = [
-        net_omit.in_degree(x, weight = f'{weight}_imp') 
-        for x in net_omit.nodes()
-    ]
+      contrib_exp(c) = out_degree(c, weight_exp)          # c's own exports
+                     + sum of weight_exp on c's in-edges  # partners lose exports to c
+      contrib_imp(c) = in_degree(c, weight_imp)           # c's own imports
+                     + sum of weight_imp on c's out-edges # partners lose imports from c
+      contrib_edges(c) = out_degree(c) + in_degree(c)     # all incident edges
 
-    # Build dictionnary of tot traded value and market concentration indices
-    unit_network_contribution = pl.from_dict(
-            {
-                "period": period,
-                "cmd": cmd,
-                "weight": weight,
-                # Country on which contribution is calculated
-                "country": to_omit,
-                # Assign total number of edges in network
-                # Without omission
-                "nb_edges": sum(degree_unweighted),
-                # With omission
-                "nb_edges_country": (sum(degree_unweighted) 
-                                     - sum(degree_unweighted_omit)),
-                # Assign total circulating value for exports and imports
-                # Without omission
-                "tot_exp": sum(degree_weighted_exp),
-                "tot_imp": sum(degree_weighted_imp),
-                # With omission
-                "tot_exp_country": (sum(degree_weighted_exp) -
-                                             sum(degree_weighted_exp_omit)),
-                "tot_imp_country": (sum(degree_weighted_imp) -
-                                             sum(degree_weighted_imp_omit))
-            }
-    )
-
-    # Compute country contribution to total traded value and nb. of edges
-    unit_network_contribution = unit_network_contribution.with_columns(
-        (pl.col("nb_edges_country") / 
-        pl.col("nb_edges")).alias("contrib_nb_edges"),
-        (pl.col("tot_exp_country") / 
-        pl.col("tot_exp")).alias("contrib_tot_exp"),
-        (pl.col("tot_imp_country") / 
-        pl.col("tot_imp")).alias("contrib_tot_imp")
-    )
-
-    return unit_network_contribution
-
-def unit_network_contribution_all_nodes(
-        unit_edge_list_dict: dict,
-        weight: str = 'primary_value') -> pl.dataframe.frame.DataFrame:
-    '''
-    Function that returns a polar data frame of every country's contribution to 
-    total traded value for exports and imports and total number of edges based 
-    on an edge list describing a trade network for a given year and traded 
-    product. The weight to be taken into account when calculating the total 
-    traded value is given by the weight parameter. The network refers to the 
-    trade of one year and one product and is directed and weighted.
+    Network-level totals (tot_exp, tot_imp, nb_edges) are computed once per
+    network rather than once per country, giving an O(N + E) algorithm instead
+    of O(N * (N + E)).
 
     Parameters
     ----------
-    unit_edge_list_dict : dictionnary
-        A dictionnary that associates (i) a tuple (cmd, period) of the commodity
-        code and the year of trade and (ii) the associated edge list describing 
-        the network and on which network total traded value and market 
-        concentration indices are calculated.
-    weight : string
-        The weight on which network total traded value and market concentration 
-        indices are calculated. The default value is "primary_value".
+    edge_list : list
+        Edge list for this (cmd, period) network.
+    cmd :
+        Commodity code.
+    period :
+        Year.
+    weight : str
+        Edge attribute prefix ('primary_value' or 'net_wgt').
 
     Returns
     -------
-    unit_market_concentration_all_nodes : polars data frame
-        A polars data frame of every country's contribution to total traded 
-        value for exports and imports and total number of edges for a given year
-        and traded product.
-        
-    '''
-
-    # Extract keys and edge list from dict
-    [[_, edge_list]] = unit_edge_list_dict.items()
-
-    # Build directed network based on edge_list
+    pl.DataFrame
+        One row per country with columns: period, cmd, weight, country,
+        nb_edges, nb_edges_country, tot_exp, tot_imp, tot_exp_country,
+        tot_imp_country, contrib_nb_edges, contrib_tot_exp, contrib_tot_imp.
+    """
+    # Build directed graph
     net = nx.from_edgelist(edge_list, create_using=nx.DiGraph)
+    _replace_none_weights(net)
 
-    # List trading countries
-    countries = list(net.nodes())
-    countries.sort()
+    w_exp = f'{weight}_exp'
+    w_imp = f'{weight}_imp'
 
-    # Compute country's contribution for every trading country
-    unit_market_concentration_all_nodes = pl.concat(
-        [
-            unit_network_contribution(
-                unit_edge_list_dict = unit_edge_list_dict,
-                to_omit = country,
-                weight = weight
-            )
-            for country in countries
-        ]
-    )
+    # Compute network-level totals once
+    nb_edges = net.number_of_edges()
+    tot_exp  = float(sum(net.out_degree(x, weight=w_exp) for x in net.nodes()))
+    tot_imp  = float(sum(net.in_degree(x,  weight=w_imp) for x in net.nodes()))
 
-    return unit_market_concentration_all_nodes
+    # Compute per-country contributions analytically
+    countries = sorted(net.nodes())
+    rows = {k: [] for k in [
+        'period', 'cmd', 'weight', 'country',
+        'nb_edges', 'nb_edges_country',
+        'tot_exp', 'tot_imp',
+        'tot_exp_country', 'tot_imp_country',
+        'contrib_nb_edges', 'contrib_tot_exp', 'contrib_tot_imp',
+    ]}
+
+    for country in countries:
+        # Contribution to edge count: all edges incident to this country
+        nb_edges_country = net.out_degree(country) + net.in_degree(country)
+
+        # Contribution to export value:
+        #   own outgoing exports + in-neighbours lose their outgoing export to country
+        tot_exp_country = float(
+            net.out_degree(country, weight=w_exp)
+            + sum(d.get(w_exp, 0) or 0
+                  for _, _, d in net.in_edges(country, data=True))
+        )
+
+        # Contribution to import value:
+        #   own incoming imports + out-neighbours lose their incoming import from country
+        tot_imp_country = float(
+            net.in_degree(country, weight=w_imp)
+            + sum(d.get(w_imp, 0) or 0
+                  for _, _, d in net.out_edges(country, data=True))
+        )
+
+        rows['period'].append(period)
+        rows['cmd'].append(str(cmd))
+        rows['weight'].append(weight)
+        rows['country'].append(country)
+        rows['nb_edges'].append(nb_edges)
+        rows['nb_edges_country'].append(nb_edges_country)
+        rows['tot_exp'].append(tot_exp)
+        rows['tot_imp'].append(tot_imp)
+        rows['tot_exp_country'].append(tot_exp_country)
+        rows['tot_imp_country'].append(tot_imp_country)
+        rows['contrib_nb_edges'].append(
+            nb_edges_country / nb_edges if nb_edges else 0.0)
+        rows['contrib_tot_exp'].append(
+            tot_exp_country / tot_exp if tot_exp else 0.0)
+        rows['contrib_tot_imp'].append(
+            tot_imp_country / tot_imp if tot_imp else 0.0)
+
+    return pl.from_dict(rows)
+
 
 def network_contribution(
-        edge_list_dict: dict, 
-        weight: list = 'primary_value') -> pl.dataframe.frame.DataFrame:
-    '''
-    Function that returns a polar data frame of every country's contribution to 
-    total traded value for exports and imports and total number of edges for 
-    every year and commodity of trade based on a dictionary of edge lists 
-    describing a trade network for each year and product of trade considered. 
-    The weight to be taken into account when calculating the total traded value 
-    is given by the weight parameter. The network is directed and weighted.
+        edge_list_dict: dict,
+        weight: str = 'primary_value') -> pl.DataFrame:
+    """
+    Compute every country's contribution for all (cmd, period) networks in
+    edge_list_dict, for a single weight type.
 
     Parameters
     ----------
-    edge_list_dict : dictionnary
-        A dictionnary that associates, for all years and products of trade 
-        covered, (i) a tuple (product, year) of the product code and the year of 
-        trade and (ii) the associated edge list describing the network and on 
-        which network total traded value and market concentration indices are 
-        calculated.
-    weight : string
-        The weight on which network total traded value and market concentration 
-        indices are calculated. The default value is "primary_value".
+    edge_list_dict : dict
+        Maps (cmd, period) tuples to edge lists.
+    weight : str
+        Edge attribute prefix ('primary_value' or 'net_wgt').
 
     Returns
     -------
-    network_contribution : polars data frame
-        A polars data frame of every country's contribution to total traded 
-        value for exports and imports and total number of edges for each year 
-        and product considered.
-        
-    '''
+    pl.DataFrame
+        Concatenation of per-network results, sorted by cmd and period.
+    """
+    frames = [
+        network_contribution_single(el, cmd, period, weight)
+        for (cmd, period), el in edge_list_dict.items()
+    ]
+    return pl.concat(frames, how='vertical_relaxed').sort(['cmd', 'period'])
 
-    # Divide global dictionary into list of unit edge list dictionnaries
-    edge_lists = [{k: v} for (k, v) in edge_list_dict.items()]
 
-    # Apply unit_network_contribution_all_nodes to every edge list dictionnary
-    network_contribution = pl.concat(
-        [
-            unit_network_contribution_all_nodes(
-                unit_edge_list_dict = unit_edge_list_dict, 
-                weight = weight
-            )
-            for unit_edge_list_dict in edge_lists
-        ],
-        how = 'vertical_relaxed'
-    )
+# ---------------------------------------------------------------------------
+# Snakemake entry point
+# ---------------------------------------------------------------------------
 
-    # Sort by cmd and year
-    network_contribution = network_contribution.sort(['cmd', 'period'])
-    
-    return network_contribution
+logging.basicConfig(
+    filename=snakemake.log[0],
+    level=logging.INFO,
+    format='%(asctime)s %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+)
 
-# Log file edition
-logging.basicConfig(filename=snakemake.log[0],
-                    level=logging.INFO,
-                    format='%(asctime)s %(message)s',
-                    datefmt='%Y-%m-%d %H:%M:%S')
-
-# Load dictionary of edge lists
+# Load all edge list dictionaries (one per aggregation level)
 edge_list_dicts = []
 for p in snakemake.input:
     with open(p, 'rb') as f:
         edge_list_dicts.append(pickle.load(f))
 
-# Compute network contribution based on dictionnary of edge lists
-network_contribution = [
-    pl.concat(
-        [
-            network_contribution(
-                edge_list_dict=edge_list_dict,
-                weight=wgt
-                ) 
-            for wgt in snakemake.params['weight']
-        ], 
-        how='vertical_relaxed') 
-    for edge_list_dict in edge_list_dicts
-]
-logging.info(f"\nNetwork contribution country level:\n {network_contribution[0]}\n")
-logging.info(f"\nNetwork contribution aggregated eu:\n {network_contribution[1]}\n")
+# Compute contributions for each aggregation level across all weights
+results = []
+for edge_list_dict in edge_list_dicts:
+    frames = [
+        network_contribution(edge_list_dict=edge_list_dict, weight=wgt)
+        for wgt in snakemake.params['weight']
+    ]
+    results.append(pl.concat(frames, how='vertical_relaxed'))
 
-# Save network contributions
-for data, path in zip(network_contribution, snakemake.output):
+logging.info(f"\nNetwork contribution country level:\n{results[0]}\n")
+if len(results) > 1:
+    logging.info(f"\nNetwork contribution aggregated EU:\n{results[1]}\n")
+
+# Save results
+for data, path in zip(results, snakemake.output):
     data.write_csv(path, separator=';')

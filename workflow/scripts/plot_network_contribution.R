@@ -77,20 +77,20 @@ select_countries <- function(data,
 
   max_year <- max(data$period)
 
-  data |>
+  data %>% # nolint
     dplyr::filter(
       cmd    == prod,                        # nolint
       weight == "primary_value",             # nolint
       period >= max_year - time_span         # nolint
-    ) |>
-    rowwise() |>
-    mutate(max_contrib = max(contrib_tot_exp, contrib_tot_imp)) |> # nolint
-    ungroup() |>
+    ) %>% # nolint
+    rowwise() %>% # nolint
+    mutate(max_contrib = max(contrib_tot_exp, contrib_tot_imp)) %>% # nolint
+    ungroup() %>% # nolint
     dplyr::filter(
       max_contrib > quantile(.$max_contrib, probs = 1 - top_frac) # nolint
-    ) |>
-    dplyr::select(country) |> # nolint
-    dplyr::distinct() |>
+    ) %>% # nolint
+    dplyr::select(country) %>% # nolint
+    dplyr::distinct() %>% # nolint
     dplyr::pull(country)
 }
 
@@ -122,7 +122,7 @@ classify_countries <- function(composition,
   }
 
   # Filter composition to this product
-  comp_prod <- composition |>
+  comp_prod <- composition %>% # nolint
     dplyr::filter(cmd == prod) # nolint
 
   # Build long-format table: one row per (period, country, group)
@@ -155,10 +155,10 @@ classify_countries <- function(composition,
   long <- dplyr::bind_rows(rows)
 
   # Modal group per country
-  long |>
-    dplyr::group_by(country) |>                              # nolint
+  long %>% # nolint
+    dplyr::group_by(country) %>%                              # nolint
     dplyr::summarise(group = modal_group(group), # nolint
-                     .groups = "drop") |>
+                     .groups = "drop") %>% # nolint
     tibble::deframe()  # named vector: country -> group
 }
 
@@ -176,14 +176,14 @@ shape_data <- function(data,
                        selected_countries,
                        span = 0.5) {
 
-  shaped <- data |>
+  shaped <- data %>% # nolint
     dplyr::filter(
       cmd    == prod,                      # nolint
       weight == wgt,                       # nolint
       country %in% selected_countries      # nolint
-    ) |>
-    tibble::as_tibble() |>
-    dplyr::arrange(country, period) |>    # nolint
+    ) %>% # nolint
+    tibble::as_tibble() %>% # nolint
+    dplyr::arrange(country, period) %>%    # nolint
     mutate(
       contrib     = (contrib_tot_exp + contrib_tot_imp) / 2 * 100,              # nolint
       contrib_min = pmin(contrib_tot_exp, contrib_tot_imp, na.rm = TRUE) * 100, # nolint
@@ -191,17 +191,17 @@ shape_data <- function(data,
     )
 
   # Drop countries with too few observations for LOESS
-  shaped <- shaped |>
-    dplyr::group_by(country) |>           # nolint
-    dplyr::filter(sum(!is.na(contrib)) >= 5) |> # nolint
+  shaped <- shaped %>% # nolint
+    dplyr::group_by(country) %>%           # nolint
+    dplyr::filter(sum(!is.na(contrib)) >= 5) %>% # nolint
     dplyr::ungroup()
 
   # Fit three LOESS smooths per country via nest/map.
   # contrib_min/max: fit on non-NA rows only, then predict on the full grid so
   # that years where only one trade direction is available don't create gaps.
-  shaped <- shaped |>
-    dplyr::group_by(country) |>           # nolint
-    tidyr::nest() |>
+  shaped <- shaped %>% # nolint
+    dplyr::group_by(country) %>%           # nolint
+    tidyr::nest() %>% # nolint
     mutate(
       contrib_pred     = purrr::map(data, function(d) {
         predict(loess(contrib ~ period, data = d, span = span), newdata = d)
@@ -216,9 +216,9 @@ shape_data <- function(data,
         if (nrow(d_fit) < 4) return(rep(NA_real_, nrow(d)))
         predict(loess(contrib_max ~ period, data = d_fit, span = span), newdata = d) # nolint
       })
-    ) |>
+    ) %>% # nolint
     tidyr::unnest(cols = c(data, contrib_pred,             # nolint
-                           contrib_min_pred, contrib_max_pred)) |> # nolint
+                           contrib_min_pred, contrib_max_pred)) %>% # nolint
     mutate(contrib_min_pred = pmax(0, contrib_min_pred)) # nolint
 
   return(shaped) # nolint
@@ -238,17 +238,17 @@ build_panel <- function(plot_data,
                         x_max,
                         panel_letter) {
 
-  panel_data <- plot_data |>
+  panel_data <- plot_data %>% # nolint
     dplyr::filter(country %in% group_countries) # nolint
 
   if (nrow(panel_data) == 0) return(NULL)
 
-  label_data <- panel_data |>
+  label_data <- panel_data %>% # nolint
     dplyr::filter(period == x_max, !is.na(contrib_pred)) # nolint
 
   y_actual  <- setNames(label_data$contrib_pred, label_data$country)
   y_nudged  <- compute_label_positions(y_actual, y_max)
-  label_df  <- label_data |>
+  label_df  <- label_data %>% # nolint
     dplyr::mutate(y_nudged = y_nudged[country]) # nolint
 
   panel_title <- paste0(

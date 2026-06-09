@@ -196,11 +196,11 @@
 <circle cx='411.46' cy='252.26' r='2.27' style='stroke-width: 0.71; stroke: none; fill: #000000;' />
 <circle cx='425.71' cy='185.89' r='2.27' style='stroke-width: 0.71; stroke: none; fill: #000000;' />
 <circle cx='439.96' cy='214.84' r='2.27' style='stroke-width: 0.71; stroke: none; fill: #000000;' />
-<line x1='449.39' y1='233.02' x2='444.90' y2='227.09' style='stroke-width: 0.64; stroke: #999999;' />
-<line x1='449.39' y1='180.29' x2='444.85' y2='186.86' style='stroke-width: 0.64; stroke: #999999;' />
-<text x='451.19' y='237.84' style='font-size: 7.97px; font-weight: bold;fill: #C32E5A; font-family: "Liberation Sans";' textLength='67.92px' lengthAdjust='spacingAndGlyphs'>Main exporters</text>
-<text x='449.16' y='202.66' style='font-size: 7.97px; font-weight: bold;fill: #A49393; font-family: "Liberation Sans";' textLength='41.00px' lengthAdjust='spacingAndGlyphs'>Balanced</text>
-<text x='451.19' y='181.34' style='font-size: 7.97px; font-weight: bold;fill: #3D85F7; font-family: "Liberation Sans";' textLength='68.41px' lengthAdjust='spacingAndGlyphs'>Main importers</text>
+<line x1='449.39' y1='233.63' x2='444.86' y2='227.11' style='stroke-width: 0.64; stroke: #999999;' />
+<line x1='449.39' y1='180.94' x2='444.90' y2='186.88' style='stroke-width: 0.64; stroke: #999999;' />
+<text x='451.19' y='238.40' style='font-size: 7.97px; font-weight: bold;fill: #C32E5A; font-family: "Liberation Sans";' textLength='67.92px' lengthAdjust='spacingAndGlyphs'>Main exporters</text>
+<text x='449.16' y='202.97' style='font-size: 7.97px; font-weight: bold;fill: #A49393; font-family: "Liberation Sans";' textLength='41.00px' lengthAdjust='spacingAndGlyphs'>Balanced</text>
+<text x='451.19' y='181.93' style='font-size: 7.97px; font-weight: bold;fill: #3D85F7; font-family: "Liberation Sans";' textLength='68.41px' lengthAdjust='spacingAndGlyphs'>Main importers</text>
 <text x='448.64' y='221.69' style='font-size: 7.97px; font-weight: bold; font-family: "Liberation Sans";' textLength='21.74px' lengthAdjust='spacingAndGlyphs'>Total</text>
 <text x='45.11' y='412.56' text-anchor='end' style='font-size: 9.00px;fill: #4D4D4D; font-family: "Liberation Sans Narrow";' textLength='4.10px' lengthAdjust='spacingAndGlyphs'>0</text>
 <text x='45.11' y='341.23' text-anchor='end' style='font-size: 9.00px;fill: #4D4D4D; font-family: "Liberation Sans Narrow";' textLength='12.31px' lengthAdjust='spacingAndGlyphs'>250</text>

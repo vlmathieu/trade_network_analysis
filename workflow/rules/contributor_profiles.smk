@@ -1,11 +1,13 @@
 rule contributor_profiles:
     input:
-        'results/network_analysis/intermediary/edge_lists.pkl'
+        expand('results/network_analysis/{agg_lvl}/intermediary/edge_lists.pkl',
+                agg_lvl = config['agg_lvl'])
     output:
-        'results/network_analysis/output/contributor_profiles.csv'
+        expand('results/network_analysis/{agg_lvl}/output/contributor_profiles.csv',
+                agg_lvl = config['agg_lvl'])
     params:
         threshold   = config['threshold_main_contributors'],
-        weight      = config['weight']
+        weight      = 'primary_value'
     log:
         "workflow/logs/contributor_profiles.log"
     threads: 2

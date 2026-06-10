@@ -195,10 +195,11 @@
 <circle cx='411.46' cy='313.99' r='2.27' style='stroke-width: 0.71; stroke: none; fill: #000000;' />
 <circle cx='425.71' cy='303.02' r='2.27' style='stroke-width: 0.71; stroke: none; fill: #000000;' />
 <circle cx='439.96' cy='321.23' r='2.27' style='stroke-width: 0.71; stroke: none; fill: #000000;' />
-<line x1='449.39' y1='282.07' x2='444.86' y2='288.55' style='stroke-width: 0.64; stroke: #999999;' />
-<text x='451.19' y='338.29' style='font-size: 7.97px; font-weight: bold;fill: #C32E5A; font-family: "Liberation Sans";' textLength='67.92px' lengthAdjust='spacingAndGlyphs'>Main exporters</text>
-<text x='449.16' y='306.02' style='font-size: 7.97px; font-weight: bold;fill: #A49393; font-family: "Liberation Sans";' textLength='41.00px' lengthAdjust='spacingAndGlyphs'>Balanced</text>
-<text x='451.19' y='283.10' style='font-size: 7.97px; font-weight: bold;fill: #3D85F7; font-family: "Liberation Sans";' textLength='68.41px' lengthAdjust='spacingAndGlyphs'>Main importers</text>
+<line x1='449.39' y1='334.36' x2='444.86' y2='327.89' style='stroke-width: 0.64; stroke: #999999;' />
+<line x1='449.39' y1='282.56' x2='444.89' y2='288.56' style='stroke-width: 0.64; stroke: #999999;' />
+<text x='451.19' y='339.13' style='font-size: 7.97px; font-weight: bold;fill: #C32E5A; font-family: "Liberation Sans";' textLength='67.92px' lengthAdjust='spacingAndGlyphs'>Main exporters</text>
+<text x='449.16' y='305.71' style='font-size: 7.97px; font-weight: bold;fill: #A49393; font-family: "Liberation Sans";' textLength='41.00px' lengthAdjust='spacingAndGlyphs'>Balanced</text>
+<text x='451.19' y='283.56' style='font-size: 7.97px; font-weight: bold;fill: #3D85F7; font-family: "Liberation Sans";' textLength='68.41px' lengthAdjust='spacingAndGlyphs'>Main importers</text>
 <text x='448.64' y='321.23' style='font-size: 7.97px; font-weight: bold; font-family: "Liberation Sans";' textLength='21.74px' lengthAdjust='spacingAndGlyphs'>Total</text>
 <text x='45.11' y='412.56' text-anchor='end' style='font-size: 9.00px;fill: #4D4D4D; font-family: "Liberation Sans Narrow";' textLength='4.10px' lengthAdjust='spacingAndGlyphs'>0</text>
 <text x='45.11' y='330.51' text-anchor='end' style='font-size: 9.00px;fill: #4D4D4D; font-family: "Liberation Sans Narrow";' textLength='12.31px' lengthAdjust='spacingAndGlyphs'>500</text>
@@ -361,9 +362,10 @@
 <circle cx='1001.18' cy='313.99' r='2.27' style='stroke-width: 0.71; stroke: none; fill: #000000;' />
 <circle cx='1015.43' cy='303.02' r='2.27' style='stroke-width: 0.71; stroke: none; fill: #000000;' />
 <circle cx='1029.68' cy='321.23' r='2.27' style='stroke-width: 0.71; stroke: none; fill: #000000;' />
+<line x1='1039.11' y1='278.73' x2='1034.62' y2='284.66' style='stroke-width: 0.64; stroke: #999999;' />
 <line x1='1039.11' y1='340.46' x2='1034.59' y2='334.09' style='stroke-width: 0.64; stroke: #999999;' />
-<text x='1040.91' y='296.07' style='font-size: 7.97px; font-weight: bold;fill: #C32E5A; font-family: "Liberation Sans";' textLength='67.92px' lengthAdjust='spacingAndGlyphs'>Main exporters</text>
-<text x='1038.88' y='312.14' style='font-size: 7.97px; font-weight: bold;fill: #A49393; font-family: "Liberation Sans";' textLength='41.00px' lengthAdjust='spacingAndGlyphs'>Balanced</text>
+<text x='1040.91' y='279.72' style='font-size: 7.97px; font-weight: bold;fill: #C32E5A; font-family: "Liberation Sans";' textLength='67.92px' lengthAdjust='spacingAndGlyphs'>Main exporters</text>
+<text x='1038.88' y='312.10' style='font-size: 7.97px; font-weight: bold;fill: #A49393; font-family: "Liberation Sans";' textLength='41.00px' lengthAdjust='spacingAndGlyphs'>Balanced</text>
 <text x='1040.91' y='345.23' style='font-size: 7.97px; font-weight: bold;fill: #3D85F7; font-family: "Liberation Sans";' textLength='68.41px' lengthAdjust='spacingAndGlyphs'>Main importers</text>
 <text x='1038.36' y='328.68' style='font-size: 7.97px; font-weight: bold; font-family: "Liberation Sans";' textLength='21.74px' lengthAdjust='spacingAndGlyphs'>Total</text>
 <text x='634.83' y='412.56' text-anchor='end' style='font-size: 9.00px;fill: #4D4D4D; font-family: "Liberation Sans Narrow";' textLength='4.10px' lengthAdjust='spacingAndGlyphs'>0</text>

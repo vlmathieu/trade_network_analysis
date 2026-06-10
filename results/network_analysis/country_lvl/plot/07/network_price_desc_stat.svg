@@ -196,12 +196,12 @@
 <circle cx='411.46' cy='252.26' r='2.27' style='stroke-width: 0.71; stroke: none; fill: #000000;' />
 <circle cx='425.71' cy='185.89' r='2.27' style='stroke-width: 0.71; stroke: none; fill: #000000;' />
 <circle cx='439.96' cy='214.84' r='2.27' style='stroke-width: 0.71; stroke: none; fill: #000000;' />
-<line x1='449.39' y1='233.63' x2='444.86' y2='227.11' style='stroke-width: 0.64; stroke: #999999;' />
-<line x1='449.39' y1='180.94' x2='444.90' y2='186.88' style='stroke-width: 0.64; stroke: #999999;' />
-<text x='451.19' y='238.40' style='font-size: 7.97px; font-weight: bold;fill: #C32E5A; font-family: "Liberation Sans";' textLength='67.92px' lengthAdjust='spacingAndGlyphs'>Main exporters</text>
-<text x='449.16' y='202.97' style='font-size: 7.97px; font-weight: bold;fill: #A49393; font-family: "Liberation Sans";' textLength='41.00px' lengthAdjust='spacingAndGlyphs'>Balanced</text>
-<text x='451.19' y='181.93' style='font-size: 7.97px; font-weight: bold;fill: #3D85F7; font-family: "Liberation Sans";' textLength='68.41px' lengthAdjust='spacingAndGlyphs'>Main importers</text>
-<text x='448.64' y='221.69' style='font-size: 7.97px; font-weight: bold; font-family: "Liberation Sans";' textLength='21.74px' lengthAdjust='spacingAndGlyphs'>Total</text>
+<line x1='449.39' y1='233.03' x2='444.90' y2='227.09' style='stroke-width: 0.64; stroke: #999999;' />
+<line x1='449.39' y1='180.69' x2='444.88' y2='186.87' style='stroke-width: 0.64; stroke: #999999;' />
+<text x='451.19' y='237.84' style='font-size: 7.97px; font-weight: bold;fill: #C32E5A; font-family: "Liberation Sans";' textLength='67.92px' lengthAdjust='spacingAndGlyphs'>Main exporters</text>
+<text x='449.16' y='202.54' style='font-size: 7.97px; font-weight: bold;fill: #A49393; font-family: "Liberation Sans";' textLength='41.00px' lengthAdjust='spacingAndGlyphs'>Balanced</text>
+<text x='451.19' y='181.70' style='font-size: 7.97px; font-weight: bold;fill: #3D85F7; font-family: "Liberation Sans";' textLength='68.41px' lengthAdjust='spacingAndGlyphs'>Main importers</text>
+<text x='448.64' y='221.81' style='font-size: 7.97px; font-weight: bold; font-family: "Liberation Sans";' textLength='21.74px' lengthAdjust='spacingAndGlyphs'>Total</text>
 <text x='45.11' y='412.56' text-anchor='end' style='font-size: 9.00px;fill: #4D4D4D; font-family: "Liberation Sans Narrow";' textLength='4.10px' lengthAdjust='spacingAndGlyphs'>0</text>
 <text x='45.11' y='341.23' text-anchor='end' style='font-size: 9.00px;fill: #4D4D4D; font-family: "Liberation Sans Narrow";' textLength='12.31px' lengthAdjust='spacingAndGlyphs'>250</text>
 <text x='45.11' y='269.89' text-anchor='end' style='font-size: 9.00px;fill: #4D4D4D; font-family: "Liberation Sans Narrow";' textLength='12.31px' lengthAdjust='spacingAndGlyphs'>500</text>
@@ -365,14 +365,14 @@
 <circle cx='1001.18' cy='252.26' r='2.27' style='stroke-width: 0.71; stroke: none; fill: #000000;' />
 <circle cx='1015.43' cy='185.89' r='2.27' style='stroke-width: 0.71; stroke: none; fill: #000000;' />
 <circle cx='1029.68' cy='214.84' r='2.27' style='stroke-width: 0.71; stroke: none; fill: #000000;' />
-<line x1='1039.11' y1='225.18' x2='1034.46' y2='216.59' style='stroke-width: 0.64; stroke: #999999;' />
-<line x1='1037.08' y1='240.57' x2='1034.10' y2='219.26' style='stroke-width: 0.64; stroke: #999999;' />
-<line x1='1039.11' y1='188.05' x2='1034.18' y2='210.32' style='stroke-width: 0.64; stroke: #999999;' />
-<line x1='1036.56' y1='204.74' x2='1034.21' y2='213.84' style='stroke-width: 0.64; stroke: #999999;' />
-<text x='1040.91' y='229.76' style='font-size: 7.97px; font-weight: bold;fill: #C32E5A; font-family: "Liberation Sans";' textLength='67.92px' lengthAdjust='spacingAndGlyphs'>Main exporters</text>
-<text x='1038.88' y='244.41' style='font-size: 7.97px; font-weight: bold;fill: #A49393; font-family: "Liberation Sans";' textLength='41.00px' lengthAdjust='spacingAndGlyphs'>Balanced</text>
-<text x='1040.91' y='190.06' style='font-size: 7.97px; font-weight: bold;fill: #3D85F7; font-family: "Liberation Sans";' textLength='68.41px' lengthAdjust='spacingAndGlyphs'>Main importers</text>
-<text x='1038.36' y='205.86' style='font-size: 7.97px; font-weight: bold; font-family: "Liberation Sans";' textLength='21.74px' lengthAdjust='spacingAndGlyphs'>Total</text>
+<line x1='1039.11' y1='224.92' x2='1034.48' y2='216.59' style='stroke-width: 0.64; stroke: #999999;' />
+<line x1='1037.08' y1='240.24' x2='1034.10' y2='219.26' style='stroke-width: 0.64; stroke: #999999;' />
+<line x1='1039.11' y1='188.18' x2='1034.18' y2='210.32' style='stroke-width: 0.64; stroke: #999999;' />
+<line x1='1036.56' y1='204.41' x2='1034.20' y2='213.84' style='stroke-width: 0.64; stroke: #999999;' />
+<text x='1040.91' y='229.52' style='font-size: 7.97px; font-weight: bold;fill: #C32E5A; font-family: "Liberation Sans";' textLength='67.92px' lengthAdjust='spacingAndGlyphs'>Main exporters</text>
+<text x='1038.88' y='244.10' style='font-size: 7.97px; font-weight: bold;fill: #A49393; font-family: "Liberation Sans";' textLength='41.00px' lengthAdjust='spacingAndGlyphs'>Balanced</text>
+<text x='1040.91' y='190.19' style='font-size: 7.97px; font-weight: bold;fill: #3D85F7; font-family: "Liberation Sans";' textLength='68.41px' lengthAdjust='spacingAndGlyphs'>Main importers</text>
+<text x='1038.36' y='205.56' style='font-size: 7.97px; font-weight: bold; font-family: "Liberation Sans";' textLength='21.74px' lengthAdjust='spacingAndGlyphs'>Total</text>
 <text x='634.83' y='412.56' text-anchor='end' style='font-size: 9.00px;fill: #4D4D4D; font-family: "Liberation Sans Narrow";' textLength='4.10px' lengthAdjust='spacingAndGlyphs'>0</text>
 <text x='634.83' y='341.23' text-anchor='end' style='font-size: 9.00px;fill: #4D4D4D; font-family: "Liberation Sans Narrow";' textLength='12.31px' lengthAdjust='spacingAndGlyphs'>250</text>
 <text x='634.83' y='269.89' text-anchor='end' style='font-size: 9.00px;fill: #4D4D4D; font-family: "Liberation Sans Narrow";' textLength='12.31px' lengthAdjust='spacingAndGlyphs'>500</text>

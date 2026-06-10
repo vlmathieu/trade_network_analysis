@@ -5,9 +5,6 @@ rule contributor_profiles:
     output:
         expand('results/network_analysis/{agg_lvl}/output/contributor_profiles.csv',
                 agg_lvl = config['agg_lvl'])
-    params:
-        threshold   = config['threshold_main_contributors'],
-        weight      = 'primary_value'
     log:
         "workflow/logs/contributor_profiles.log"
     threads: 2

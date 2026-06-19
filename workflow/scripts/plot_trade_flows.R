@@ -10,6 +10,9 @@ suppressPackageStartupMessages(library("igraph"))
 
 pal              <- c("#3D85F7", "#C32E5A")
 trader_type_pal  <- c("main_exp" = "#C32E5A", "balanced" = "#A49393", "main_imp" = "#3D85F7")
+row_col          <- "#E8D5B0"
+tol_muted        <- c("#332288", "#88CCEE", "#44AA99", "#117733", "#999933",
+                      "#DDCC77", "#CC6677", "#882255", "#AA4499")
 
 # Same threshold logic as trajectory_plot() in plot_contributor_profiles.R
 select_contributors <- function(profiles, prod, year, threshold) {
@@ -47,15 +50,17 @@ build_flow_matrix <- function(d_flows, value_col, countries) {
 }
 
 # Two side-by-side chord diagrams: (a) exporter reports / (b) importer reports
-chord_plot <- function(flows, profiles, prod, year, threshold, output_path, ext) {
-  contributors <- select_contributors(profiles, prod, year, threshold)
+chord_plot <- function(flows, profiles, prod, year, chord_threshold, output_path, ext) {
+  contributors <- select_contributors(profiles, prod, year, chord_threshold)
   if (length(contributors) < 2) return(invisible(NULL))
 
   d <- flows %>%
-    filter(fao_code_agg == prod, period == year, # nolint
-           exporter_desc %in% contributors,
-           importer_desc %in% contributors) %>%
+    filter(fao_code_agg == prod, period == year) %>% # nolint
     mutate(
+      exporter_desc = ifelse(exporter_desc %in% contributors, # nolint
+                             exporter_desc, "Rest of World"),
+      importer_desc = ifelse(importer_desc %in% contributors, # nolint
+                             importer_desc, "Rest of World"),
       pv_exp = ifelse(is.na(primary_value_exp), 0, primary_value_exp) / 1e6,
       pv_imp = ifelse(is.na(primary_value_imp), 0, primary_value_imp) / 1e6
     )
@@ -71,24 +76,28 @@ chord_plot <- function(flows, profiles, prod, year, threshold, output_path, ext)
   ) %>%
     group_by(country) %>% summarise(total = sum(val), .groups = "drop") # nolint
   country_order <- flow_totals$country[order(flow_totals$total, decreasing = TRUE)]
-  # Add any contributor with no flows in this year at the end
+  # Pin "Rest of World" to the last position; then append zero-flow contributors
+  country_order <- c(setdiff(country_order, "Rest of World"), "Rest of World")
   missing       <- setdiff(contributors, country_order)
   country_order <- c(country_order, missing)
 
   mat_exp <- build_flow_matrix(d, "pv_exp", country_order)
   mat_imp <- build_flow_matrix(d, "pv_imp", country_order)
 
-  types    <- get_trader_type(profiles, prod, year, country_order)
-  arc_cols <- trader_type_pal[types[country_order]]
-  arc_cols[is.na(arc_cols)] <- "#A49393"
-  names(arc_cols) <- country_order
+  n_contrib <- length(contributors)
+  arc_cols  <- setNames(
+    tol_muted[((seq_len(n_contrib) - 1L) %% length(tol_muted)) + 1L],
+    contributors
+  )
+  arc_cols["Rest of World"] <- row_col
+  arc_cols <- arc_cols[country_order]
 
   country_labels <- function() {
     circos.trackPlotRegion(track.index = 1, panel.fun = function(x, y) {
       xlim <- get.cell.meta.data("xlim")
       circos.text(mean(xlim), 0.5, get.cell.meta.data("sector.index"),
                   facing = "clockwise", niceFacing = TRUE,
-                  adj = c(0, 0.5), cex = 0.7)
+                  adj = c(0, 0.5), cex = 0.9)
     }, bg.border = NA)
   }
 
@@ -98,22 +107,31 @@ chord_plot <- function(flows, profiles, prod, year, threshold, output_path, ext)
     svg(output_path, width = 2 * 2480 / 300, height = 2480 / 300, bg = "white")
   }
 
-  par(mfrow = c(1, 2))
+  par(mfrow = c(1, 2), oma = c(2, 0, 3, 0))
 
   circos.clear()
+  par(mar = c(1, 1, 3, 1))
   chordDiagram(mat_exp, grid.col = arc_cols, transparency = 0.4,
                annotationTrack = "grid",
                preAllocateTracks = list(track.height = 0.1))
   country_labels()
-  title("(a) Exporter reports (million USD)", cex.main = 1.2, font.main = 2)
+  title(paste0("(a) Exporter-reported flows (million USD, ", year, ")"),
+        cex.main = 1.1, font.main = 2)
   circos.clear()
 
+  par(mar = c(1, 1, 3, 1))
   chordDiagram(mat_imp, grid.col = arc_cols, transparency = 0.4,
                annotationTrack = "grid",
                preAllocateTracks = list(track.height = 0.1))
   country_labels()
-  title("(b) Importer reports (million USD)", cex.main = 1.2, font.main = 2)
+  title(paste0("(b) Importer-reported flows (million USD, ", year, ")"),
+        cex.main = 1.1, font.main = 2)
   circos.clear()
+
+  mtext(paste0("Bilateral trade flows among major contributors, ", year),
+        side = 3, outer = TRUE, cex = 1.3, font = 2, line = 1)
+  mtext("'Rest of World' aggregates countries individually below the 3% share threshold.",
+        side = 1, outer = TRUE, cex = 0.75, line = 0.5)
 
   dev.off()
 }
@@ -256,7 +274,8 @@ for (i in seq_len(n_levels)) {
       out_dir    <- file.path(output_root, agg_lvl, "plot", fao_division)
       chord_path <- file.path(out_dir, paste0("chord_diagram.", ext))
       dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
-      chord_plot(flows, profiles, prod, year_end, threshold, chord_path, ext)
+      chord_plot(flows, profiles, prod, year_end, snakemake@params$chord_threshold,
+                 chord_path, ext)
     }
 
     # ── Trade network ──────────────────────────────────────────────────────

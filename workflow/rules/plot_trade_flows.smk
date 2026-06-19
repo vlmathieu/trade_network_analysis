@@ -14,11 +14,12 @@ rule plot_trade_flows:
                 fao_div = config['fao_divisions_agg'],
                 ext     = ['png', 'svg'])
     params:
-        fao_divisions = config['fao_divisions_agg'],
-        year_start    = 2000,
-        year_end      = 2020,
-        threshold     = config['threshold_main_contributors'],
-        ext           = ['png', 'svg']
+        fao_divisions   = config['fao_divisions_agg'],
+        year_start      = 2000,
+        year_end        = 2020,
+        threshold       = config['threshold_main_contributors'],
+        chord_threshold = 0.03,
+        ext             = ['png', 'svg']
     threads: 1
     conda:
         '../envs/r_trade_flows.yaml'

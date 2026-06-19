@@ -266,6 +266,6 @@ _archives/
 _writing/
 
 # Prevent Claude skill and briefing
-_briefing/
 .claude/
+_briefing/
 CLAUDE.md

@@ -264,3 +264,8 @@ _archives/
 
 # Prevent writing directory
 _writing/
+
+# Prevent Claude skill and briefing
+_briefing/
+.claude/
+CLAUDE.md

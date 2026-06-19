@@ -15,6 +15,9 @@ fao_divisions: ['012', '051', '052', '053', '071', '072', '073', '074', '075', '
 # products 2022):
 # - Wood in the rough, other than wood fuel (Division code: 012)
 
+# Aggregated FAO division considered
+fao_divisions_agg: ['01', '05', '07']
+
 # World Bank series --> data of interest from World Bank
 wb_series:
   [
@@ -46,8 +49,77 @@ col_keep: ['period',
            'primaryValue', 
            'primaryValue_deflated']
 
+# List of EU countries and corresponding iso codes
+eu:
+  desc: 
+    [
+      'Austria', 
+      'Belgium',
+      'Belgium-Luxembourg (...1998)',
+      'Bulgaria',
+      'Croatia',
+      'Cyprus',
+      'Czechia',
+      'Denmark',
+      'Estonia',
+      'Finland',
+      'France',
+      'Germany',
+      'Greece',
+      'Hungary',
+      'Ireland',
+      'Italy',
+      'Latvia',
+      'Lithuania',
+      'Luxembourg',
+      'Malta',
+      'Netherlands',
+      'Poland',
+      'Portugal',
+      'Romania',
+      'Slovakia',
+      'Slovenia',
+      'Spain',
+      'Sweden',
+      'United Kingdom'
+    ]
+  iso: 
+    [
+      'AUT',
+      'BEL',
+      'BGR',
+      'CYP',
+      'CZE',
+      'DEU',
+      'DNK',
+      'ESP',
+      'EST',
+      'FIN',
+      'FRA',
+      'GBR',
+      'GRC',
+      'HRV',
+      'HUN',
+      'IRL',
+      'ITA',
+      'LTU',
+      'LUX',
+      'LVA',
+      'MLT',
+      'NLD',
+      'POL',
+      'PRT',
+      'ROU',
+      'SVK', 
+      'SVN',
+      'SWE'
+    ]
+
+# Aggregation levels
+agg_lvl: ['country_lvl', 'agg_eu']
+
 # The weight of network edges to choose
-weight: 'primary_value'
+weight: ['primary_value', 'net_wgt']
 
 # Threshold to apply for identifying main contributors to trade
 threshold_main_contributors: 0.01

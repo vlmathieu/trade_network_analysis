@@ -33,12 +33,12 @@ build_panel <- function(data, prod, wgt, y_min, y_max, panel_letter) {
     # Convert trader_type to factor and order its values
     mutate(trader_type = factor(trader_type, levels = order)) # nolint
 
-  # Build initial plot with points and LOESS smooth to extract smooth values
-  plot_panel <- ggplot(plot_data,
-                       aes(x = period, # nolint
-                           y = hhi, # nolint
-                           color = trader_type, # nolint
-                           label = trader_type)) +
+  # Temporary plot used only to extract LOESS smooth end-values for labels
+  tmp_panel <- ggplot(plot_data,
+                      aes(x = period, # nolint
+                          y = hhi, # nolint
+                          color = trader_type, # nolint
+                          label = trader_type)) +
     geom_point(alpha = 0.6) +
     suppressMessages(
       geom_smooth(method = "loess", formula = y ~ x, se = FALSE,
@@ -46,7 +46,7 @@ build_panel <- function(data, prod, wgt, y_min, y_max, panel_letter) {
     )
 
   # Extract LOESS smooth end-values for label placement
-  smooth_data <- ggplot_build(plot_panel)$data[[2]]
+  smooth_data <- ggplot_build(tmp_panel)$data[[2]]
   smooth_imp  <- smooth_data[smooth_data$group == 1, ]
   smooth_exp  <- smooth_data[smooth_data$group == 2, ]
   y_imp       <- smooth_imp$y[nrow(smooth_imp)]
@@ -61,8 +61,24 @@ build_panel <- function(data, prod, wgt, y_min, y_max, panel_letter) {
   y_imp_lbl <- if (y_imp >= y_exp) y_imp + offset else y_imp - offset
   y_exp_lbl <- if (y_exp >= y_imp) y_exp + offset else y_exp - offset
 
-  # Add remaining layers to plot
-  plot_panel <- plot_panel +
+  # Build the actual plot — geom_rect first so it renders behind all other layers
+  plot_panel <- ggplot(plot_data,
+                       aes(x = period, # nolint
+                           y = hhi, # nolint
+                           color = trader_type, # nolint
+                           label = trader_type)) +
+
+    # HS-revision discontinuity band (net weight panel only)
+    (if (wgt == "net_wgt") geom_rect(
+      aes(xmin = 2000, xmax = 2006, ymin = y_min, ymax = y_max),
+      fill = "grey85", alpha = 0.08, inherit.aes = FALSE
+    ) else NULL) +
+
+    geom_point(alpha = 0.6) +
+    suppressMessages(
+      geom_smooth(method = "loess", formula = y ~ x, se = FALSE,
+                  linewidth = 0.75, span = 0.4)
+    ) +
 
     # End of curve labels
     annotate("text",
@@ -146,9 +162,11 @@ build_panel <- function(data, prod, wgt, y_min, y_max, panel_letter) {
          title = paste0(panel_letter, " ", wgt_titles[wgt])) +
     coord_cartesian(clip = "off") +
     theme_ipsum(axis_title_size = 11) +
-    theme(legend.position = "none",
-          plot.title      = element_text(size = 11, face = "bold"),
-          plot.margin     = margin(40, 80, 20, 20))
+    theme(legend.position  = "none",
+          plot.title       = element_text(size = 11, face = "bold"),
+          plot.margin      = margin(40, 80, 20, 20),
+          panel.ontop      = TRUE,
+          panel.background = element_rect(fill = "transparent", colour = NA))
 
   return(plot_panel) # nolint
 }

@@ -236,7 +236,8 @@ build_panel <- function(plot_data,
                         wgt,
                         y_max,
                         x_max,
-                        panel_letter) {
+                        panel_letter,
+                        fao_division) {
 
   panel_data <- plot_data %>% # nolint
     dplyr::filter(country %in% group_countries) # nolint
@@ -272,11 +273,24 @@ build_panel <- function(plot_data,
   ggplot(panel_data,
          aes(x = period, group = country)) + # nolint
     # HS-revision discontinuity band (net weight panels only)
-    (if (wgt == "net_wgt") geom_rect(
+    # Division 07: disruption 1996–1999; divisions 01/05: disruption 2000–2006
+    (if (wgt == "net_wgt" && fao_division == "07") geom_rect(
+      aes(xmin = 1996, xmax = 1999, ymin = 0, ymax = y_max), # nolint
+      fill        = "grey85",
+      alpha       = 0.08,
+      inherit.aes = FALSE
+    ) else if (wgt == "net_wgt") geom_rect(
       aes(xmin = 2000, xmax = 2006, ymin = 0, ymax = y_max), # nolint
       fill        = "grey85",
       alpha       = 0.08,
       inherit.aes = FALSE
+    ) else NULL) +
+    # 2007 transient spike (division 07 net weight only)
+    (if (wgt == "net_wgt" && fao_division == "07") geom_vline(
+      xintercept  = 2007,
+      color       = "grey70",
+      linetype    = "solid",
+      linewidth   = 0.5
     ) else NULL) +
     # Benchmark year gridlines
     geom_vline(xintercept = benchmark_years,
@@ -432,7 +446,8 @@ for (idx in seq_len(n_levels)) {
           wgt             = wgt,
           y_max           = y_max,
           x_max           = x_max,
-          panel_letter    = paste0("(", panel_letters[letter_idx], ")")
+          panel_letter    = paste0("(", panel_letters[letter_idx], ")"),
+          fao_division    = fao_division
         )
         letter_idx <- letter_idx + 1
       }

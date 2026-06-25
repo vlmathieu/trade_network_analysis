@@ -17,7 +17,7 @@ wgt_titles <- c(
 )
 
 # Function to build one panel for a given weight
-build_panel <- function(data, prod, wgt, y_min, y_max, panel_letter) {
+build_panel <- function(data, prod, wgt, y_min, y_max, panel_letter, fao_division) {
 
   # Filter data for the given commodity and weight
   plot_data <- data |>
@@ -69,9 +69,20 @@ build_panel <- function(data, prod, wgt, y_min, y_max, panel_letter) {
                            label = trader_type)) +
 
     # HS-revision discontinuity band (net weight panel only)
-    (if (wgt == "net_wgt") geom_rect(
+    # Division 07: disruption 1996–1999; divisions 01/05: disruption 2000–2006
+    (if (wgt == "net_wgt" && fao_division == "07") geom_rect(
+      aes(xmin = 1996, xmax = 1999, ymin = y_min, ymax = y_max),
+      fill = "grey85", alpha = 0.08, inherit.aes = FALSE
+    ) else if (wgt == "net_wgt") geom_rect(
       aes(xmin = 2000, xmax = 2006, ymin = y_min, ymax = y_max),
       fill = "grey85", alpha = 0.08, inherit.aes = FALSE
+    ) else NULL) +
+    # 2007 transient spike (division 07 net weight only)
+    (if (wgt == "net_wgt" && fao_division == "07") geom_vline(
+      xintercept = 2007,
+      color      = "grey70",
+      linetype   = "solid",
+      linewidth  = 0.5
     ) else NULL) +
 
     geom_point(alpha = 0.6) +
@@ -198,7 +209,7 @@ for (input_file in snakemake@input) {
     plot_lst <- lapply(seq_along(snakemake@params$wgt), function(i) {
       panel_letters <- c("(a)", "(b)")
       build_panel(data, prod, snakemake@params$wgt[[i]],
-                  shared_y_min, shared_y_max, panel_letters[i])
+                  shared_y_min, shared_y_max, panel_letters[i], fao_division)
     })
 
     # Assemble composite figure (1x2 layout)

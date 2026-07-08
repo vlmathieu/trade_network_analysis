@@ -63,14 +63,17 @@ auto_scale <- function(values, unit = "") {
 }
 
 # ── Helper: build one side of the mirrored bar chart ────────────────────────
-# side      : "src" or "tgt"
+# side      : "src" or "tgt" (attribution: exporter's or importer's category)
 # direction : "left" (values negated) or "right"
 # metric    : "net_wgt" or "primary_value"
+# report    : "exp" or "imp" (whose declaration measures the flow — mirror
+#             reports are kept separate, never averaged)
 # divisor   : scaling factor
 # min_seg   : minimum scaled value to show in-bar label
-build_mirror_side <- function(dat, side, direction, metric, divisor, min_seg) {
+build_mirror_side <- function(dat, side, direction, metric, report,
+                              divisor, min_seg) {
 
-  cols <- paste0(side, "_", vol_stack_order, "_", metric)
+  cols <- paste0(side, "_", vol_stack_order, "_", metric, "_", report)
 
   # For the left side, reverse stacking order so main_exp is adjacent to spine.
   # position_stack stacks from axis outward in factor level order, so reversing
@@ -246,25 +249,33 @@ for (input_file in snakemake@input) {
 
     # ── Auto-scale units per commodity ───────────────────────────────────────
     # net_wgt columns are in kg — convert to tonnes before scaling
+    # Scaling and label thresholds span both mirror reports (exp and imp)
     wgt_cols <- grep("net_wgt", names(dat), value = TRUE)
     dat_t <- dat
     dat_t[wgt_cols] <- dat[wgt_cols] / 1000
 
-    wgt_scale <- auto_scale(dat_t$tot_net_wgt, unit = "tonnes")
-    val_scale <- auto_scale(dat_t$tot_primary_value, unit = "USD")
+    wgt_scale <- auto_scale(c(dat_t$tot_net_wgt_exp, dat_t$tot_net_wgt_imp),
+                            unit = "tonnes")
+    val_scale <- auto_scale(c(dat_t$tot_primary_value_exp,
+                              dat_t$tot_primary_value_imp),
+                            unit = "USD")
 
     # Minimum segment size to show in-bar label (5% of max total)
-    wgt_min_seg <- max(dat_t$tot_net_wgt / wgt_scale$divisor, na.rm = TRUE) * 0.05 # nolint
-    val_min_seg <- max(dat_t$tot_primary_value / val_scale$divisor, na.rm = TRUE) * 0.05 # nolint
+    wgt_min_seg <- max(c(dat_t$tot_net_wgt_exp, dat_t$tot_net_wgt_imp) / wgt_scale$divisor, na.rm = TRUE) * 0.05 # nolint
+    val_min_seg <- max(c(dat_t$tot_primary_value_exp, dat_t$tot_primary_value_imp) / val_scale$divisor, na.rm = TRUE) * 0.05 # nolint
 
     # ── Build long-format data for all four sides ─────────────────────────────
-    src_val <- build_mirror_side(dat_t, "src", "left",  "primary_value",
+    # Natural pairing: each side of the mirror is drawn from that side's OWN
+    # reports — supply (source attribution) from exporter reports (FOB for
+    # value), demand (target attribution) from importer reports (CIF). The
+    # left/right total asymmetry is therefore the aggregate mirror-report gap.
+    src_val <- build_mirror_side(dat_t, "src", "left",  "primary_value", "exp",
                                  val_scale$divisor, val_min_seg)
-    tgt_val <- build_mirror_side(dat_t, "tgt", "right", "primary_value",
+    tgt_val <- build_mirror_side(dat_t, "tgt", "right", "primary_value", "imp",
                                  val_scale$divisor, val_min_seg)
-    src_wgt <- build_mirror_side(dat_t, "src", "left",  "net_wgt",
+    src_wgt <- build_mirror_side(dat_t, "src", "left",  "net_wgt", "exp",
                                  wgt_scale$divisor, wgt_min_seg)
-    tgt_wgt <- build_mirror_side(dat_t, "tgt", "right", "net_wgt",
+    tgt_wgt <- build_mirror_side(dat_t, "tgt", "right", "net_wgt", "imp",
                                  wgt_scale$divisor, wgt_min_seg)
 
     # ── Total labels at bar tips ──────────────────────────────────────────────
@@ -289,10 +300,14 @@ for (input_file in snakemake@input) {
     val_lim <- max(abs(c(tot_src_val$tip_val, tot_tgt_val$tip_val))) * 1.12
 
     # ── Mirror bar builder ───────────────────────────────────────────────────
+    # left_note / right_note: side annotations naming the report side feeding
+    # each half of the mirror (FOB/CIF for value); title_note carries the same
+    # information in the subpanel title.
     build_mirror_plot <- function(dat_left, dat_right,
                                   tot_left, tot_right,
                                   x_lim, unit_label, metric_name,
-                                  panel_letter) {
+                                  panel_letter, title_note,
+                                  left_note, right_note) {
 
       # Extra room beyond x_lim for total-label text (20% each side)
       x_plot_lim <- x_lim * 1.22
@@ -333,12 +348,12 @@ for (input_file in snakemake@input) {
                   aes(y = factor(period), x = tip_val, label = total_lab),
                   hjust = -0.15, size = 2.2, color = "grey20") +
 
-        # Side annotations
+        # Side annotations — name the report side feeding each half
         annotate("text", x = -x_lim * 0.5, y = nlevels(factor(dat$period)) + 0.7, # nolint
-                 label = "Supply (source)", vjust = -0.1,
+                 label = left_note, vjust = -0.1,
                  size = 2.8, fontface = "italic", color = "grey30") +
         annotate("text", x =  x_lim * 0.5, y = nlevels(factor(dat$period)) + 0.7, # nolint
-                 label = "Demand (target)", vjust = -0.1,
+                 label = right_note, vjust = -0.1,
                  size = 2.8, fontface = "italic", color = "grey30") +
 
         scale_fill_manual(values = pal_vol,
@@ -356,7 +371,8 @@ for (input_file in snakemake@input) {
         labs(y     = "Year",
              x     = paste0(metric_name, " (", unit_label, ")"),
              title = paste0(panel_letter, " ", metric_name,
-                            " by trader type (", unit_label, ")")) +
+                            " by trader type (", unit_label, ") — ",
+                            title_note)) +
         coord_cartesian(clip = "off") +
         theme_ipsum(axis_title_size = 10, base_size = 9) +
         theme(legend.position = "right",
@@ -374,7 +390,10 @@ for (input_file in snakemake@input) {
       x_lim        = val_lim,
       unit_label   = val_scale$label,
       metric_name  = "Primary value",
-      panel_letter = "(a)"
+      panel_letter = "(a)",
+      title_note   = "exporter reports (FOB) vs importer reports (CIF)",
+      left_note    = "Supply (source) — exporter reports, FOB",
+      right_note   = "Demand (target) — importer reports, CIF"
     )
 
     p_weight <- build_mirror_plot(
@@ -385,7 +404,10 @@ for (input_file in snakemake@input) {
       x_lim        = wgt_lim,
       unit_label   = wgt_scale$label,
       metric_name  = "Net weight",
-      panel_letter = "(b)"
+      panel_letter = "(b)",
+      title_note   = "exporter vs importer reports",
+      left_note    = "Supply (source) — exporter reports",
+      right_note   = "Demand (target) — importer reports"
     )
 
 
@@ -434,17 +456,20 @@ for (input_file in snakemake@input) {
 
     # ── Compute price (USD/tonne) — net_wgt in kg, divide by 1000 for tonnes ──
     # All trader types shown, including balanced.
-    # Total average price added: tot_primary_value / tot_net_wgt (kg->t).
+    # Natural pairing of attribution and report: supply-side prices from
+    # exporter reports (FOB), demand-side prices from importer reports (CIF).
+    # Mirror reports are never mixed within a ratio.
+    # Total average price added per side: tot_primary_value / tot_net_wgt.
     price_dat <- tibble(period = dat$period) %>% # nolint
       mutate(
-        src_main_exp = dat$src_main_exp_primary_value / (dat$src_main_exp_net_wgt / 1000), # nolint
-        src_main_imp = dat$src_main_imp_primary_value / (dat$src_main_imp_net_wgt / 1000), # nolint
-        src_balanced = dat$src_balanced_primary_value / (dat$src_balanced_net_wgt / 1000), # nolint
-        src_total    = dat$tot_primary_value           / (dat$tot_net_wgt           / 1000), # nolint
-        tgt_main_exp = dat$tgt_main_exp_primary_value / (dat$tgt_main_exp_net_wgt / 1000), # nolint
-        tgt_main_imp = dat$tgt_main_imp_primary_value / (dat$tgt_main_imp_net_wgt / 1000), # nolint
-        tgt_balanced = dat$tgt_balanced_primary_value / (dat$tgt_balanced_net_wgt / 1000), # nolint
-        tgt_total    = dat$tot_primary_value           / (dat$tot_net_wgt           / 1000) # nolint
+        src_main_exp = dat$src_main_exp_primary_value_exp / (dat$src_main_exp_net_wgt_exp / 1000), # nolint
+        src_main_imp = dat$src_main_imp_primary_value_exp / (dat$src_main_imp_net_wgt_exp / 1000), # nolint
+        src_balanced = dat$src_balanced_primary_value_exp / (dat$src_balanced_net_wgt_exp / 1000), # nolint
+        src_total    = dat$tot_primary_value_exp           / (dat$tot_net_wgt_exp           / 1000), # nolint
+        tgt_main_exp = dat$tgt_main_exp_primary_value_imp / (dat$tgt_main_exp_net_wgt_imp / 1000), # nolint
+        tgt_main_imp = dat$tgt_main_imp_primary_value_imp / (dat$tgt_main_imp_net_wgt_imp / 1000), # nolint
+        tgt_balanced = dat$tgt_balanced_primary_value_imp / (dat$tgt_balanced_net_wgt_imp / 1000), # nolint
+        tgt_total    = dat$tot_primary_value_imp           / (dat$tot_net_wgt_imp           / 1000) # nolint
       )
 
     # Palette and labels: all trader types + total
@@ -524,8 +549,8 @@ for (input_file in snakemake@input) {
               plot.title      = element_text(size = 10, face = "bold"))
     }
 
-    p_src <- build_price_panel(price_src, "(a)", "Average price — supply (source) perspective") # nolint
-    p_tgt <- build_price_panel(price_tgt, "(b)", "Average price — demand (target) perspective") # nolint
+    p_src <- build_price_panel(price_src, "(a)", "Average price — supply (source) perspective, exporter reports (FOB)") # nolint
+    p_tgt <- build_price_panel(price_tgt, "(b)", "Average price — demand (target) perspective, importer reports (CIF)") # nolint
 
     composite_price <- p_src + p_tgt +
       plot_layout(ncol = 2)

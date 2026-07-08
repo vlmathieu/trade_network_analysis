@@ -41,6 +41,9 @@ pal_ranges <- list(
   "main_imp" = c("#B8D0FC", "#3D85F7", "#1040A0")
 )
 
+# Display-name aliases (Comtrade name → short label used on figures)
+country_aliases <- c("Russian Federation" = "Russia")
+
 # ---------------------------------------------------------------------------
 # compute_label_positions() # nolint
 # ---------------------------------------------------------------------------
@@ -102,7 +105,7 @@ select_countries <- function(data,
 #
 # Classification is read directly from network_composition.csv: for each
 # (cmd, period) row, countries are listed in one of three columns:
-#   list_main_exp, list_main_imp, list_balanced (comma-separated strings).
+#   list_main_exp, list_main_imp, list_balanced (pipe-separated strings).
 #
 # The per-year classification is aggregated to a single label per country
 # by taking the modal category (most frequent across years). Ties are broken
@@ -126,7 +129,7 @@ classify_countries <- function(composition,
     dplyr::filter(cmd == prod) # nolint
 
   # Build long-format table: one row per (period, country, group)
-  # by splitting the comma-separated list columns
+  # by splitting the pipe-separated list columns
   rows <- list()
   for (i in seq_len(nrow(comp_prod))) {
     period_i <- comp_prod$period[i] # nolint
@@ -137,7 +140,7 @@ classify_countries <- function(composition,
     )) {
       raw <- comp_prod[[col_grp$col]][i]
       if (!is.na(raw) && nchar(trimws(raw)) > 0) {
-        countries_in_list <- trimws(strsplit(raw, ",")[[1]])
+        countries_in_list <- trimws(strsplit(raw, "|", fixed = TRUE)[[1]])
         matched <- intersect(countries_in_list, selected_countries)
         if (length(matched) > 0) {
           rows[[length(rows) + 1]] <- data.frame(
@@ -387,6 +390,14 @@ for (idx in seq_len(n_levels)) {
                                    header = TRUE,
                                    sep    = ";",
                                    colClasses = c(cmd = "character"))
+
+  # Apply display-name aliases to both data sources
+  network_contribution <- network_contribution %>%
+    mutate(country = dplyr::recode(country, !!!country_aliases)) # nolint
+
+  network_composition <- network_composition %>%
+    mutate(across(c(list_main_exp, list_main_imp, list_balanced),
+                  ~ gsub("Russian Federation", "Russia", .x, fixed = TRUE))) # nolint
 
   for (fao_division in snakemake@params$fao_divisions) {
 

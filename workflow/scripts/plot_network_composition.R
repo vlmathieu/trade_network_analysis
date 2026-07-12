@@ -5,7 +5,6 @@ library("reshape2")
 library("patchwork")
 library("scales")
 library("tibble")
-library("ggrepel")
 
 # ── Shared palette and labels ────────────────────────────────────────────────
 
@@ -62,6 +61,24 @@ auto_scale <- function(values, unit = "") {
   }
 }
 
+# ── Helper: resolve vertical collisions for end-of-line labels ──────────────
+# Same strategy as plot_network_contribution.R: greedy upward push (minimum
+# gap = min_gap_frac of y_max), then shift the whole stack down if it
+# overflows y_max (and up if it drops below 0).
+compute_label_positions <- function(y_vals, y_max, min_gap_frac = 0.06) {
+  if (length(y_vals) == 0) return(y_vals)
+  ord <- order(y_vals)
+  y_s <- y_vals[ord]
+  nms <- names(y_vals)[ord]
+  gap <- y_max * min_gap_frac
+  for (i in seq_along(y_s)[-1]) {
+    if (y_s[i] - y_s[i - 1] < gap) y_s[i] <- y_s[i - 1] + gap
+  }
+  if (y_s[length(y_s)] > y_max) y_s <- y_s - (y_s[length(y_s)] - y_max)
+  if (y_s[1] < 0)               y_s <- y_s - y_s[1]
+  setNames(y_s, nms)
+}
+
 # ── Helper: build one side of the mirrored bar chart ────────────────────────
 # side      : "src" or "tgt" (attribution: exporter's or importer's category)
 # direction : "left" (values negated) or "right"
@@ -98,9 +115,11 @@ build_mirror_side <- function(dat, side, direction, metric, report,
     ungroup() %>% # nolint
     mutate(
       plot_vol  = if (direction == "left") -vol else vol,
+      # Single-line label (value + share) — two-line labels overflow the bar
+      # slot vertically and collide with neighbouring bars
       bar_label = ifelse(
         vol >= min_seg,
-        paste0(round(vol, 1), "\n(", round(share, 0), "%)"), # nolint
+        paste0(round(vol, 1), " (", round(share, 0), "%)"), # nolint
         ""
       )
     )
@@ -108,11 +127,36 @@ build_mirror_side <- function(dat, side, direction, metric, report,
   dat_side
 }
 
+# ── Helper: asymmetric x limits with data-driven tip padding ────────────────
+# Each side of the mirror scales to its OWN maximum (the spine stays at 0,
+# possibly off-centre), and is padded by just the room its widest total tip
+# label needs (char_px per character plus a small gap), converted to data
+# units through the final px-per-unit. Closed form: the axis range R solves
+#   R = (M_l + M_r) / (1 - (w_l + w_r) / panel_px)
+# with M_s the side maxima and w_s the tip-label widths in px. This replaces
+# the former symmetric limits (global max × 1.12 × 1.22), which reserved
+# ~27% of each half as padding and squeezed the smaller side's bars.
+mirror_x_limits <- function(tot_left, tot_right, panel_px = 1620,
+                            char_px = 15, gap_px = 12) {
+  m_l <- max(abs(tot_left$tip_val))
+  m_r <- max(abs(tot_right$tip_val))
+  w_l <- max(nchar(tot_left$total_lab)) * char_px + gap_px
+  w_r <- max(nchar(tot_right$total_lab)) * char_px + gap_px
+  r   <- (m_l + m_r) / (1 - (w_l + w_r) / panel_px)
+  list(left  = -(m_l + w_l * r / panel_px),
+       right =   m_r + w_r * r / panel_px,
+       range = r)
+}
+
+# Named input: "composition" = the per-agg_lvl network_composition.csv files
+# (both loops)
+composition_inputs <- snakemake@input[["composition"]]
+
 # ══════════════════════════════════════════════════════════════════════════════
 # LOOP 1 — Network composition figure
 # ══════════════════════════════════════════════════════════════════════════════
 
-for (input_file in snakemake@input) {
+for (input_file in composition_inputs) {
 
   agg_lvl <- basename(dirname(dirname(input_file)))
 
@@ -152,6 +196,25 @@ for (input_file in snakemake@input) {
     y_max_nodes <- ceiling(max(dat$tot_nb_nodes, na.rm = TRUE) / 50) * 50
     y_breaks_nodes <- seq(0, y_max_nodes, by = 50)
 
+    # End-of-line labels — same collision strategy as plot_network_contribution:
+    # nudge overlapping labels apart, connect them to the series end with a
+    # short segment. All four labels (3 trader types + total) nudged jointly.
+    end_vals <- c(
+      setNames(last_vals$nb_country, as.character(last_vals$trader_type)),
+      total = last_total$tot_nb_nodes
+    )
+    lab_pal  <- c(pal, total = "black")
+    lab_txt  <- c(type_labels, total = "Total")
+    y_nudged <- compute_label_positions(end_vals, y_max_nodes,
+                                        min_gap_frac = 0.04)
+    label_df <- tibble(
+      key   = names(end_vals),
+      y_end = as.numeric(end_vals),
+      y_lab = as.numeric(y_nudged[names(end_vals)]),
+      label = unname(lab_txt[names(end_vals)]),
+      col   = unname(lab_pal[names(end_vals)])
+    )
+
     # ── (a) Line chart ───────────────────────────────────────────────────────
     p_line <- ggplot() +
       geom_vline(xintercept = benchmark_years,
@@ -163,14 +226,16 @@ for (input_file in snakemake@input) {
       geom_line(data = dat_total,
                 aes(x = period, y = tot_nb_nodes),
                 color = "black", linewidth = 0.9) +
-      geom_text(data = last_vals,
-                aes(x = last_year + 0.3, y = nb_country,
-                    label = type_labels[as.character(trader_type)],
-                    color = trader_type),
-                hjust = 0, size = 2.8, fontface = "bold") +
-      geom_text(data = last_total,
-                aes(x = last_year + 0.3, y = tot_nb_nodes, label = "Total"),
-                color = "black", hjust = 0, size = 2.8, fontface = "bold") +
+      # Connector segments from series end to nudged label position
+      geom_segment(data = label_df,
+                   aes(x = last_year + 0.15, xend = last_year + 0.35,
+                       y = y_end, yend = y_lab),
+                   color = label_df$col, linewidth = 0.35,
+                   inherit.aes = FALSE) +
+      geom_text(data = label_df,
+                aes(x = last_year + 0.4, y = y_lab, label = label),
+                color = label_df$col, hjust = 0, size = 2.8,
+                fontface = "bold", inherit.aes = FALSE) +
       scale_color_manual(values = pal, labels = type_labels) +
       scale_x_continuous(
         breaks = c(min(dat$period), benchmark_years, last_year),
@@ -231,7 +296,7 @@ for (input_file in snakemake@input) {
 # LOOP 2 — Mirrored descriptive statistics figure
 # ══════════════════════════════════════════════════════════════════════════════
 
-for (input_file in snakemake@input) {
+for (input_file in composition_inputs) {
 
   agg_lvl <- basename(dirname(dirname(input_file)))
 
@@ -260,9 +325,10 @@ for (input_file in snakemake@input) {
                               dat_t$tot_primary_value_imp),
                             unit = "USD")
 
-    # Minimum segment size to show in-bar label (5% of max total)
-    wgt_min_seg <- max(c(dat_t$tot_net_wgt_exp, dat_t$tot_net_wgt_imp) / wgt_scale$divisor, na.rm = TRUE) * 0.05 # nolint
-    val_min_seg <- max(c(dat_t$tot_primary_value_exp, dat_t$tot_primary_value_imp) / val_scale$divisor, na.rm = TRUE) * 0.05 # nolint
+    # Minimum segment size to show in-bar label (8% of max total — slivers
+    # are unlabelled; their share is the complement of the labelled ones)
+    wgt_min_seg <- max(c(dat_t$tot_net_wgt_exp, dat_t$tot_net_wgt_imp) / wgt_scale$divisor, na.rm = TRUE) * 0.08 # nolint
+    val_min_seg <- max(c(dat_t$tot_primary_value_exp, dat_t$tot_primary_value_imp) / val_scale$divisor, na.rm = TRUE) * 0.08 # nolint
 
     # ── Build long-format data for all four sides ─────────────────────────────
     # Natural pairing: each side of the mirror is drawn from that side's OWN
@@ -295,24 +361,87 @@ for (input_file in snakemake@input) {
     tot_src_wgt <- make_totals(src_wgt, "left")
     tot_tgt_wgt <- make_totals(tgt_wgt, "right")
 
-    # ── Shared x limit for each metric (symmetric around 0) ──────────────────
-    wgt_lim <- max(abs(c(tot_src_wgt$tip_val, tot_tgt_wgt$tip_val))) * 1.12
-    val_lim <- max(abs(c(tot_src_val$tip_val, tot_tgt_val$tip_val))) * 1.12
+    # ── Asymmetric x limits per metric (data-driven tip padding) ─────────────
+    val_xlim <- mirror_x_limits(tot_src_val, tot_tgt_val)
+    wgt_xlim <- mirror_x_limits(tot_src_wgt, tot_tgt_wgt)
+
+    # ── Suppress in-bar labels that would overflow their segment ─────────────
+    # Single-line labels are wide: keep one only if its estimated rendered
+    # width fits inside the segment. The axis range maps to roughly 1620 px
+    # of panel width at the 1880 px page size; one character at label size
+    # 2.6 is ~15 px.
+    fit_bar_labels <- function(dat_side, range_units) {
+      char_unit <- range_units / 1620 * 15
+      dat_side %>% # nolint
+        mutate(bar_label = ifelse(
+          vol >= nchar(bar_label) * char_unit * 1.1, # nolint
+          bar_label,
+          ""
+        ))
+    }
+
+    src_val <- fit_bar_labels(src_val, val_xlim$range)
+    tgt_val <- fit_bar_labels(tgt_val, val_xlim$range)
+    src_wgt <- fit_bar_labels(src_wgt, wgt_xlim$range)
+    tgt_wgt <- fit_bar_labels(tgt_wgt, wgt_xlim$range)
 
     # ── Mirror bar builder ───────────────────────────────────────────────────
+    # Each call builds a STANDALONE full-page figure (one per metric), so
+    # there is no panel letter and each figure carries its own legend.
     # left_note / right_note: side annotations naming the report side feeding
     # each half of the mirror (FOB/CIF for value); title_note carries the same
-    # information in the subpanel title.
+    # information on the title's second line. shade: draw the HS-revision
+    # discontinuity band (net weight figure only).
     build_mirror_plot <- function(dat_left, dat_right,
                                   tot_left, tot_right,
-                                  x_lim, unit_label, metric_name,
-                                  panel_letter, title_note,
-                                  left_note, right_note) {
+                                  x_limits, unit_label, metric_name,
+                                  title_note,
+                                  left_note, right_note,
+                                  shade = FALSE) {
 
-      # Extra room beyond x_lim for total-label text (20% each side)
-      x_plot_lim <- x_lim * 1.22
+      # Asymmetric limits from mirror_x_limits(): each side scales to its
+      # own maximum; the spine stays at 0 (possibly off-centre)
+      x_left  <- x_limits$left
+      x_right <- x_limits$right
+
+      # Year → position on the discrete y-axis (levels sorted ascending)
+      yr_pos  <- function(y) match(y, sort(unique(dat$period)))
+      n_years <- length(unique(dat$period))
+
+      # Grid positions — same x breaks as the axis so lines and labels align.
+      # Layer order (bottom → top): shaded band < grid < bars, so the theme
+      # grid is blanked and redrawn as layers between band and bars.
+      x_breaks <- scales::breaks_extended()(c(x_left, x_right))
+      x_breaks <- x_breaks[x_breaks >= x_left & x_breaks <= x_right]
 
       ggplot() +
+
+        # HS-revision discontinuity band — horizontal here because years sit
+        # on the y-axis. Same windows as plot_market_concentration.R /
+        # plot_network_contribution.R:
+        # division 07: disruption 1996–1999 (+ transient 2007 line);
+        # divisions 01/05: disruption 2000–2006
+        (if (shade && fao_division == "07") annotate("rect",
+          xmin = x_left, xmax = x_right,
+          ymin = yr_pos(1996) - 0.5, ymax = yr_pos(1999) + 0.5,
+          fill = "grey85"
+        ) else if (shade) annotate("rect",
+          xmin = x_left, xmax = x_right,
+          ymin = yr_pos(2000) - 0.5, ymax = yr_pos(2006) + 0.5,
+          fill = "grey85"
+        ) else NULL) +
+
+        # Grid redrawn above the band (theme grid blanked below)
+        geom_hline(yintercept = seq_len(n_years),
+                   color = "#cccccc", linewidth = 0.2) +
+        geom_vline(xintercept = x_breaks,
+                   color = "#cccccc", linewidth = 0.2) +
+
+        # 2007 transient spike (division 07 net weight only)
+        (if (shade && fao_division == "07") geom_hline(
+          yintercept = yr_pos(2007), color = "grey70",
+          linetype   = "solid", linewidth = 0.5
+        ) else NULL) +
 
         # Zero spine
         geom_vline(xintercept = 0, color = "grey40", linewidth = 0.4) +
@@ -326,8 +455,7 @@ for (input_file in snakemake@input) {
                   aes(y    = factor(period), x = plot_vol,
                       label = bar_label, fill = trader_type),
                   position  = position_stack(vjust = 0.5),
-                  size      = 1.9, color = "white", fontface = "bold",
-                  lineheight = 0.85) +
+                  size      = 2.6, color = "white", fontface = "bold") +
 
         # RIGHT bars
         geom_col(data  = dat_right,
@@ -337,30 +465,31 @@ for (input_file in snakemake@input) {
                   aes(y    = factor(period), x = plot_vol,
                       label = bar_label, fill = trader_type),
                   position  = position_stack(vjust = 0.5),
-                  size      = 1.9, color = "white", fontface = "bold",
-                  lineheight = 0.85) +
+                  size      = 2.6, color = "white", fontface = "bold") +
 
-        # Total labels at bar tips — placed outside x_lim, inside x_plot_lim
+        # Total labels at bar tips — the axis limits reserve just enough
+        # room beyond each side's longest bar (see mirror_x_limits)
         geom_text(data = tot_left,
                   aes(y = factor(period), x = tip_val, label = total_lab),
-                  hjust = 1.15, size = 2.2, color = "grey20") +
+                  hjust = 1.1, size = 2.7, color = "grey20") +
         geom_text(data = tot_right,
                   aes(y = factor(period), x = tip_val, label = total_lab),
-                  hjust = -0.15, size = 2.2, color = "grey20") +
+                  hjust = -0.1, size = 2.7, color = "grey20") +
 
-        # Side annotations — name the report side feeding each half
-        annotate("text", x = -x_lim * 0.5, y = nlevels(factor(dat$period)) + 0.7, # nolint
+        # Side annotations — centered on each half's own midpoint
+        annotate("text", x = x_left * 0.5, y = nlevels(factor(dat$period)) + 0.7, # nolint
                  label = left_note, vjust = -0.1,
-                 size = 2.8, fontface = "italic", color = "grey30") +
-        annotate("text", x =  x_lim * 0.5, y = nlevels(factor(dat$period)) + 0.7, # nolint
+                 size = 3.2, fontface = "italic", color = "grey30") +
+        annotate("text", x = x_right * 0.5, y = nlevels(factor(dat$period)) + 0.7, # nolint
                  label = right_note, vjust = -0.1,
-                 size = 2.8, fontface = "italic", color = "grey30") +
+                 size = 3.2, fontface = "italic", color = "grey30") +
 
         scale_fill_manual(values = pal_vol,
                           labels = vol_labels,
                           name   = "Trader type") +
         scale_x_continuous(
-          limits = c(-x_plot_lim, x_plot_lim),
+          limits = c(x_left, x_right),
+          breaks = x_breaks,
           labels = function(x) abs(x),
           expand = c(0, 0)
         ) +
@@ -370,30 +499,30 @@ for (input_file in snakemake@input) {
         ) +
         labs(y     = "Year",
              x     = paste0(metric_name, " (", unit_label, ")"),
-             title = paste0(panel_letter, " ", metric_name,
-                            " by trader type (", unit_label, ") — ",
-                            title_note)) +
+             title = paste0(metric_name, " by trader type (", unit_label,
+                            ")\n", title_note)) +
         coord_cartesian(clip = "off") +
-        theme_ipsum(axis_title_size = 10, base_size = 9) +
-        theme(legend.position = "right",
-              legend.title    = element_text(size = 8),
-              legend.text     = element_text(size = 8),
-              plot.title      = element_text(size = 10, face = "bold"),
-              plot.margin     = margin(30, 10, 10, 10))
+        theme_ipsum(axis_title_size = 11, base_size = 10) +
+        theme(legend.position  = "bottom",
+              legend.title     = element_text(size = 9),
+              legend.text      = element_text(size = 9),
+              plot.title       = element_text(size = 11, face = "bold"),
+              plot.margin      = margin(20, 10, 10, 10),
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank())
     }
-    # ── Build panels ─────────────────────────────────────────────────────────
+    # ── Build the two standalone figures ─────────────────────────────────────
     p_value <- build_mirror_plot(
       dat_left     = src_val,
       dat_right    = tgt_val,
       tot_left     = tot_src_val,
       tot_right    = tot_tgt_val,
-      x_lim        = val_lim,
+      x_limits     = val_xlim,
       unit_label   = val_scale$label,
       metric_name  = "Primary value",
-      panel_letter = "(a)",
       title_note   = "exporter reports (FOB) vs importer reports (CIF)",
-      left_note    = "Supply (source) — exporter reports, FOB",
-      right_note   = "Demand (target) — importer reports, CIF"
+      left_note    = "Supply (source) — FOB",
+      right_note   = "Demand (target) — CIF"
     )
 
     p_weight <- build_mirror_plot(
@@ -401,171 +530,32 @@ for (input_file in snakemake@input) {
       dat_right    = tgt_wgt,
       tot_left     = tot_src_wgt,
       tot_right    = tot_tgt_wgt,
-      x_lim        = wgt_lim,
+      x_limits     = wgt_xlim,
       unit_label   = wgt_scale$label,
       metric_name  = "Net weight",
-      panel_letter = "(b)",
       title_note   = "exporter vs importer reports",
-      left_note    = "Supply (source) — exporter reports",
-      right_note   = "Demand (target) — importer reports"
+      left_note    = "Supply (source)",
+      right_note   = "Demand (target)",
+      shade        = TRUE
     )
 
-
-    # ── Composite: 2-panel landscape ─────────────────────────────────────────
-    composite_desc <- p_value + p_weight +
-      plot_layout(ncol = 2, guides = "collect") &
-      theme(legend.position = "bottom",
-            plot.margin     = margin(30, 5, 10, 5))
-
-    # ── Save ─────────────────────────────────────────────────────────────────
-    # Landscape A4 at 300 dpi: 3508 x 2480 px
-    for (ext in snakemake@params$ext) {
-      out_path <- file.path(
-        "results", "network_analysis", agg_lvl, "plot",
-        fao_division,
-        paste0("network_mirrored_desc_stat.", ext)
-      )
-      ggsave(filename = out_path, plot = composite_desc, device = ext,
-             create.dir = TRUE, width = 3508, height = 2480,
-             units = "px", dpi = 300, bg = "white")
-    }
-  } # end fao_division loop
-} # end agg_lvl loop
-
-# ══════════════════════════════════════════════════════════════════════════════
-# LOOP 3 — Price descriptive statistics figure
-# Two-panel composite: (a) supply (source) perspective, (b) demand (target)
-# Each panel: one line per trader type, years on x-axis, $/tonne on y-axis
-# ══════════════════════════════════════════════════════════════════════════════
-
-for (input_file in snakemake@input) {
-
-  agg_lvl <- basename(dirname(dirname(input_file)))
-
-  data <- read.csv(file   = input_file,
-                   header = TRUE,
-                   sep    = ";")
-
-  for (fao_division in snakemake@params$fao_divisions) {
-
-    prod <- as.numeric(fao_division)
-
-    dat <- data %>% # nolint
-      filter(cmd == prod) %>% # nolint
-      arrange(period)
-
-    # ── Compute price (USD/tonne) — net_wgt in kg, divide by 1000 for tonnes ──
-    # All trader types shown, including balanced.
-    # Natural pairing of attribution and report: supply-side prices from
-    # exporter reports (FOB), demand-side prices from importer reports (CIF).
-    # Mirror reports are never mixed within a ratio.
-    # Total average price added per side: tot_primary_value / tot_net_wgt.
-    price_dat <- tibble(period = dat$period) %>% # nolint
-      mutate(
-        src_main_exp = dat$src_main_exp_primary_value_exp / (dat$src_main_exp_net_wgt_exp / 1000), # nolint
-        src_main_imp = dat$src_main_imp_primary_value_exp / (dat$src_main_imp_net_wgt_exp / 1000), # nolint
-        src_balanced = dat$src_balanced_primary_value_exp / (dat$src_balanced_net_wgt_exp / 1000), # nolint
-        src_total    = dat$tot_primary_value_exp           / (dat$tot_net_wgt_exp           / 1000), # nolint
-        tgt_main_exp = dat$tgt_main_exp_primary_value_imp / (dat$tgt_main_exp_net_wgt_imp / 1000), # nolint
-        tgt_main_imp = dat$tgt_main_imp_primary_value_imp / (dat$tgt_main_imp_net_wgt_imp / 1000), # nolint
-        tgt_balanced = dat$tgt_balanced_primary_value_imp / (dat$tgt_balanced_net_wgt_imp / 1000), # nolint
-        tgt_total    = dat$tot_primary_value_imp           / (dat$tot_net_wgt_imp           / 1000) # nolint
-      )
-
-    # Palette and labels: all trader types + total
-    pal_price    <- c(pal_vol["main_exp"], pal_vol["balanced"], pal_vol["main_imp"], # nolint
-                      total = "black")
-    price_labels <- c(vol_labels["main_exp"], vol_labels["balanced"],
-                      vol_labels["main_imp"], total = "Total")
-    price_levels <- c("main_exp", "balanced", "main_imp", "total")
-
-    # Long format per perspective — all trader types + total
-    price_src <- price_dat %>% # nolint
-      select(period, src_main_exp, src_balanced, src_main_imp, src_total) %>% # nolint
-      setNames(c("period", "main_exp", "balanced", "main_imp", "total")) %>% # nolint
-      melt(id.vars = "period", variable.name = "trader_type",
-           value.name = "price") %>% # nolint
-      mutate(trader_type = factor(trader_type, levels = price_levels))
-
-    price_tgt <- price_dat %>% # nolint
-      select(period, tgt_main_exp, tgt_balanced, tgt_main_imp, tgt_total) %>% # nolint
-      setNames(c("period", "main_exp", "balanced", "main_imp", "total")) %>% # nolint
-      melt(id.vars = "period", variable.name = "trader_type",
-           value.name = "price") %>% # nolint
-      mutate(trader_type = factor(trader_type, levels = price_levels))
-
-    # Shared y-axis limit across both panels for direct comparison
-    y_max <- max(c(price_src$price, price_tgt$price), na.rm = TRUE) * 1.06
-
-    # ── Helper: build one price line panel ───────────────────────────────────
-    build_price_panel <- function(price_long, panel_letter, panel_title) {
-
-      last_year <- max(price_long$period)
-      last_vals <- price_long %>% filter(period == last_year) # nolint
-
-      ggplot(price_long,
-             aes(x = period, y = price,
-                 color = trader_type, group = trader_type)) +
-
-        geom_vline(xintercept = benchmark_years,
-                   color = "grey80", linewidth = 0.35, linetype = "dashed") +
-
-        geom_line(linewidth = 0.85) +
-        geom_point(size = 1.8, shape = 16) +
-
-        # End-of-series labels — repel vertically to avoid overlap
-        ggrepel::geom_text_repel(
-                  data      = last_vals, # nolint
-                  aes(x     = last_year + 0.3, # nolint
-                      label = price_labels[as.character(trader_type)]), # nolint
-                  hjust        = 0, # nolint
-                  direction    = "y",
-                  nudge_x      = 0.2,
-                  segment.size = 0.3,
-                  segment.color = "grey60",
-                  box.padding  = 0.3,
-                  size         = 2.8,
-                  fontface     = "bold",
-                  force        = 2) +
-
-        scale_color_manual(values = pal_price, labels = price_labels,
-                           name = "Trader type") +
-        scale_x_continuous(
-          breaks = c(min(price_long$period), benchmark_years, last_year),
-          expand = expansion(mult = c(0.02, 0.20))
-        ) +
-        scale_y_continuous(
-          limits = c(0, y_max),
-          expand = c(0, 0),
-          labels = scales::comma
-        ) +
-        coord_cartesian(clip = "off") +
-        labs(x     = "Year",
-             y     = "Price ($/tonne)",
-             title = paste0(panel_letter, " ", panel_title)) +
-        theme_ipsum(axis_title_size = 10, base_size = 9) +
-        theme(legend.position = "none",
-              plot.margin     = margin(10, 70, 10, 10),
-              plot.title      = element_text(size = 10, face = "bold"))
-    }
-
-    p_src <- build_price_panel(price_src, "(a)", "Average price — supply (source) perspective, exporter reports (FOB)") # nolint
-    p_tgt <- build_price_panel(price_tgt, "(b)", "Average price — demand (target) perspective, importer reports (CIF)") # nolint
-
-    composite_price <- p_src + p_tgt +
-      plot_layout(ncol = 2)
-
-    # ── Save ─────────────────────────────────────────────────────────────────
-    # Landscape — same width as composition figure for visual consistency
-    for (ext in snakemake@params$ext) {
-      out_path <- file.path(
-        "results", "network_analysis", agg_lvl, "plot",
-        fao_division,
-        paste0("network_price_desc_stat.", ext)
-      )
-      ggsave(filename = out_path, plot = composite_price, device = ext,
-             create.dir = TRUE, width = 4960, height = 1860,
-             units = "px", dpi = 300, bg = "white")
+    # ── Save — one full-page portrait figure per metric ──────────────────────
+    # Each metric gets its own page-size figure so the 28 bar rows keep
+    # enough vertical space for readable in-bar labels. Portrait A4 inside
+    # normal 2.54 cm margins at 300 dpi:
+    # (21.0 - 2*2.54) x (29.7 - 2*2.54) cm ≈ 1880 x 2900 px.
+    mirror_figs <- list(value = p_value, weight = p_weight)
+    for (metric_key in names(mirror_figs)) {
+      for (ext in snakemake@params$ext) {
+        out_path <- file.path(
+          "results", "network_analysis", agg_lvl, "plot",
+          fao_division,
+          paste0("network_mirrored_desc_stat_", metric_key, ".", ext)
+        )
+        ggsave(filename = out_path, plot = mirror_figs[[metric_key]],
+               device = ext, create.dir = TRUE, width = 1880, height = 2900,
+               units = "px", dpi = 300, bg = "white")
+      }
     }
   } # end fao_division loop
 } # end agg_lvl loop

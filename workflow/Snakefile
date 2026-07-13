@@ -26,6 +26,7 @@ include: 'rules/network_composition.smk'
 include: 'rules/network_connectivity.smk'
 include: 'rules/network_contribution.smk'
 include: 'rules/plot_network_composition.smk'
+include: 'rules/plot_prices_figures.smk'
 include: 'rules/plot_market_concentration.smk'
 include: 'rules/plot_contributor_profiles.smk'
 include: 'rules/plot_network_connectivity.smk'
@@ -49,13 +50,25 @@ rule all:
                         agg_lvl = config['agg_lvl'],
                         fao_div = config['fao_divisions_agg'],
                         ext     = ['png', 'svg']),
-        expand('results/network_analysis/{agg_lvl}/plot/{fao_div}/network_mirrored_desc_stat.{ext}',
+        expand('results/network_analysis/{agg_lvl}/plot/{fao_div}/network_mirrored_desc_stat_{metric}.{ext}',
                 agg_lvl = config['agg_lvl'],
                 fao_div = config['fao_divisions_agg'],
+                metric  = ['value', 'weight'],
                 ext     = ['png', 'svg']),
         expand('results/network_analysis/{agg_lvl}/plot/{fao_div}/network_composition.{ext}',
                 agg_lvl = config['agg_lvl'],
                 fao_div = config['fao_divisions_agg'],
+                ext     = ['png', 'svg']),
+        expand('results/network_analysis/{agg_lvl}/plot/{fao_div}/network_price_desc_stat.{ext}',
+                agg_lvl = config['agg_lvl'],
+                fao_div = config['fao_divisions_agg'],
+                ext     = ['png', 'svg']),
+        expand('results/network_analysis/country_lvl/plot/01/network_price_{fig}.{ext}',
+                fig     = ['partners',
+                           'ridgeline_countries_imp',
+                           'ridgeline_countries_exp',
+                           'ridgeline_years_imp',
+                           'ridgeline_years_exp'],
                 ext     = ['png', 'svg']),
         expand('results/network_analysis/{agg_lvl}/plot/{fao_div}/chord_diagram.{ext}',
                 agg_lvl = config['agg_lvl'],
@@ -81,7 +94,7 @@ rule all:
         #         agg_lvl  = config['agg_lvl']),
         # 'results/network_analysis/agg_eu/input/input_data.parquet.gzip',
         # 'results/network_analysis/country_lvl/input/input_data.parquet.gzip',
-        # 'results/global/merged_data.parquet.gzip',
+        # 'results/global/merged_data.csv',
         # 'results/global/deflate_uncomtrade_data.parquet.gzip',
         # 'resources/public/uncomtrade_data.parquet.gzip',
         # 'resources/public/wb_series_data.csv',

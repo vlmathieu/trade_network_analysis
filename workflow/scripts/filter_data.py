@@ -40,7 +40,15 @@ logging.basicConfig(filename=snakemake.log[0],
                     datefmt='%Y-%m-%d %H:%M:%S')
 
 # Load data
-merged_data = pl.read_parquet(snakemake.input[0])
+# Force string dtype on columns that would otherwise be mis-inferred by the CSV
+# reader: 'period' (compared as a string below) and 'FAO Code Agg' (zero-padded
+# codes '01'/'05'/'07' that must not collapse to 1/5/7). infer_schema_length=None
+# scans the whole file so numeric columns with late nulls keep their float dtype.
+merged_data = pl.read_csv(
+    snakemake.input[0],
+    schema_overrides={'period': pl.String, 'FAO Code Agg': pl.String},
+    infer_schema_length=None
+)
 
 # Filter data for network analysis
 input_data = (

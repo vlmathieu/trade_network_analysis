@@ -88,7 +88,6 @@ logging.info(f"\nMerged dataframe head: \n {merged_data.head(5)}\n")
 logging.info(f"\nMerged dataframe size (rows, columns): {merged_data.shape}\n")
 
 # Save merged data
-merged_data.write_parquet(
-    snakemake.output[0],
-    compression='gzip'
+merged_data.write_csv(
+    snakemake.output[0]
     )

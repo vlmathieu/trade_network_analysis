@@ -247,10 +247,11 @@ _sandbox/
 # Prevent mac users to commit .DS_Store files
 *.DS_Store
 
-# Prevent users to commit data files
+# Prevent users to commit big data files
 # *.gzip
 # *.csv
 # *.pkl
+results/global/merged_data.csv
 
 # Prevent users to commit snakemake logs ans metadata
 *.snakemake

@@ -1,6 +1,6 @@
 rule filter_data:
     input:
-        'results/global/merged_data.parquet.gzip'
+        'results/global/merged_data.csv'
     output:
         'results/network_analysis/country_lvl/input/input_data.parquet.gzip'
     params:

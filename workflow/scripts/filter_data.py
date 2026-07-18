@@ -40,15 +40,11 @@ logging.basicConfig(filename=snakemake.log[0],
                     datefmt='%Y-%m-%d %H:%M:%S')
 
 # Load data
-# Force string dtype on columns that would otherwise be mis-inferred by the CSV
-# reader: 'period' (compared as a string below) and 'FAO Code Agg' (zero-padded
-# codes '01'/'05'/'07' that must not collapse to 1/5/7). infer_schema_length=None
-# scans the whole file so numeric columns with late nulls keep their float dtype.
-merged_data = pl.read_csv(
-    snakemake.input[0],
-    schema_overrides={'period': pl.String, 'FAO Code Agg': pl.String},
-    infer_schema_length=None
-)
+# Read the parquet handoff from join_fao_code. Parquet preserves dtypes, so no
+# schema_overrides are needed: 'period' is already String (the deflate_uncomtrade
+# join on 'period' requires it) and 'FAO Code Agg' keeps the zero-padded codes
+# '01'/'05'/'07' as String, so the str(...) comparisons below still work.
+merged_data = pl.read_parquet(snakemake.input[0])
 
 # Filter data for network analysis
 input_data = (
@@ -74,32 +70,47 @@ input_data = (
         .unique()
 )
 
-# Drop outliers = values under fifth percentile for weight (kg) and value (USD)
-stats_desc = (
+# Drop outliers = raw trade flows under the fifth percentile for weight (kg) and
+# value (USD), computed PER aggregated FAO product (fao_product_agg) so the very
+# different magnitude scales of divisions 01/05/07 are not pooled into one global
+# threshold. Done on the RAW flows, before aggregation to FAO product.
+thresholds = (
     input_data
-    .select(['net_wgt', 'primary_value'])
-    .describe(percentiles=[0.05])
+    .group_by('fao_product_agg')
+    .agg(
+        # quantile ignores nulls
+        pl.col('net_wgt').quantile(0.05).alias('min_weight'),
+        pl.col('primary_value').quantile(0.05).alias('min_value'),
+    )
+    .sort('fao_product_agg')
 )
-
-min_weight, min_value = (
-    stats_desc
-    .filter(pl.col('statistic') == '5%')
-    .select(['net_wgt', 'primary_value'])
-)
-logging.info(f"\nMin weight: {min_weight}\n Min value: {min_value}\n")
+logging.info(f"\nPer-product 5th-percentile thresholds:\n {thresholds}\n")
 
 input_data = (
-    input_data.filter(
-        # Drop trade flow with net weight (kg) under fifth percentile
-        ((pl.col('net_wgt') > min_weight.item()) | 
+    input_data
+    .join(thresholds, on='fao_product_agg', how='left')
+    .filter(
+        # Drop trade flow with net weight (kg) under its product's fifth percentile.
+        # The is_null() pass keeps unreported weights (e.g. the 2000-2006 quantity
+        # gaps), so only reported-but-implausibly-small flows are removed.
+        ((pl.col('net_wgt') > pl.col('min_weight')) |
          (pl.col('net_wgt').is_null())),
 
-        # Drop trade flow with value (USD) under fifth percentile
-        pl.col('primary_value') > min_value.item()
+        # Drop trade flow with value (USD) under its product's fifth percentile
+        # (same null-passing guard as the weight condition).
+        ((pl.col('primary_value') > pl.col('min_value')) |
+         (pl.col('primary_value').is_null())),
     )
+    .drop(['min_weight', 'min_value'])
 )
 
-# Sum weight and values by FAO division product
+# Sum weight and values by FAO division product.
+# Guarded sum (same pattern as aggregate_eu.py): a group whose values are ALL
+# null aggregates to null, not 0. This keeps the released data honest — a missing
+# net-weight report (e.g. the 2000-2006 quantity gaps) stays null instead of being
+# turned into a fake reported 0. Groups with at least one reported value sum
+# exactly as a plain sum would, so downstream results are unchanged (every metric
+# consumer already treats null/None as 0).
 sum_cols = ['net_wgt', 'primary_value', 'primary_value_deflated']
 
 groupby_cols = [_ for _ in input_data.columns if _ not in sum_cols]
@@ -107,9 +118,21 @@ groupby_cols = [_ for _ in input_data.columns if _ not in sum_cols]
 input_data = (
     input_data
     .group_by(groupby_cols)
-    .agg(pl.sum(sum_cols))
+    .agg(pl.when(pl.col(sum_cols).count() > 0).then(pl.sum(sum_cols)))
  )
 logging.info(f"\nFinal data:\n {input_data}\n")
+
+# Final descriptive statistics of the saved dataset, per FAO product
+# (5th / 10th / 50th / 90th / 95th percentiles for weight, value and deflated value)
+with pl.Config(tbl_rows=-1, tbl_cols=-1):
+    for cmd in sorted(input_data.select('fao_code_agg').unique().to_series().to_list()):
+        desc = (
+            input_data
+            .filter(pl.col('fao_code_agg') == cmd)
+            .select(['net_wgt', 'primary_value', 'primary_value_deflated'])
+            .describe(percentiles=[0.05, 0.10, 0.50, 0.90, 0.95])
+        )
+        logging.info(f"\nFinal descriptive stats - FAO product {cmd}:\n {desc}\n")
 
 # Save input data
 input_data.write_parquet(

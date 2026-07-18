@@ -95,6 +95,7 @@ rule all:
         # 'results/network_analysis/agg_eu/input/input_data.parquet.gzip',
         # 'results/network_analysis/country_lvl/input/input_data.parquet.gzip',
         # 'results/global/merged_data.csv',
+        # 'results/global/merged_data.parquet.gzip',
         # 'results/global/deflate_uncomtrade_data.parquet.gzip',
         # 'resources/public/uncomtrade_data.parquet.gzip',
         # 'resources/public/wb_series_data.csv',

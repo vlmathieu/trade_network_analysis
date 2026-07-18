@@ -3,7 +3,8 @@ rule join_fao_code:
         'resources/inhouse/correspondence_FAO_HS.json',
         'results/global/deflate_uncomtrade_data.parquet.gzip'
     output:
-        'results/global/merged_data.csv'
+        'results/global/merged_data.csv',
+        'results/global/merged_data.parquet.gzip'
     log:
         'workflow/logs/join_fao_code.log'
     threads: 1

@@ -88,6 +88,12 @@ logging.info(f"\nMerged dataframe head: \n {merged_data.head(5)}\n")
 logging.info(f"\nMerged dataframe size (rows, columns): {merged_data.shape}\n")
 
 # Save merged data
+# CSV feeds the raw data.table::fread chunks in the computational document;
+# parquet is the (faster, dtype-preserving) input to the filter_data rule.
 merged_data.write_csv(
     snakemake.output[0]
+    )
+merged_data.write_parquet(
+    snakemake.output[1],
+    compression='gzip'
     )

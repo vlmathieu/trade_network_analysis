@@ -157,7 +157,7 @@ for (input_file in snakemake@input) {
         ) +
         scale_y_continuous(breaks = y_breaks,
                            limits = c(y_lo, y_hi),
-                           expand = c(0, 0)) +
+                           expand = expansion(mult = c(0.04, 0))) +
         labs(x = "Year",
              y = axis_name) +
         coord_cartesian(clip = "off") +

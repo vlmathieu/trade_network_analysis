@@ -9,6 +9,10 @@ rule plot_trade_flows:
                 agg_lvl = config['agg_lvl'],
                 fao_div = config['fao_divisions_agg'],
                 ext     = ['png', 'svg']),
+        expand('results/network_analysis/{agg_lvl}/plot/{fao_div}/chord_diagram_fob.{ext}',
+                agg_lvl = config['agg_lvl'],
+                fao_div = config['fao_divisions_agg'],
+                ext     = ['png', 'svg']),
         expand('results/network_analysis/{agg_lvl}/plot/{fao_div}/trade_network.{ext}',
                 agg_lvl = config['agg_lvl'],
                 fao_div = config['fao_divisions_agg'],
@@ -17,8 +21,9 @@ rule plot_trade_flows:
         fao_divisions   = config['fao_divisions_agg'],
         year_start      = 2000,
         year_end        = 2020,
+        chord_year      = 2020,
         threshold       = config['threshold_main_contributors'],
-        chord_threshold = 0.03,
+        chord_n         = 10,
         ext             = ['png', 'svg']
     threads: 1
     conda:

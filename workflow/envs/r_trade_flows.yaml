@@ -12,3 +12,4 @@ dependencies:
  - r-reshape2=1.4.4
  - r-circlize=0.4.16
  - r-igraph=2.1.4
+ - r-legendry=0.2.4

@@ -95,6 +95,15 @@ def unit_network_composition(
         For each (measure, report) pair, the three src_* columns and the three
         tgt_* columns each sum to the corresponding tot_* column.
 
+        Price-consistent value totals (for implied prices), for each attribution
+        {src|tgt}, category and report (14 columns incl. tot):
+          {src|tgt}_{category}_primary_value_wp_{report} / tot_primary_value_wp_{report}
+            : primary value summed only over flows whose SAME-side net weight is
+            reported (wp = "weight present"). Dividing these by the matching
+            {..}_net_wgt_{report} totals gives a value-to-weight ratio taken over
+            one flow set for numerator and denominator; the plain primary_value
+            totals would instead inflate the ratio wherever net weight is missing.
+
     '''
  
     # Extract keys and edge list from dict
@@ -174,6 +183,20 @@ def unit_network_composition(
                  for cat in categories for m in measures for r in reports}
     tot_flows = {f'tot_{m}_{r}': 0.0 for m in measures for r in reports}
 
+    # Price-consistent value accumulators: primary value summed ONLY over flows
+    # whose matching-side net weight is reported (> 0). Dividing these by the
+    # net-weight totals gives each group's implied price (US$/tonne) over the
+    # SAME set of flows for numerator and denominator. The plain primary_value
+    # totals instead count flows whose net weight is missing (null, replaced by 0
+    # above), which would inflate the ratio over the 2000-2006 reporting gap;
+    # these masked columns are what plot_prices_figures.R (LOOP 1) divides by.
+    # See the "Net-weight reporting gaps" supplementary section.
+    src_price_val = {f'src_{cat}_primary_value_wp_{r}': 0.0
+                     for cat in categories for r in reports}
+    tgt_price_val = {f'tgt_{cat}_primary_value_wp_{r}': 0.0
+                     for cat in categories for r in reports}
+    tot_price_val = {f'tot_primary_value_wp_{r}': 0.0 for r in reports}
+
     # Helper: map a country to its category label
     def get_category(country: str) -> str:
         if country in main_exporters:
@@ -193,6 +216,17 @@ def unit_network_composition(
                 src_flows[f'src_{src_cat}_{m}_{r}'] += flow
                 tgt_flows[f'tgt_{tgt_cat}_{m}_{r}'] += flow
                 tot_flows[f'tot_{m}_{r}']           += flow
+
+        # Price-consistent value: count value only where the same-side net
+        # weight is reported (> 0), keeping numerator and denominator of the
+        # implied price on one flow set (there are no genuine zero-weight flows,
+        # so "> 0" isolates reported-weight flows from the null-set ones).
+        for r in reports:
+            if d[f'net_wgt_{r}'] > 0:
+                v = d[f'primary_value_{r}']
+                src_price_val[f'src_{src_cat}_primary_value_wp_{r}'] += v
+                tgt_price_val[f'tgt_{tgt_cat}_primary_value_wp_{r}'] += v
+                tot_price_val[f'tot_primary_value_wp_{r}']           += v
 
     # tot_flows is accumulated once per edge but independently for src and tgt,
     # so it is identical in both — use it as the single network total per
@@ -214,10 +248,13 @@ def unit_network_composition(
             'list_balanced': [sorted(balanced)],
             # Network totals
             **tot_flows,
+            **tot_price_val,
             # Source-attributed flow totals (supply-side perspective)
             **src_flows,
+            **src_price_val,
             # Target-attributed flow totals (demand-side perspective)
             **tgt_flows,
+            **tgt_price_val,
         }
     )
  

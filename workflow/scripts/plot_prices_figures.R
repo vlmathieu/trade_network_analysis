@@ -58,17 +58,21 @@ for (input_file in composition_inputs) {
     # Natural pairing of attribution and report: supply-side prices from
     # exporter reports (FOB), demand-side prices from importer reports (CIF).
     # Mirror reports are never mixed within a ratio.
-    # Total average price added per side: tot_primary_value / tot_net_wgt.
+    # The numerator uses the *_primary_value_wp_* columns (value summed only over
+    # flows whose same-side net weight is reported), so numerator and denominator
+    # cover one flow set and the ratio is not inflated where net weight is missing
+    # over the 2000-2006 gap (see network_composition.py; sec-netweight-gaps).
+    # Total average price added per side: tot_primary_value_wp / tot_net_wgt.
     price_dat <- tibble(period = dat$period) %>% # nolint
       mutate(
-        src_main_exp = dat$src_main_exp_primary_value_exp / (dat$src_main_exp_net_wgt_exp / 1000), # nolint
-        src_main_imp = dat$src_main_imp_primary_value_exp / (dat$src_main_imp_net_wgt_exp / 1000), # nolint
-        src_balanced = dat$src_balanced_primary_value_exp / (dat$src_balanced_net_wgt_exp / 1000), # nolint
-        src_total    = dat$tot_primary_value_exp           / (dat$tot_net_wgt_exp           / 1000), # nolint
-        tgt_main_exp = dat$tgt_main_exp_primary_value_imp / (dat$tgt_main_exp_net_wgt_imp / 1000), # nolint
-        tgt_main_imp = dat$tgt_main_imp_primary_value_imp / (dat$tgt_main_imp_net_wgt_imp / 1000), # nolint
-        tgt_balanced = dat$tgt_balanced_primary_value_imp / (dat$tgt_balanced_net_wgt_imp / 1000), # nolint
-        tgt_total    = dat$tot_primary_value_imp           / (dat$tot_net_wgt_imp           / 1000) # nolint
+        src_main_exp = dat$src_main_exp_primary_value_wp_exp / (dat$src_main_exp_net_wgt_exp / 1000), # nolint
+        src_main_imp = dat$src_main_imp_primary_value_wp_exp / (dat$src_main_imp_net_wgt_exp / 1000), # nolint
+        src_balanced = dat$src_balanced_primary_value_wp_exp / (dat$src_balanced_net_wgt_exp / 1000), # nolint
+        src_total    = dat$tot_primary_value_wp_exp           / (dat$tot_net_wgt_exp           / 1000), # nolint
+        tgt_main_exp = dat$tgt_main_exp_primary_value_wp_imp / (dat$tgt_main_exp_net_wgt_imp / 1000), # nolint
+        tgt_main_imp = dat$tgt_main_imp_primary_value_wp_imp / (dat$tgt_main_imp_net_wgt_imp / 1000), # nolint
+        tgt_balanced = dat$tgt_balanced_primary_value_wp_imp / (dat$tgt_balanced_net_wgt_imp / 1000), # nolint
+        tgt_total    = dat$tot_primary_value_wp_imp           / (dat$tot_net_wgt_imp           / 1000) # nolint
       )
 
     # Palette and labels: all trader types + total

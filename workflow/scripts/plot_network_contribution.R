@@ -34,11 +34,13 @@ pal_trader <- c(
   "main_imp" = "#3D85F7"
 )
 
-# Sequential ranges (light → base → dark) used to generate per-country shades
+# Per-country colour ramps (base → dark) shared by ribbon, curve, and label.
+# The light end of the old ramp produced pale, hard-to-read series and labels,
+# so each ramp now runs from the trader-type base colour to a dark shade only.
 pal_ranges <- list(
-  "main_exp" = c("#F5B8C8", "#C32E5A", "#7A1130"),
-  "balanced" = c("#D9D0D0", "#A49393", "#5C4D4D"),
-  "main_imp" = c("#B8D0FC", "#3D85F7", "#1040A0")
+  "main_exp" = c("#C32E5A", "#7A1130"),
+  "balanced" = c("#6B5757", "#3B2F2F"),
+  "main_imp" = c("#3D85F7", "#1040A0")
 )
 
 # Display-name aliases (Comtrade name → short label used on figures)
@@ -51,7 +53,8 @@ country_aliases <- c("Russian Federation" = "Russia")
 # strip. Applies a greedy upward push then shifts the whole stack down if it
 # overflows y_max, matching the strategy used in plot_market_concentration.R.
 
-compute_label_positions <- function(y_vals, y_max, min_gap_frac = 0.06) {
+compute_label_positions <- function(y_vals, y_max, min_gap_frac = 0.06,
+                                    floor_frac = 0) {
   if (length(y_vals) == 0) return(y_vals)
   ord <- order(y_vals)
   y_s <- y_vals[ord]
@@ -61,7 +64,10 @@ compute_label_positions <- function(y_vals, y_max, min_gap_frac = 0.06) {
     if (y_s[i] - y_s[i - 1] < gap) y_s[i] <- y_s[i - 1] + gap
   }
   if (y_s[length(y_s)] > y_max) y_s <- y_s - (y_s[length(y_s)] - y_max)
-  if (y_s[1] < 0)               y_s <- y_s - y_s[1]
+  # Keep the lowest label a small margin above the axis so it does not collide
+  # with the x-axis tick labels (e.g. Russia, whose recent contribution ≈ 0)
+  flr <- y_max * floor_frac
+  if (y_s[1] < flr)             y_s <- y_s + (flr - y_s[1])
   setNames(y_s, nms)
 }
 
@@ -251,7 +257,7 @@ build_panel <- function(plot_data,
     dplyr::filter(period == x_max, !is.na(contrib_pred)) # nolint
 
   y_actual  <- setNames(label_data$contrib_pred, label_data$country)
-  y_nudged  <- compute_label_positions(y_actual, y_max)
+  y_nudged  <- compute_label_positions(y_actual, y_max, floor_frac = 0.02)
   label_df  <- label_data %>% # nolint
     dplyr::mutate(y_nudged = y_nudged[country]) # nolint
 
@@ -264,7 +270,7 @@ build_panel <- function(plot_data,
   countries      <- sort(unique(panel_data$country))
   n_countries    <- length(countries)
   country_cols   <- if (n_countries == 1) {
-    setNames(pal_trader[trader_type], countries)
+    setNames(pal_ranges[[trader_type]][1], countries)
   } else {
     setNames(colorRampPalette(pal_ranges[[trader_type]])(n_countries), countries) # nolint
   }
@@ -273,58 +279,77 @@ build_panel <- function(plot_data,
     countries
   )
 
+  # Labels and their connector segments take the same per-country colour as the
+  # curve and ribbon (country_cols).
+  label_df$label_col <- country_cols[label_df$country]
+
+  # Two-line display label for the longest name to save horizontal margin space
+  label_df$disp_label <- ifelse(
+    label_df$country == "European Union", "European\nUnion", label_df$country
+  )
+
   ggplot(panel_data,
          aes(x = period, group = country)) + # nolint
     # HS-revision discontinuity band (net weight panels only)
     # Division 07: disruption 1996–1999; divisions 01/05: disruption 2000–2006
     (if (wgt == "net_wgt" && fao_division == "07") geom_rect(
       aes(xmin = 1996, xmax = 1999, ymin = 0, ymax = y_max), # nolint
-      fill        = "grey85",
+      fill        = "grey92",
       alpha       = 0.08,
       inherit.aes = FALSE
     ) else if (wgt == "net_wgt") geom_rect(
       aes(xmin = 2000, xmax = 2006, ymin = 0, ymax = y_max), # nolint
-      fill        = "grey85",
+      fill        = "grey92",
       alpha       = 0.08,
       inherit.aes = FALSE
     ) else NULL) +
     # 2007 transient spike (division 07 net weight only)
     (if (wgt == "net_wgt" && fao_division == "07") geom_vline(
       xintercept  = 2007,
-      color       = "grey70",
+      color       = "grey85",
       linetype    = "solid",
       linewidth   = 0.5
     ) else NULL) +
     # Benchmark year gridlines
-    geom_vline(xintercept = benchmark_years,
-               linetype   = "dashed",
-               color      = "grey70",
-               linewidth  = 0.3) +
+    # geom_vline(xintercept = benchmark_years,
+    #            linetype   = "dashed",
+    #            color      = "grey70",
+    #            linewidth  = 0.2) +
+    # Grid redrawn as explicit layers (theme grid is blanked below) so it sits
+    # above the HS-revision band but below the curves and labels. panel.ontop
+    # would instead force the grid above everything and strike through the text.
+    geom_hline(yintercept = seq(0, y_max, by = 10),
+               color = "grey90", linewidth = 0.3) +
+    geom_vline(xintercept = c(1996, benchmark_years, x_max),
+               color = "grey90", linewidth = 0.3) +
     # Smoothed ribbon (source vs target gap)
     geom_ribbon(aes(ymin = contrib_min_pred, ymax = contrib_max_pred, # nolint
                     fill = country),                                   # nolint
                 alpha = 0.3) +
     # Smoothed midpoint line
-    geom_line(aes(y = contrib_pred, color = country)) +    # nolint
+    geom_line(aes(y = contrib_pred, color = country),      # nolint
+              linewidth = 0.3) +
     # Smoothed midpoint points \u2014 shape varies by country
-    geom_point(aes(y = contrib_pred, color = country, shape = country), # nolint
-               size = 0.8, alpha = 0.6) +
+    # geom_point(aes(y = contrib_pred, color = country, shape = country), # nolint
+    #            size = 0.6, alpha = 0.6) +
     # Connector segments from ribbon-top anchor to nudged label position
     geom_segment(
       data        = label_df, # nolint
       mapping     = aes(x    = x_max + 0.15, xend = x_max + 0.35, # nolint
-                        y    = contrib_pred, yend = y_nudged,       # nolint
-                        color = country),                           # nolint
+                        y    = contrib_pred, yend = y_nudged),      # nolint
+      color       = label_df$label_col,
       linewidth   = 0.35, # nolint
       inherit.aes = FALSE) +
-    # Country name labels at nudged positions
+    # Country name labels at nudged positions (same colour as the curve)
     geom_text(
       data        = label_df, # nolint
       mapping     = aes(x     = x_max + 0.4, y = y_nudged,         # nolint
-                        label = country, color = country),          # nolint
+                        label = disp_label),                        # nolint
+      color       = label_df$label_col,
       hjust       = 0, # nolint
+      lineheight  = 0.9,
       fontface    = "bold",
-      size        = 4,
+      size        = 2.9,
       inherit.aes = FALSE) +
     # Scales
     scale_color_manual(values = country_cols) +
@@ -333,11 +358,11 @@ build_panel <- function(plot_data,
     scale_x_continuous(
       breaks = c(1996, benchmark_years, x_max),
       labels = as.character(c(1996, benchmark_years, x_max)),
-      expand = expansion(mult = c(0.02, 0.20))
+      expand = expansion(mult = c(0.03, 0.20))
     ) +
     scale_y_continuous(
       breaks = seq(0, y_max, by = 10),
-      expand = c(0, 0)
+      expand = expansion(mult = c(0.04, 0))
     ) +
     labs(
       x     = "Year",
@@ -345,13 +370,19 @@ build_panel <- function(plot_data,
       title = panel_title
     ) +
     coord_cartesian(ylim = c(0, y_max), clip = "off") +
-    theme_ipsum(base_size = 14, axis_title_size = 14) +
+    theme_ipsum(base_size = 8, axis_title_size = 9) +
     theme(
       legend.position  = "none",
-      plot.margin      = margin(3, 35, 3, 5, unit = "mm"),
-      plot.title       = element_text(size = 14, face = "bold"),
-      panel.ontop      = TRUE,
-      panel.background = element_rect(fill = "transparent", colour = NA)
+      # Right margin does double duty: on the left column (primary value) it is
+      # the middle gap holding that column's country labels, so it stays wide;
+      # on the right column (net weight) it is the figure's outer-right blank,
+      # trimmed so it matches the 1 mm outer-left blank and the figure reads
+      # centred.
+      plot.margin      = margin(2, if (wgt == "net_wgt") 7 else 9, 2, 1,
+                                unit = "mm"),
+      plot.title       = element_text(size = 9, face = "bold"),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank()
     )
 }
 
@@ -501,10 +532,10 @@ for (idx in seq_len(n_levels)) {
         device     = ext,
         path       = file.path(output_root, agg_lvl, "plot", fao_division),
         create.dir = TRUE,
-        width      = 2480 * 2.2,
-        height     = 1240 * 1.5 * scale_rows,
-        units      = "px",
-        dpi        = 300,
+        width      = 190,
+        height     = 76 * scale_rows,
+        units      = "mm",
+        dpi        = 600,
         bg         = "white"
       )
     }

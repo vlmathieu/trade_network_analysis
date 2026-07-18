@@ -49,8 +49,8 @@ for (input_file in snakemake@input) {
         axis_name <- "Kurtosis of the nb. of trading partners"
       }
 
-      # Produce basic plot
-      plot_metric <- data |>
+      # Long-format data for this metric (imports + exports series)
+      base_df <- data |>
         filter(cmd == prod) |>
         # Select relevant columns
         select(all_of(columns)) |>
@@ -60,54 +60,81 @@ for (input_file in snakemake@input) {
              value.name = "metric") |>
         arrange(period) |>
         # Convert trader_type to factor and order its values
-        mutate(trade_flow = factor(trade_flow, levels = order)) |>
+        mutate(trade_flow = factor(trade_flow, levels = order))
 
-        # Create ggplot line plot
-        ggplot(aes(x = period,
-                   y = metric,
-                   color = trade_flow,
-                   label = trade_flow)) +
-        geom_point(alpha = 0.6) +
+      # Temporary plot used only to extract the LOESS end-values (for the
+      # end-of-curve labels) and the y-range (for axis limits and gridlines)
+      tmp <- ggplot(base_df,
+                    aes(x = period, y = metric,
+                        color = trade_flow, label = trade_flow)) +
+        geom_point(alpha = 0.6, size = 0.3) +
         suppressMessages(
           geom_smooth(method = "loess",
                       formula = y ~ x,
                       se = FALSE,
-                      linewidth = 1)
+                      linewidth = 0.6)
         )
 
       # Collect final y values of geom_smooth to plot legend label
-      y_imp <- filter(ggplot_build(plot_metric)$data[[2]],
+      y_imp <- filter(ggplot_build(tmp)$data[[2]],
                       x == max(data$period) & grepl("_imp", label))$y
-      y_exp <- filter(ggplot_build(plot_metric)$data[[2]],
+      y_exp <- filter(ggplot_build(tmp)$data[[2]],
                       x == max(data$period) & grepl("_exp", label))$y
 
       # Collect y_min and y_max for setting axis limits
-      y_min <- min(min(ggplot_build(plot_metric)$data[[2]]$y),
+      y_min <- min(min(ggplot_build(tmp)$data[[2]]$y),
                    min(select(filter(data, cmd == prod), contains(metric))))
-      y_max <- max(max(ggplot_build(plot_metric)$data[[2]]$y),
+      y_max <- max(max(ggplot_build(tmp)$data[[2]]$y),
                    max(select(filter(data, cmd == prod), contains(metric))))
 
       # Conditionally offset end-of-curve labels if they are too close to each
-      # other. The minimum gap is set to 10% of the y range; when the raw gap is
-      # smaller, one label is nudged up and the other down by half the shortfall
-      # so they remain symmetric around their natural positions.
+      # other. The minimum gap is set to 9% of the y range (each label is itself
+      # ~5-6% of the range tall at this font size); when the raw gap is smaller,
+      # one label is nudged up and the other down by half the shortfall so they
+      # remain symmetric around their natural positions.
       y_range   <- y_max - y_min
-      min_gap   <- 0.05 * y_range
+      min_gap   <- 0.09 * y_range
       raw_gap   <- abs(y_exp - y_imp)
       offset    <- if (raw_gap < min_gap) (min_gap - raw_gap) / 2 else 0
 
       y_imp_lbl <- if (y_imp >= y_exp) y_imp + offset else y_imp - offset
       y_exp_lbl <- if (y_exp >= y_imp) y_exp + offset else y_exp - offset
 
-      # Complete plot with annotation and theme
-      plot_metric <- plot_metric +
+      # Metric-specific rounded axis boundaries: floor/ceil the data range to a
+      # "nice" step so every point (and the smooth) falls inside a clean framed
+      # range whose limits and gridlines are round numbers. The step is derived
+      # from the data magnitude, so it adapts per metric (mean, variance,
+      # skewness, kurtosis) without hard-coding.
+      raw_breaks <- scales::extended_breaks(n = 5)(c(y_min, y_max))
+      step       <- raw_breaks[2] - raw_breaks[1]
+      y_lo       <- floor(y_min / step) * step
+      y_hi       <- ceiling(y_max / step) * step
+      y_breaks   <- seq(y_lo, y_hi, by = step)
+      x_breaks   <- c(1996, 2000, 2005, 2010, 2015, 2020, max(data$period))
+
+      # Build the final plot. The grid is redrawn as explicit geom_hline /
+      # geom_vline layers (theme grid blanked below) so it sits under the
+      # points, curves, and labels — as in plot_network_contribution.R. The
+      # same break vectors feed the axes so ticks and gridlines align.
+      plot_metric <- ggplot(base_df,
+                            aes(x = period, y = metric,
+                                color = trade_flow, label = trade_flow)) +
+        geom_hline(yintercept = y_breaks, color = "grey90", linewidth = 0.3) +
+        geom_vline(xintercept = x_breaks, color = "grey90", linewidth = 0.3) +
+        geom_point(alpha = 0.6, size = 0.3) +
+        suppressMessages(
+          geom_smooth(method = "loess",
+                      formula = y ~ x,
+                      se = FALSE,
+                      linewidth = 0.6)
+        ) +
         # End of chart labels
         annotate("text",
                  x = max(data$period) + 0.4,
                  y = y_imp_lbl,
                  label = "Imports",
                  hjust = 0,
-                 size = 5,
+                 size = 2.8,
                  lineheight = .8,
                  fontface = "bold",
                  color = pal[1]) +
@@ -117,7 +144,7 @@ for (input_file in snakemake@input) {
                  y = y_exp_lbl,
                  label = "Exports",
                  hjust = 0,
-                 size = 5,
+                 size = 2.8,
                  lineheight = .8,
                  fontface = "bold",
                  color = pal[2]) +
@@ -125,18 +152,20 @@ for (input_file in snakemake@input) {
         # Set up scale colors, breaks, and limits + themes
         scale_color_manual(values = pal) +
         scale_x_continuous(
-          breaks = c(1996, 2000, 2005, 2010, 2015, 2020, max(data$period)),
+          breaks = x_breaks,
           labels = c("1996", "2000", "2005", "2010", "2015", "2020", as.character(max(data$period))) # nolint
         ) +
-        scale_y_continuous(limits = c(y_min - 0.05 * abs(y_min),
-                                      y_max + 0.05 * abs(y_max)),
+        scale_y_continuous(breaks = y_breaks,
+                           limits = c(y_lo, y_hi),
                            expand = c(0, 0)) +
         labs(x = "Year",
              y = axis_name) +
         coord_cartesian(clip = "off") +
-        theme_ipsum(axis_title_size = 16) +
-        theme(legend.position = "none",
-              plot.margin = margin(10, 50, 10, 20))
+        theme_ipsum(base_size = 9, axis_title_size = 9) +
+        theme(legend.position  = "none",
+              plot.margin      = margin(3, 10, 3, 2, unit = "mm"),
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank())
 
       # Store plot in list
       plot_lst[[match(metric, metrics)]] <- plot_metric
@@ -158,10 +187,10 @@ for (input_file in snakemake@input) {
         device = ext,
         create.dir = TRUE,
         scale = 1,
-        width = 2480 * 2.2,
-        height = 1240 * 3,
-        units = c("px"),
-        dpi = 300,
+        width = 190,
+        height = 150,
+        units = "mm",
+        dpi = 600,
         limitsize = TRUE,
         bg = "white"
       )

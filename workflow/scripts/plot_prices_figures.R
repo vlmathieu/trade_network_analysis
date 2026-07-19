@@ -1,6 +1,6 @@
 library("ggplot2")
 library("hrbrthemes")
-library("dplyr")
+suppressPackageStartupMessages(library("dplyr"))
 library("reshape2")
 library("patchwork")
 library("scales")
@@ -24,6 +24,34 @@ vol_labels <- c(
 )
 
 benchmark_years <- c(2000, 2005, 2010, 2015, 2020)
+
+# ── Helper: resolve vertical collisions for end-of-curve labels ─────────────
+# Greedy upward push, then shift the whole stack down if it overflows y_max
+# (and up if it drops below 0). Same strategy as plot_network_composition.R /
+# plot_network_contribution.R. `lines` is an optional named vector giving each
+# label's height in text rows (2 for a "Main\nexporters" two-line label); the
+# minimum centre-to-centre gap between two adjacent labels then scales with
+# their heights — half of each stacked — so `min_gap_frac` is the baseline for
+# two ONE-line labels and a two-line neighbour gets more room. Falls back to
+# all-1 (uniform gap) when `lines` is omitted.
+compute_label_positions <- function(y_vals, y_max, min_gap_frac = 0.06,
+                                    lines = NULL) {
+  if (length(y_vals) == 0) return(y_vals)
+  ln <- if (is.null(lines)) rep(1, length(y_vals)) else
+    as.numeric(lines[names(y_vals)])
+  ord <- order(y_vals)
+  y_s <- y_vals[ord]
+  nms <- names(y_vals)[ord]
+  ln  <- ln[ord]
+  base_gap <- y_max * min_gap_frac
+  for (i in seq_along(y_s)[-1]) {
+    gap <- base_gap * (ln[i - 1] + ln[i]) / 2
+    if (y_s[i] - y_s[i - 1] < gap) y_s[i] <- y_s[i - 1] + gap
+  }
+  if (y_s[length(y_s)] > y_max) y_s <- y_s - (y_s[length(y_s)] - y_max)
+  if (y_s[1] < 0)               y_s <- y_s - y_s[1]
+  setNames(y_s, nms)
+}
 
 # Named inputs: "composition" = the per-agg_lvl network_composition.csv files
 # (LOOP 1 iterates over them; LOOP 2 reads the country_lvl one for the
@@ -78,8 +106,10 @@ for (input_file in composition_inputs) {
     # Palette and labels: all trader types + total
     pal_price    <- c(pal_vol["main_exp"], pal_vol["balanced"], pal_vol["main_imp"], # nolint
                       total = "black")
-    price_labels <- c(vol_labels["main_exp"], vol_labels["balanced"],
-                      vol_labels["main_imp"], total = "Total")
+    # Two-line "Main\nexporters" / "Main\nimporters" (as in the composition
+    # figure) so the end-of-curve labels take less horizontal margin space
+    price_labels <- c(main_exp = "Main\nexporters", balanced = "Balanced",
+                      main_imp = "Main\nimporters", total = "Total")
     price_levels <- c("main_exp", "balanced", "main_imp", "total")
 
     # Long format per perspective — all trader types + total
@@ -104,10 +134,31 @@ for (input_file in composition_inputs) {
     # Layer order (bottom → top): shaded band < grid < curves. The theme grid
     # is blanked and redrawn as layers so it sits ABOVE the band but BELOW the
     # curves (panel.ontop would put it above the curves as well).
-    build_price_panel <- function(price_long, panel_letter, panel_title) {
+    build_price_panel <- function(price_long, panel_letter, panel_title,
+                                  right_mar = 15) {
 
       last_year <- max(price_long$period)
       last_vals <- price_long %>% filter(period == last_year) # nolint
+
+      # End-of-curve labels: anchor each label at its curve's actual end value
+      # (price at the last year), then nudge overlapping labels apart in the
+      # right margin — the "labels at the end of the curve" approach from
+      # plot_market_concentration.R (end y-value, not repel).
+      last_lab <- last_vals %>% filter(!is.na(price)) # nolint
+      end_y    <- setNames(last_lab$price, as.character(last_lab$trader_type))
+      # Height of each label in text rows (2 for the two-line "Main\nexporters"
+      # / "Main\nimporters") so the resolver reserves extra room around them.
+      lab_lines <- vapply(strsplit(price_labels[names(end_y)], "\n"),
+                          length, integer(1))
+      names(lab_lines) <- names(end_y)
+      y_lab    <- compute_label_positions(end_y, y_max, min_gap_frac = 0.06,
+                                          lines = lab_lines)
+      label_df <- tibble(
+        y_end = as.numeric(end_y),
+        y_lab = as.numeric(y_lab[names(end_y)]),
+        label = price_labels[names(end_y)],
+        col   = pal_price[names(end_y)]
+      )
 
       # Grid positions — same breaks as the axes so lines and labels align
       y_breaks <- scales::breaks_extended()(c(0, y_max))
@@ -125,69 +176,68 @@ for (input_file in composition_inputs) {
         # divisions 01/05: disruption 2000–2006
         (if (fao_division == "07") annotate("rect",
           xmin = 1996, xmax = 1999, ymin = 0, ymax = y_max,
-          fill = "grey85"
+          fill = "grey92"
         ) else annotate("rect",
           xmin = 2000, xmax = 2006, ymin = 0, ymax = y_max,
-          fill = "grey85"
+          fill = "grey92"
         )) +
 
         # Grid redrawn above the band (theme grid blanked below)
-        geom_hline(yintercept = y_breaks, color = "#cccccc", linewidth = 0.25) + # nolint
-        geom_vline(xintercept = x_breaks, color = "#cccccc", linewidth = 0.25) + # nolint
+        geom_hline(yintercept = y_breaks, color = "grey90", linewidth = 0.3) + # nolint
+        geom_vline(xintercept = x_breaks, color = "grey90", linewidth = 0.3) + # nolint
 
         # 2007 transient spike (division 07 only)
         (if (fao_division == "07") geom_vline(
-          xintercept = 2007, color = "grey70",
+          xintercept = 2007, color = "grey85",
           linetype = "solid", linewidth = 0.5
         ) else NULL) +
 
-        geom_vline(xintercept = benchmark_years,
-                   color = "grey80", linewidth = 0.35, linetype = "dashed") +
+        # geom_vline(xintercept = benchmark_years,
+        #            color = "grey80", linewidth = 0.35, linetype = "dashed") +
 
-        geom_line(linewidth = 0.85) +
-        geom_point(size = 1.8, shape = 16) +
+        geom_line(linewidth = 0.5) +
+        geom_point(size = 0.9, shape = 16) +
 
-        # End-of-series labels — repel vertically to avoid overlap
-        ggrepel::geom_text_repel(
-                  data      = last_vals, # nolint
-                  aes(x     = last_year + 0.3, # nolint
-                      label = price_labels[as.character(trader_type)]), # nolint
-                  hjust        = 0, # nolint
-                  direction    = "y",
-                  nudge_x      = 0.2,
-                  segment.size = 0.3,
-                  segment.color = "grey60",
-                  box.padding  = 0.3,
-                  size         = 2.8,
-                  fontface     = "bold",
-                  force        = 2) +
+        # End-of-curve labels + short connectors from each curve end to its
+        # nudged label position in the right margin
+        geom_segment(data = label_df,
+                     aes(x = last_year + 0.45, xend = last_year + 0.65,
+                         y = y_end, yend = y_lab),
+                     color = label_df$col, linewidth = 0.3,
+                     inherit.aes = FALSE) +
+        geom_text(data = label_df,
+                  aes(x = last_year + 1, y = y_lab, label = label),
+                  color = label_df$col, hjust = 0, size = 2.5,
+                  lineheight = 0.9, fontface = "bold", inherit.aes = FALSE) +
 
         scale_color_manual(values = pal_price, labels = price_labels,
                            name = "Trader type") +
         scale_x_continuous(
           breaks = c(min(price_long$period), benchmark_years, last_year),
-          expand = expansion(mult = c(0.02, 0.20))
+          expand = expansion(mult = c(0.02, 0.02))
         ) +
         scale_y_continuous(
           limits = c(0, y_max),
           breaks = y_breaks,
-          expand = c(0, 0),
+          expand = expansion(mult = c(0.04, 0)),
           labels = scales::comma
         ) +
         coord_cartesian(clip = "off") +
         labs(x     = "Year",
              y     = "Price (US$/tonne)",
              title = paste0(panel_letter, " ", panel_title)) +
-        theme_ipsum(axis_title_size = 10, base_size = 9) +
+        theme_ipsum(axis_title_size = 9, base_size = 9) +
         theme(legend.position  = "none",
-              plot.margin      = margin(10, 70, 10, 10),
-              plot.title       = element_text(size = 10, face = "bold"),
+              plot.margin      = margin(3, right_mar, 3, 0, unit = "mm"),
+              plot.title       = element_text(size = 9, face = "bold",
+                                              lineheight = 1.0),
               panel.grid.major = element_blank(),
               panel.grid.minor = element_blank())
     }
 
-    p_src <- build_price_panel(price_src, "(a)", "Average price — supply (source) perspective, exporter reports (FOB)") # nolint
-    p_tgt <- build_price_panel(price_tgt, "(b)", "Average price — demand (target) perspective, importer reports (CIF)") # nolint
+    p_src <- build_price_panel(price_src, "(a)", "Average price — supply (source)\nperspective, exporter reports (FOB)") # nolint
+    p_tgt <- build_price_panel(price_tgt, "(b)", "Average price — demand (target)\nperspective, importer reports (CIF)", # nolint
+                               right_mar = 11) # figure's outer right — smaller
 
     composite_price <- p_src + p_tgt +
       plot_layout(ncol = 2)
@@ -201,8 +251,8 @@ for (input_file in composition_inputs) {
         paste0("network_price_desc_stat.", ext)
       )
       ggsave(filename = out_path, plot = composite_price, device = ext,
-             create.dir = TRUE, width = 4960, height = 1860,
-             units = "px", dpi = 300, bg = "white")
+             create.dir = TRUE, width = 190, height = 90,
+             units = "mm", dpi = 600, bg = "white")
     }
   } # end fao_division loop
 } # end agg_lvl loop
@@ -533,8 +583,8 @@ p_ridge <- ggplot() +
             aes(x = x_lab_n, y = row,
                 label = paste0("n = ", scales::comma(n))),
             hjust = 1, size = 2.5, color = "grey40") +
-  annotate("text", x = x_lab_n, y = n_rows + 1.05,
-           label = "Nb. of price obs.", hjust = 1,
+  annotate("text", x = x_lab_n, y = n_rows + 1.15,
+           label = "Nb. of\nprice obs.", hjust = 1,
            size = 2.8, color = "grey30",
            lineheight = 0.95) +
 
@@ -543,7 +593,7 @@ p_ridge <- ggplot() +
   scale_y_continuous(breaks = grp_stats$row,
                      labels = grp_stats$grp,
                      expand = c(0, 0)) +
-  coord_cartesian(xlim = c(x_lab_n - 0.42, x_hi + 0.25),
+  coord_cartesian(xlim = c(x_lab_n - 0.5, x_hi + 0.25),
                   ylim = c(0.55, n_rows + 1.9)) +
   labs(x = "Import unit price, CIF (US$/tonne, log scale)", y = NULL) +
   theme_ipsum(axis_title_size = 10, base_size = 9) +
@@ -935,8 +985,8 @@ p_ridge_exp <- ggplot() +
             aes(x = x_lab_n_exp, y = row,
                 label = paste0("n = ", scales::comma(n))),
             hjust = 1, size = 2.5, color = "grey40") +
-  annotate("text", x = x_lab_n_exp, y = n_rows_exp + 1.05,
-           label = "Nb. of price obs.", hjust = 1,
+  annotate("text", x = x_lab_n_exp, y = n_rows_exp + 1.15,
+           label = "Nb. of\nprice obs.", hjust = 1,
            size = 2.8, color = "grey30",
            lineheight = 0.95) +
 
@@ -945,7 +995,7 @@ p_ridge_exp <- ggplot() +
   scale_y_continuous(breaks = grp_stats_exp$row,
                      labels = grp_stats_exp$grp,
                      expand = c(0, 0)) +
-  coord_cartesian(xlim = c(x_lab_n_exp - 0.42, x_hi_exp + 0.25),
+  coord_cartesian(xlim = c(x_lab_n_exp - 0.5, x_hi_exp + 0.25),
                   ylim = c(0.55, n_rows_exp + 1.9)) +
   labs(x = "Export unit price, FOB (US$/tonne, log scale)", y = NULL) +
   theme_ipsum(axis_title_size = 10, base_size = 9) +
@@ -1185,10 +1235,14 @@ p_ridgeline_years_exp <- p_ridge_ry_exp +
                 clip   = FALSE)
 
 # ── Save — five standalone figures ───────────────────────────────────────────
-# partners is sized to fit an A4 page inside normal 2.54 cm margins
-# (1880 px at 300 dpi, as network_mirrored_desc_stat) with the height of
-# its 3 x 2 spaghetti panels; the countries ridgelines are taller for
-# their 11 rows; the years ridgelines taller still for their 28 year rows
+# Authored at TRUE print size in mm at 600 dpi (line/combination art). The
+# former px @ 300 dpi sizes over-ran the 190 mm full-page width for the
+# ridgelines (2480 px = 210 mm). partners already fit the 159 mm A4 text block
+# (its 3 x 2 spaghetti panels) and is unchanged; each ridgeline is scaled
+# UNIFORMLY from 210 mm to the 190 mm limit (~0.905x, aspect ratio preserved)
+# — the countries figures for their 11 rows, the taller years figures for
+# their 28 year rows. Inset-legend positions are panel-relative fractions, so
+# the uniform scale leaves them intact.
 price_dist_figs    <- list(
   partners                = p_partner,
   ridgeline_countries_imp = p_ridgeline_countries_imp,
@@ -1196,16 +1250,16 @@ price_dist_figs    <- list(
   ridgeline_years_imp     = p_ridgeline_years_imp,
   ridgeline_years_exp     = p_ridgeline_years_exp
 )
-price_dist_widths  <- c(partners = 1880,
-                        ridgeline_countries_imp = 2480,
-                        ridgeline_countries_exp = 2480,
-                        ridgeline_years_imp = 2480,
-                        ridgeline_years_exp = 2480)
-price_dist_heights <- c(partners = 2600,
-                        ridgeline_countries_imp = 2200,
-                        ridgeline_countries_exp = 2200,
-                        ridgeline_years_imp = 2900,
-                        ridgeline_years_exp = 2900)
+price_dist_widths  <- c(partners                = 159,
+                        ridgeline_countries_imp = 190,
+                        ridgeline_countries_exp = 190,
+                        ridgeline_years_imp     = 190,
+                        ridgeline_years_exp     = 190)
+price_dist_heights <- c(partners                = 220,
+                        ridgeline_countries_imp = 168,
+                        ridgeline_countries_exp = 168,
+                        ridgeline_years_imp     = 222,
+                        ridgeline_years_exp     = 222)
 for (fig_key in names(price_dist_figs)) {
   for (ext in snakemake@params$ext) {
     out_path <- file.path(
@@ -1216,6 +1270,6 @@ for (fig_key in names(price_dist_figs)) {
            device = ext, create.dir = TRUE,
            width = price_dist_widths[[fig_key]],
            height = price_dist_heights[[fig_key]],
-           units = "px", dpi = 300, bg = "white")
+           units = "mm", dpi = 600, bg = "white")
   }
 }

@@ -1,6 +1,6 @@
 library("ggplot2")
 library("hrbrthemes")
-library("dplyr")
+suppressPackageStartupMessages(library("dplyr"))
 library("reshape2")
 library("patchwork")
 library("scales")
@@ -16,9 +16,9 @@ pal <- c(
 )
 
 type_labels <- c(
-  "nb_main_imp" = "Main importers",
+  "nb_main_imp" = "Main\nimporters",
   "nb_balanced" = "Balanced",
-  "nb_main_exp" = "Main exporters"
+  "nb_main_exp" = "Main\nexporters"
 )
 
 # Stacking order: main_exp adjacent to spine, then balanced, main_imp at tip
@@ -62,16 +62,26 @@ auto_scale <- function(values, unit = "") {
 }
 
 # ── Helper: resolve vertical collisions for end-of-line labels ──────────────
-# Same strategy as plot_network_contribution.R: greedy upward push (minimum
-# gap = min_gap_frac of y_max), then shift the whole stack down if it
-# overflows y_max (and up if it drops below 0).
-compute_label_positions <- function(y_vals, y_max, min_gap_frac = 0.06) {
+# Same strategy as plot_network_contribution.R: greedy upward push, then shift
+# the whole stack down if it overflows y_max (and up if it drops below 0).
+# `lines` is an optional named vector giving each label's height in text rows
+# (e.g. 2 for a "Main\nimporters" two-line label). The minimum centre-to-centre
+# gap between two adjacent labels then scales with their heights — half of each
+# stacked — so `min_gap_frac` is the baseline for two ONE-line labels and a
+# two-line neighbour automatically gets more room. Falls back to all-1 (uniform
+# gap) when `lines` is omitted.
+compute_label_positions <- function(y_vals, y_max, min_gap_frac = 0.04,
+                                    lines = NULL) {
   if (length(y_vals) == 0) return(y_vals)
+  ln <- if (is.null(lines)) rep(1, length(y_vals)) else
+    as.numeric(lines[names(y_vals)])
   ord <- order(y_vals)
   y_s <- y_vals[ord]
   nms <- names(y_vals)[ord]
-  gap <- y_max * min_gap_frac
+  ln  <- ln[ord]
+  base_gap <- y_max * min_gap_frac
   for (i in seq_along(y_s)[-1]) {
+    gap <- base_gap * (ln[i - 1] + ln[i]) / 2
     if (y_s[i] - y_s[i - 1] < gap) y_s[i] <- y_s[i - 1] + gap
   }
   if (y_s[length(y_s)] > y_max) y_s <- y_s - (y_s[length(y_s)] - y_max)
@@ -183,7 +193,7 @@ for (input_file in composition_inputs) {
       group_by(period) %>% # nolint
       mutate(
         share     = nb_country / sum(nb_country) * 100,
-        bar_label = ifelse(share >= 5, paste0(round(share, 0), "%"), "")
+        bar_label = ifelse(share >= 5, paste0(round(share, 0), ""), "")
       ) %>% # nolint
       ungroup()
 
@@ -191,6 +201,20 @@ for (input_file in composition_inputs) {
     last_year  <- max(dat$period)
     last_vals  <- dat_long %>% filter(period == last_year) # nolint
     last_total <- dat_total %>% filter(period == last_year) # nolint
+
+    # Order the stacked-bar segments to mirror the line chart's final ranking
+    # (largest trader type on top). position_stack() draws the first factor
+    # level at the top of the stack, so ordering the levels by descending
+    # most-recent count puts the biggest series on top — e.g. if main importers
+    # > main exporters > balanced in the line chart, the bar reads blue-red-grey
+    # top to bottom. Data-dependent: the ranking can differ by product and
+    # aggregation level.
+    type_rank <- last_vals %>% # nolint
+      arrange(desc(nb_country)) %>% # nolint
+      pull(trader_type) %>% # nolint
+      as.character()
+    dat_shares <- dat_shares %>% # nolint
+      mutate(trader_type = factor(trader_type, levels = type_rank))
 
     # Data-driven y ceiling: round up to next multiple of 50 above the max
     y_max_nodes <- ceiling(max(dat$tot_nb_nodes, na.rm = TRUE) / 50) * 50
@@ -205,8 +229,15 @@ for (input_file in composition_inputs) {
     )
     lab_pal  <- c(pal, total = "black")
     lab_txt  <- c(type_labels, total = "Total")
+    # Height of each label in text rows (2 for the "Main\nimporters" /
+    # "Main\nexporters" two-line labels) so the collision resolver reserves
+    # extra vertical room around the taller labels.
+    lab_lines <- vapply(strsplit(lab_txt[names(end_vals)], "\n"),
+                        length, integer(1))
+    names(lab_lines) <- names(end_vals)
     y_nudged <- compute_label_positions(end_vals, y_max_nodes,
-                                        min_gap_frac = 0.04)
+                                        min_gap_frac = 0.06,
+                                        lines = lab_lines)
     label_df <- tibble(
       key   = names(end_vals),
       y_end = as.numeric(end_vals),
@@ -217,41 +248,47 @@ for (input_file in composition_inputs) {
 
     # ── (a) Line chart ───────────────────────────────────────────────────────
     p_line <- ggplot() +
-      geom_vline(xintercept = benchmark_years,
-                 color = "grey80", linewidth = 0.35, linetype = "dashed") +
+      # Grid redrawn as explicit layers (theme grid blanked below) so it sits
+      # under the lines and labels — as in plot_network_contribution.R
+      geom_hline(yintercept = y_breaks_nodes,
+                 color = "grey90", linewidth = 0.3) +
+      geom_vline(xintercept = c(min(dat$period), benchmark_years, last_year),
+                 color = "grey90", linewidth = 0.3) +
       geom_line(data = dat_long,
                 aes(x = period, y = nb_country,
                     color = trader_type, group = trader_type),
-                linewidth = 0.8) +
+                linewidth = 0.4) +
       geom_line(data = dat_total,
                 aes(x = period, y = tot_nb_nodes),
-                color = "black", linewidth = 0.9) +
+                color = "black", linewidth = 0.5) +
       # Connector segments from series end to nudged label position
       geom_segment(data = label_df,
                    aes(x = last_year + 0.15, xend = last_year + 0.35,
                        y = y_end, yend = y_lab),
-                   color = label_df$col, linewidth = 0.35,
+                   color = label_df$col, linewidth = 0.3,
                    inherit.aes = FALSE) +
       geom_text(data = label_df,
                 aes(x = last_year + 0.4, y = y_lab, label = label),
-                color = label_df$col, hjust = 0, size = 2.8,
+                color = label_df$col, hjust = 0, size = 2.5,
                 fontface = "bold", inherit.aes = FALSE) +
       scale_color_manual(values = pal, labels = type_labels) +
       scale_x_continuous(
         breaks = c(min(dat$period), benchmark_years, last_year),
-        expand = expansion(mult = c(0.02, 0.18))
+        expand = expansion(mult = c(0.02, 0.01))
       ) +
       scale_y_continuous(limits = c(0, y_max_nodes),
                          breaks = y_breaks_nodes,
-                         expand = c(0, 0)) +
+                         expand = expansion(mult = c(0.04, 0))) +
       labs(x = "Year",
            y = "Number of trading countries",
            title = "(a) Country count by trader type") +
       coord_cartesian(clip = "off") +
-      theme_ipsum(axis_title_size = 10, base_size = 9) +
-      theme(legend.position = "none",
-            plot.margin     = margin(10, 60, 10, 10),
-            plot.title      = element_text(size = 10, face = "bold"))
+      theme_ipsum(axis_title_size = 9, base_size = 8.5) +
+      theme(legend.position  = "none",
+            plot.margin      = margin(1, 7, 1, 0, unit = "mm"),
+            plot.title       = element_text(size = 9, face = "bold"),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank())
 
     # ── (b) 100% stacked bar ─────────────────────────────────────────────────
     p_bar <- ggplot(dat_shares,
@@ -264,20 +301,28 @@ for (input_file in composition_inputs) {
       scale_x_discrete(
         breaks = as.character(c(min(dat$period), benchmark_years, last_year))
       ) +
-      scale_y_continuous(expand = c(0, 0),
+      scale_y_continuous(expand = expansion(mult = c(0.04, 0)),
                          labels = function(x) paste0(x, "%")) +
       labs(x = "Year",
            y = "Share of trading countries",
            title = "(b) Composition by trader type (%)") +
-      theme_ipsum(axis_title_size = 10, base_size = 9) +
-      theme(legend.position = "right",
-            legend.title    = element_text(size = 8),
-            legend.text     = element_text(size = 8),
-            plot.title      = element_text(size = 10, face = "bold"),
-            plot.margin     = margin(10, 10, 10, 10))
+      theme_ipsum(axis_title_size = 9, base_size = 8.5) +
+      theme(legend.position  = "none",
+            # Legend removed to save space; uncomment to restore
+            # legend.position  = "right",
+            # legend.title     = element_text(size = 8),
+            # legend.text      = element_text(size = 7),
+            # legend.key.size  = unit(3.5, "mm"),
+            # legend.key.spacing.y = unit(0.5, "mm"),
+            # legend.margin    = margin(0, 0, 0, 0),
+            plot.title       = element_text(size = 9, face = "bold"),
+            plot.margin      = margin(1, 0, 1, 7, unit = "mm"),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank())
 
+    # 1x2 test layout: narrow line chart (~1/3) + wide stacked bar (~2/3)
     composite <- p_line + p_bar +
-      plot_layout(ncol = 2, widths = c(1, 1.4))
+      plot_layout(widths = c(1.15, 1.85))
 
     for (ext in snakemake@params$ext) {
       out_path <- file.path(
@@ -286,8 +331,8 @@ for (input_file in composition_inputs) {
         paste0("network_composition.", ext)
       )
       ggsave(filename = out_path, plot = composite, device = ext,
-             create.dir = TRUE, width = 4960, height = 1860,
-             units = "px", dpi = 300, bg = "white")
+             create.dir = TRUE, width = 190, height = 78,
+             units = "mm", dpi = 600, bg = "white")
     }
   } # end fao_division loop
 } # end agg_lvl loop
@@ -540,10 +585,13 @@ for (input_file in composition_inputs) {
     )
 
     # ── Save — one full-page portrait figure per metric ──────────────────────
-    # Each metric gets its own page-size figure so the 28 bar rows keep
-    # enough vertical space for readable in-bar labels. Portrait A4 inside
-    # normal 2.54 cm margins at 300 dpi:
-    # (21.0 - 2*2.54) x (29.7 - 2*2.54) cm ≈ 1880 x 2900 px.
+    # Each metric gets its own page-size figure so the 28 bar rows keep enough
+    # vertical space for readable in-bar labels. Authored at TRUE print size =
+    # the portrait A4 text block inside normal 2.54 cm margins,
+    # (21.0 - 2*2.54) x (29.7 - 2*2.54) cm ≈ 159 x 246 mm, at 600 dpi
+    # (line/combination art). This equals the former 1880 x 2900 px @ 300 dpi,
+    # so the label-fitting constants above (panel_px = 1620, char_px = 15)
+    # still encode physical proportions of the 159 mm width and are unaffected.
     mirror_figs <- list(value = p_value, weight = p_weight)
     for (metric_key in names(mirror_figs)) {
       for (ext in snakemake@params$ext) {
@@ -553,8 +601,8 @@ for (input_file in composition_inputs) {
           paste0("network_mirrored_desc_stat_", metric_key, ".", ext)
         )
         ggsave(filename = out_path, plot = mirror_figs[[metric_key]],
-               device = ext, create.dir = TRUE, width = 1880, height = 2900,
-               units = "px", dpi = 300, bg = "white")
+               device = ext, create.dir = TRUE, width = 159, height = 246,
+               units = "mm", dpi = 600, bg = "white")
       }
     }
   } # end fao_division loop

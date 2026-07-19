@@ -45,6 +45,7 @@ trajectory_plot <- function(
       country, # nolint
       "Russian Federation"   ~ "Russia",
       "China, Hong Kong SAR" ~ "Hong Kong",
+      "Papua New Guinea"     ~ "Papua N.G.",
       .default = country
     ))
 
@@ -91,9 +92,12 @@ trajectory_plot <- function(
   zoom_b_x <- c(10, 36)
   zoom_b_y <- c(0.5, 10)
 
-  # Dynamic size legend breaks as multiples of 1000 (3 breaks)
+  # Dynamic size legend breaks as multiples of 1000 (3 breaks). Fractions are
+  # widely spaced (1/8, 1/2, 1) so the nested legend circles — whose radius
+  # scales with sqrt(value) — don't overlap (0.2/0.6/1.0 put the small and mid
+  # circles too close, e.g. 2000/5000/8000 collided).
   size_breaks <- unique(
-    round(c(size_max * 0.2, size_max * 0.6, size_max) / 1000) * 1000
+    round(c(size_max * 0.125, size_max * 0.5, size_max) / 1000) * 1000
   )
 
   # Year slices
@@ -197,18 +201,52 @@ trajectory_plot <- function(
     d_start_main %>% mutate(lbl_color = "grey60", lbl_face = "plain"), # nolint
     arrow_phantoms(d_arrows)
   ) %>% mutate( # nolint
-    nudge_x = case_when(country == "Switzerland"    ~  0.25, country == "Türkiye" ~ -0.2, # nolint
-                        country == "European Union" ~  0,    TRUE ~ 0),
-    nudge_y = case_when(country == "Switzerland"    ~  0.43, country == "Türkiye" ~ -0.2, # nolint
-                        country == "European Union" ~ -0.5,  TRUE ~ 0)
+    nudge_x = case_when(
+      country == "Canada"         ~  1,  # right of its bubble, closer
+      country == "Malaysia"       ~ -0.9,    # bottom-left of its bubble
+      country == "Thailand"       ~ -1,    # left of its bubble
+      country == "Switzerland"    ~  1.3,    # down-right, clear of zoom A box
+      country == "Türkiye"        ~ -0.8,
+      country == "European Union" ~  0,
+      country == "USA"            ~  0.5,
+      country == "Norway"         ~ -0.7,
+      TRUE ~ 0
+    ),
+    nudge_y = case_when(
+      country == "Canada"         ~ -0.2,
+      country == "Malaysia"       ~ -0.3,
+      country == "Thailand"       ~  0,
+      country == "Switzerland"    ~  0.3,
+      country == "Türkiye"        ~ -0.15,    # a bit lower
+      country == "European Union" ~ -0.5,
+      country == "USA"            ~ -0.5,
+      country == "Norway"         ~  0.3,
+      TRUE ~ 0
+    )
   )
   d_labels_a <- bind_rows(
     d_end_a   %>% mutate(lbl_color = "black",  lbl_face = "bold"),  # nolint
     d_start_a %>% mutate(lbl_color = "grey60", lbl_face = "plain"), # nolint
     arrow_phantoms(d_arrows_a)
   ) %>% mutate( # nolint
-    nudge_x = case_when(country == "Viet Nam" ~ -0.08, country == "China" ~  2,   TRUE ~ 0), # nolint
-    nudge_y = case_when(country == "Viet Nam" ~  0.2,  country == "China" ~  3,   TRUE ~ 0) # nolint
+    nudge_x = case_when(
+      country == "China"         ~ -0.7,
+      country == "India"         ~  0.7,  # right, closer to bubble
+      country == "Hong Kong"     ~  0.8,    # right of its bubble (~east)
+      country == "Japan"         ~  0.6,  # right, closer to bubble
+      country == "Rep. of Korea" ~  0.5,    # top of its bubble, closer
+      country == "Viet Nam"      ~ -0.7,  # top-left of its bubble
+      TRUE ~ 0
+    ),
+    nudge_y = case_when(
+      country == "China"         ~  0.5,
+      country == "India"         ~  0,
+      country == "Hong Kong"     ~  0,
+      country == "Japan"         ~  0,
+      country == "Rep. of Korea" ~  0.7,
+      country == "Viet Nam"      ~  0.3,
+      TRUE ~ 0
+    )
   )
   d_labels_b <- bind_rows(
     d_end_b   %>% mutate(lbl_color = "black",  lbl_face = "bold"),  # nolint
@@ -216,16 +254,28 @@ trajectory_plot <- function(
     arrow_phantoms(d_arrows_b)
   ) %>% mutate( # nolint
     nudge_x = case_when(
-      country == "New Zealand" ~  0.25,
-      country == "Australia"   ~ -0.2, # nolint
+      country == "New Zealand" ~  0.35,
+      country == "Australia"   ~ -0.4, # nolint
       country == "Cameroon"    ~ -0.25,
+      country == "Papua N.G."  ~ -0.1,     # on top of its bubble
+      country == "Gabon"       ~  0.25,
+      country == "Congo"       ~  0.25,
+      country == "Uruguay"     ~ -0.2,
+      country == "Ukraine"     ~ -0.2,
+      country == "Brazil"      ~  0.25,
       TRUE ~ 0
     ),
     nudge_y = case_when(
-      country == "New Zealand" ~  0.08,
+      country == "New Zealand" ~  0.25,
       country == "Australia"   ~  0.05,
-      country == "Russia"      ~ -0.2,
+      country == "Russia"      ~ -0.4,
       country == "Cameroon"    ~ -0.2,
+      country == "Papua N.G."  ~  0.3,   # on top, a bit more distance
+      country == "Gabon"       ~  0.15,
+      country == "Congo"       ~  0.15,
+      country == "Uruguay"     ~ -0.2,
+      country == "Ukraine"     ~ -0.2,
+      country == "Brazil"      ~ -0.15,
       TRUE ~ 0
     )
   )
@@ -235,9 +285,9 @@ trajectory_plot <- function(
     al <- data$alpha
     grid::grobTree(
       grid::pointsGrob(0.5, 0.5, pch = 19,
-                       gp = grid::gpar(col = pal[1], alpha = al, fontsize = 22)), # nolint
+                       gp = grid::gpar(col = pal[1], alpha = al, fontsize = 14)), # nolint
       grid::pointsGrob(0.5, 0.5, pch = 19,
-                       gp = grid::gpar(col = pal[2], alpha = al, fontsize = 14))
+                       gp = grid::gpar(col = pal[2], alpha = al, fontsize = 9))
     )
   }
 
@@ -248,34 +298,34 @@ trajectory_plot <- function(
     annotate("rect",
              xmin = zoom_a_x[1], xmax = zoom_a_x[2],
              ymin = zoom_a_y[1], ymax = zoom_a_y[2],
-             fill = NA, color = "grey50", linetype = "dashed",
-             linewidth = 0.5) +
+             fill = NA, color = "black", linetype = "dashed",
+             linewidth = 0.35) +
     annotate("label",
              x = zoom_a_x[1], y = zoom_a_y[2],
              label = "A", hjust = 0, vjust = 1,
-             size = 4, fontface = "bold", color = "black",
-             fill = "white", linewidth = 0.5,
+             size = 3, fontface = "bold", color = "black",
+             fill = "white", linewidth = 0.6,
              label.r = unit(0, "lines"),
              label.padding = unit(0.3, "lines")) +
     annotate("rect",
              xmin = zoom_b_x[1], xmax = zoom_b_x[2],
              ymin = zoom_b_y[1], ymax = zoom_b_y[2],
-             fill = NA, color = "grey50", linetype = "dashed",
-             linewidth = 0.5) +
+             fill = NA, color = "black", linetype = "dashed",
+             linewidth = 0.35) +
     annotate("label",
              x = zoom_b_x[1], y = zoom_b_y[2],
              label = "B", hjust = 0, vjust = 1,
-             size = 4, fontface = "bold", color = "black",
-             fill = "white", linewidth = 0.5,
+             size = 3, fontface = "bold", color = "black",
+             fill = "white", linewidth = 0.6,
              label.r = unit(0, "lines"),
              label.padding = unit(0.3, "lines")) +
     geom_segment(data = d_arrows,
                  aes(x = x_start, y = y_start, xend = x_end, yend = y_end), # nolint
-                 color = "grey40", linewidth = 0.4) +
+                 color = "grey40", linewidth = 0.25) +
     geom_segment(data = d_arrows,
                  aes(x = x_start, y = y_start, xend = x_mid, yend = y_mid), # nolint
-                 arrow = arrow(length = unit(0.2, "cm"), type = "open"),
-                 color = "grey40", linewidth = 0.4) +
+                 arrow = arrow(length = unit(0.08, "cm"), type = "open"),
+                 color = "grey40", linewidth = 0.25) +
     geom_point(data = d_start_long,
                aes(x = nb_edge_exp, y = nb_edge_imp, # nolint
                    size = size_val, color = trade_type, alpha = year_group), # nolint
@@ -289,11 +339,14 @@ trajectory_plot <- function(
                         color = lbl_color, fontface = lbl_face),            # nolint
                     nudge_x = d_labels_main$nudge_x,
                     nudge_y = d_labels_main$nudge_y,
-                    size = 3, bg.color = "white", bg.r = 0.2,
+                    size = 2.2, bg.color = "white", bg.r = 0.2,
                     segment.colour = "grey55", segment.size = 0.25,
                     min.segment.length = 0,
-                    box.padding = 0.6, point.padding = 0.8,
-                    force = 4, seed = 42,
+                    # Low repulsion + strong pull toward the nudged target, so
+                    # manual nudge_x/nudge_y placement dominates (labels barely
+                    # push each other apart or away from bubbles).
+                    box.padding = 0.1, point.padding = 0.15,
+                    force = 0.2, force_pull = 3, seed = 42,
                     direction = "both", max.overlaps = Inf,
                     show.legend = FALSE) +
     scale_color_manual(
@@ -311,7 +364,7 @@ trajectory_plot <- function(
                           guide = "none") +
     scale_alpha_manual(values = alpha_vals, labels = alpha_labs,
                        name = NULL, guide = "none") +
-    scale_size_continuous(range  = c(1, 20),
+    scale_size_continuous(range  = c(0.5, 10),
                           breaks = size_breaks,
                           limits = c(0, size_max),
                           labels = scales::label_comma(),
@@ -325,10 +378,12 @@ trajectory_plot <- function(
                  limits = c(xy_min, xy_max),
                  breaks = c(0, 5, 10, 20, 40, 60, 80, 100),
                  expand = c(0, 0)) +
-    theme_ipsum(axis_title_size = 11) +
+    theme_ipsum(base_size = 8, axis_title_size = 8) +
     coord_cartesian(clip = "off") +
     theme(legend.position = "none", aspect.ratio = 1,
-          plot.margin = margin(5, 14, 5, 5, "pt"))
+          panel.grid.major = element_line(color = "grey90", linewidth = 0.3),
+          panel.grid.minor = element_blank(),
+          plot.margin = margin(3, 5, 3, 0, "pt"))
 
   # ── Zoom A: Asia high-importers ───────────────────────────────────────────
   p_zoom_a <- ggplot() +
@@ -337,17 +392,17 @@ trajectory_plot <- function(
     annotate("label",
              x = zoom_a_x[1], y = zoom_a_y[2],
              label = "A", hjust = 0, vjust = 1,
-             size = 4, fontface = "bold", color = "black",
+             size = 3, fontface = "bold", color = "black",
              fill = "white", linewidth = 0.5,
              label.r = unit(0, "lines"),
              label.padding = unit(0.3, "lines")) +
     geom_segment(data = d_arrows_a,
                  aes(x = x_start, y = y_start, xend = x_end, yend = y_end), # nolint
-                 color = "grey40", linewidth = 0.4) +
+                 color = "grey40", linewidth = 0.25) +
     geom_segment(data = d_arrows_a,
                  aes(x = x_start, y = y_start, xend = x_mid, yend = y_mid), # nolint
-                 arrow = arrow(length = unit(0.15, "cm"), type = "open"),
-                 color = "grey40", linewidth = 0.4) +
+                 arrow = arrow(length = unit(0.07, "cm"), type = "open"),
+                 color = "grey40", linewidth = 0.25) +
     geom_point(data = d_start_long_a,
                aes(x = nb_edge_exp, y = nb_edge_imp, # nolint
                    size = size_val, color = trade_type, alpha = year_group), # nolint
@@ -362,11 +417,14 @@ trajectory_plot <- function(
                         color = lbl_color, fontface = lbl_face),            # nolint
                     nudge_x = d_labels_a$nudge_x,
                     nudge_y = d_labels_a$nudge_y,
-                    size = 3, bg.color = "white", bg.r = 0.2,
+                    size = 2.2, bg.color = "white", bg.r = 0.2,
                     segment.colour = "grey55", segment.size = 0.25,
                     min.segment.length = 0,
-                    box.padding = 0.6, point.padding = 0.8,
-                    force = 4, seed = 42,
+                    # Low repulsion + strong pull toward the nudged target, so
+                    # manual nudge_x/nudge_y placement dominates (labels barely
+                    # push each other apart or away from bubbles).
+                    box.padding = 0.1, point.padding = 0.15,
+                    force = 0.2, force_pull = 3, seed = 42,
                     direction = "both", max.overlaps = Inf,
                     show.legend = FALSE) +
     scale_color_manual(
@@ -391,7 +449,7 @@ trajectory_plot <- function(
       name  = "Year",
       guide = guide_legend(nrow = 1, order = -1)
     ) +
-    scale_size_continuous(range  = c(1, 20),
+    scale_size_continuous(range  = c(0.5, 10),
                           breaks = size_breaks,
                           limits = c(0, size_max),
                           labels = scales::label_comma(),
@@ -402,10 +460,10 @@ trajectory_plot <- function(
     scale_y_sqrt(name   = "Number of import partners",
                  breaks = c(0, 5, 10, 20, 40, 60, 80, 100),
                  expand = c(0, 0)) +
-    theme_ipsum(axis_title_size = 11) +
+    theme_ipsum(base_size = 8, axis_title_size = 8) +
     coord_cartesian(xlim = zoom_a_x, ylim = zoom_a_y) +
     guides(
-      colour = guide_legend(override.aes = list(size = 8, alpha = 0.7), order = -2), # nolint
+      colour = guide_legend(override.aes = list(size = 5, alpha = 0.7), order = -2), # nolint
       size   = guide_circles(
         text_position = "right",
         override.aes  = aes(colour = "grey50", alpha = 0.5)
@@ -414,11 +472,14 @@ trajectory_plot <- function(
     theme(panel.border  = element_rect(fill = NA, linewidth = 0.5,
                                        color = "grey50"),
           aspect.ratio  = 0.60,
-          plot.margin      = margin(5, 10, 5, 14, "pt"),
-          legend.text      = element_text(size = 10),
-          legend.title     = element_text(size = 11),
-          legend.key.size  = unit(0.55, "cm"),
-          legend.spacing.y = unit(0.25, "cm"))
+          panel.grid.major = element_line(color = "grey90", linewidth = 0.3),
+          panel.grid.minor = element_blank(),
+          plot.margin      = margin(3, 0, 3, 5, "pt"),
+          legend.margin    = margin(5, 0, 5, 0, "pt"),
+          legend.text      = element_text(size = 7),
+          legend.title     = element_text(size = 8),
+          legend.key.size  = unit(0.38, "cm"),
+          legend.spacing.y = unit(0.15, "cm"))
 
   # ── Zoom B: low-import exporters ─────────────────────────────────────────
   p_zoom_b <- ggplot() +
@@ -427,17 +488,17 @@ trajectory_plot <- function(
     annotate("label",
              x = zoom_b_x[1], y = zoom_b_y[2],
              label = "B", hjust = 0, vjust = 1,
-             size = 4, fontface = "bold", color = "black",
+             size = 3, fontface = "bold", color = "black",
              fill = "white", linewidth = 0.5,
              label.r = unit(0, "lines"),
              label.padding = unit(0.3, "lines")) +
     geom_segment(data = d_arrows_b,
                  aes(x = x_start, y = y_start, xend = x_end, yend = y_end), # nolint
-                 color = "grey40", linewidth = 0.4) +
+                 color = "grey40", linewidth = 0.25) +
     geom_segment(data = d_arrows_b,
                  aes(x = x_start, y = y_start, xend = x_mid, yend = y_mid), # nolint
-                 arrow = arrow(length = unit(0.15, "cm"), type = "open"),
-                 color = "grey40", linewidth = 0.4) +
+                 arrow = arrow(length = unit(0.07, "cm"), type = "open"),
+                 color = "grey40", linewidth = 0.25) +
     geom_point(data = d_start_long_b,
                aes(x = nb_edge_exp, y = nb_edge_imp, # nolint
                    size = size_val, color = trade_type, alpha = year_group), # nolint
@@ -451,11 +512,14 @@ trajectory_plot <- function(
                         color = lbl_color, fontface = lbl_face),            # nolint
                     nudge_x = d_labels_b$nudge_x,
                     nudge_y = d_labels_b$nudge_y,
-                    size = 3, bg.color = "white", bg.r = 0.2,
+                    size = 2.2, bg.color = "white", bg.r = 0.2,
                     segment.colour = "grey55", segment.size = 0.25,
                     min.segment.length = 0,
-                    box.padding = 0.6, point.padding = 0.8,
-                    force = 4, seed = 42,
+                    # Low repulsion + strong pull toward the nudged target, so
+                    # manual nudge_x/nudge_y placement dominates (labels barely
+                    # push each other apart or away from bubbles).
+                    box.padding = 0.1, point.padding = 0.15,
+                    force = 0.2, force_pull = 3, seed = 42,
                     direction = "both", max.overlaps = Inf,
                     show.legend = FALSE) +
     scale_color_manual(
@@ -473,7 +537,7 @@ trajectory_plot <- function(
                           guide = "none") +
     scale_alpha_manual(values = alpha_vals, labels = alpha_labs,
                        name = NULL, guide = "none") +
-    scale_size_continuous(range  = c(1, 20),
+    scale_size_continuous(range  = c(0.5, 10),
                           limits = c(0, size_max),
                           guide  = "none") +
     scale_x_sqrt(name   = "Number of export partners",
@@ -482,13 +546,15 @@ trajectory_plot <- function(
     scale_y_sqrt(name   = "Number of import partners",
                  breaks = c(0, 5, 10, 20, 40, 60, 80, 100),
                  expand = c(0, 0)) +
-    theme_ipsum(axis_title_size = 11) +
+    theme_ipsum(base_size = 8, axis_title_size = 8) +
     coord_cartesian(xlim = zoom_b_x, ylim = zoom_b_y) +
     theme(legend.position = "none",
           panel.border    = element_rect(fill = NA, linewidth = 0.5,
                                          color = "grey50"),
           aspect.ratio    = 0.60,
-          plot.margin     = margin(5, 10, 5, 14, "pt"))
+          panel.grid.major = element_line(color = "grey90", linewidth = 0.3),
+          panel.grid.minor = element_blank(),
+          plot.margin     = margin(3, 0, 3, 5, "pt"))
 
   (p_main | (p_zoom_a / p_zoom_b)) +
     plot_layout(guides = "collect", widths = c(1.3, 1))
@@ -522,10 +588,10 @@ for (input_file in snakemake@input) {
         path       = file.path(output_root, agg_lvl, "plot", fao_division),
         create.dir = TRUE,
         scale      = 1,
-        width      = 2480 * 2,
-        height     = 2480,
-        units      = "px",
-        dpi        = 300,
+        width      = 190,
+        height     = 100,
+        units      = "mm",
+        dpi        = 600,
         limitsize  = TRUE,
         bg         = "white"
       )

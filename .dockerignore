@@ -1,0 +1,12 @@
+# Ignore everything by default
+*
+
+# Allow back only what the image actually needs
+!workflow/
+!config/
+!resources/
+
+# ...and never these, even inside the allowed folders
+workflow/_sandbox/
+**/__pycache__/
+**/.DS_Store

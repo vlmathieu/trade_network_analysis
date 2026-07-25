@@ -5,6 +5,9 @@ suppressPackageStartupMessages(library("tidyr"))
 library("patchwork")
 library("tibble")
 library("purrr")
+
+source(file.path(snakemake@scriptdir, "utils.R"))
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
@@ -27,12 +30,8 @@ y_axis_labels <- c(
   "net_wgt"       = "Share of global trade volume (%)"
 )
 
-# Base colour per trader type — consistent with plot_network_composition.R
-pal_trader <- c(
-  "main_exp" = "#C32E5A",
-  "balanced" = "#A49393",
-  "main_imp" = "#3D85F7"
-)
+# Base colour per trader type — shared base palette from utils.R
+pal_trader <- PAL_TRADER
 
 # Per-country colour ramps (base → dark) shared by ribbon, curve, and label.
 # The light end of the old ramp produced pale, hard-to-read series and labels,
@@ -337,7 +336,7 @@ build_panel <- function(plot_data,
       data        = label_df, # nolint
       mapping     = aes(x    = x_max + 0.15, xend = x_max + 0.35, # nolint
                         y    = contrib_pred, yend = y_nudged),      # nolint
-      color       = label_df$label_col,
+      color       = label_df$label_col, # nolint
       linewidth   = 0.35, # nolint
       inherit.aes = FALSE) +
     # Country name labels at nudged positions (same colour as the curve)
@@ -345,7 +344,7 @@ build_panel <- function(plot_data,
       data        = label_df, # nolint
       mapping     = aes(x     = x_max + 0.4, y = y_nudged,         # nolint
                         label = disp_label),                        # nolint
-      color       = label_df$label_col,
+      color       = label_df$label_col, # nolint
       hjust       = 0, # nolint
       lineheight  = 0.9,
       fontface    = "bold",

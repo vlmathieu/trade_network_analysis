@@ -9,10 +9,10 @@ library("legendry")
 suppressPackageStartupMessages(library("circlize")) # nolint
 suppressPackageStartupMessages(library("igraph"))
 
-pal              <- c("#3D85F7", "#C32E5A")
-trader_type_pal  <- c("main_exp" = "#C32E5A",
-                      "balanced" = "#A49393",
-                      "main_imp" = "#3D85F7")
+source(file.path(snakemake@scriptdir, "utils.R"))
+
+pal              <- unname(PAL_DIRECTION)   # (imp, exp)
+trader_type_pal  <- PAL_TRADER
 row_col          <- "#E8D5B0"
 tol_muted        <- c("#332288", "#88CCEE", "#44AA99", "#117733", "#999933", # nolint
                       "#DDCC77", "#CC6677", "#882255", "#AA4499", "#EE7733")
@@ -145,7 +145,7 @@ chord_plot <- function(flows, profiles, prod, year, n_top, output_path, ext,
     panel_arc_cols <- arc_cols[rownames(mat)]  # reorder colours to match panel ordering # nolint
     circos.clear() # nolint
     par(mar = mar)
-    circos.par(canvas.xlim = c(-canvas_lim, canvas_lim),
+    circos.par(canvas.xlim = c(-canvas_lim, canvas_lim), # nolint
                canvas.ylim = c(-canvas_lim, canvas_lim)) # nolint
     chordDiagram(mat, grid.col = panel_arc_cols, transparency = 0.4, # nolint
                  annotationTrack = "grid",
@@ -158,7 +158,8 @@ chord_plot <- function(flows, profiles, prod, year, n_top, output_path, ext,
 
   if (panels == "fob") {
     # Main-text figure: 1×2, exporter reports only (FOB), 190 mm × 100 mm at 600 DPI
-    px_w <- round(190 / 25.4 * 600); px_h <- round(100 / 25.4 * 600)
+    px_w <- round(190 / 25.4 * 600)
+    px_h <- round(100 / 25.4 * 600)
     if (ext == "png") {
       png(output_path, width = px_w, height = px_h, res = 600, bg = "white")
     } else {
@@ -225,7 +226,11 @@ repel_layout <- function(coords, node_sizes, size_max,
         d  <- sqrt(dx^2 + dy^2)
         needed <- (radii[i] + radii[j]) * margin
         if (d < needed) {
-          if (d < 1e-9) { dx <- 1e-4; dy <- 1e-4; d <- sqrt(2) * 1e-4 }
+          if (d < 1e-9) {
+            dx <- 1e-4
+            dy <- 1e-4
+            d <- sqrt(2) * 1e-4
+          }
           push <- (needed - d) / 2
           coords[i, 1] <- coords[i, 1] - push * dx / d
           coords[i, 2] <- coords[i, 2] - push * dy / d
@@ -282,7 +287,7 @@ build_network_panel <- function(flows, flows_raw, prod, year, contributors,
     filter(!is.na(x0), !is.na(x1)) %>% # nolint
     mutate(xm = (x0 + x1) / 2, ym = (y0 + y1) / 2) # nolint
 
-  # Long format: two rows per country; 
+  # Long format: two rows per country;
   # split so smallest renders on top at alpha = 1
   d_long <- bind_rows(
     d_nodes %>% filter(country %in% above_thr) %>% # nolint
@@ -545,7 +550,7 @@ for (i in seq_len(n_levels)) {
 
     # ── Trade network ──────────────────────────────────────────────────────
     net_plot <- network_plot(flows, prod, year_start, year_end,
-                             node_threshold = 0.01)
+                             node_threshold = snakemake@params$threshold)
     if (!is.null(net_plot)) {
       for (ext in snakemake@params$ext) {
         ggsave(

@@ -6,6 +6,8 @@ library("legendry")
 library("ggrepel")
 library("patchwork")
 
+source(file.path(snakemake@scriptdir, "utils.R"))
+
 # Long-format helper: two rows per country sorted so larger bubble renders first
 to_long <- function(d) {
   bind_rows(
@@ -560,7 +562,7 @@ trajectory_plot <- function(
     plot_layout(guides = "collect", widths = c(1.3, 1))
 }
 
-pal        <- c("#3D85F7", "#C32E5A")
+pal        <- unname(PAL_DIRECTION)   # (imp, exp)
 size       <- snakemake@params$size
 threshold  <- snakemake@params$threshold
 year_start <- snakemake@params$year_start

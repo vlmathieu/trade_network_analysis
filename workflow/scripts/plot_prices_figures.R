@@ -7,15 +7,12 @@ library("scales")
 library("tibble")
 library("ggrepel")
 
-# ── Shared palette and labels ────────────────────────────────────────────────
-# Duplicated from plot_network_composition.R — both scripts share the
-# trader-type colour scheme and the benchmark years
+source(file.path(snakemake@scriptdir, "utils.R"))
 
-pal_vol <- c(
-  "main_imp" = "#3D85F7",
-  "balanced" = "#A49393",
-  "main_exp" = "#C32E5A"
-)
+# ── Shared palette and labels ────────────────────────────────────────────────
+# Trader-type colour scheme from utils.R (shared with the other plot scripts)
+
+pal_vol <- PAL_TRADER[c("main_imp", "balanced", "main_exp")]
 
 vol_labels <- c(
   "main_imp" = "Main importers",
@@ -175,7 +172,7 @@ for (input_file in composition_inputs) {
         # division 07: disruption 1996–1999 (+ transient 2007 spike);
         # divisions 01/05: disruption 2000–2006
         (if (fao_division == "07") annotate("rect",
-          xmin = 1996, xmax = 1999, ymin = 0, ymax = y_max,
+          xmin = 1996, xmax = 1999, ymin = 0, ymax = y_max, # nolint
           fill = "grey92"
         ) else annotate("rect",
           xmin = 2000, xmax = 2006, ymin = 0, ymax = y_max,
@@ -903,7 +900,7 @@ main_exp_long <- do.call(rbind, Map(function(p, l) {
 }, comp01$period, comp01$list_main_exp))
 # Same alias as flows01_exp so the group join still matches Russia's flows
 main_exp_long$exporter_desc[
-  main_exp_long$exporter_desc == "Russian Federation"] <- "Russia"
+  main_exp_long$exporter_desc == "Russian Federation"] <- "Russia" # nolint
 
 ridge_flows_exp <- bind_rows(
   flows01_exp %>% # nolint

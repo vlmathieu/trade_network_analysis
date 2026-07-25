@@ -6,13 +6,15 @@ library("patchwork")
 library("scales")
 library("tibble")
 
+source(file.path(snakemake@scriptdir, "utils.R"))
+
 # ── Shared palette and labels ────────────────────────────────────────────────
 
-# Palette keyed on the COUNT columns (used by composition loop)
-pal <- c(
-  "nb_main_imp" = "#3D85F7",
-  "nb_balanced" = "#A49393",
-  "nb_main_exp" = "#C32E5A"
+# Palette keyed on the COUNT columns (used by composition loop) — same base
+# palette as utils.R, re-keyed onto the nb_* count-column names
+pal <- setNames(
+  PAL_TRADER[c("main_imp", "balanced", "main_exp")],
+  c("nb_main_imp", "nb_balanced", "nb_main_exp")
 )
 
 type_labels <- c(
@@ -26,12 +28,7 @@ type_labels <- c(
 stack_order <- c("nb_main_imp", "nb_balanced", "nb_main_exp")
 
 # Palette keyed on the VOLUME columns (used by mirrored desc stat loop)
-# Same colours, different key names
-pal_vol <- c(
-  "main_imp" = "#3D85F7",
-  "balanced" = "#A49393",
-  "main_exp" = "#C32E5A"
-)
+pal_vol <- PAL_TRADER[c("main_imp", "balanced", "main_exp")]
 
 vol_labels <- c(
   "main_imp" = "Main importers",
@@ -467,7 +464,7 @@ for (input_file in composition_inputs) {
         # division 07: disruption 1996–1999 (+ transient 2007 line);
         # divisions 01/05: disruption 2000–2006
         (if (shade && fao_division == "07") annotate("rect",
-          xmin = x_left, xmax = x_right,
+          xmin = x_left, xmax = x_right, # nolint
           ymin = yr_pos(1996) - 0.5, ymax = yr_pos(1999) + 0.5,
           fill = "grey85"
         ) else if (shade) annotate("rect",

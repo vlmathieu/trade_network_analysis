@@ -4,7 +4,9 @@ suppressPackageStartupMessages(library("dplyr"))
 library("reshape2")
 library("patchwork")
 
-for (input_file in snakemake@input) {
+source(file.path(snakemake@scriptdir, "utils.R"))
+
+for (input_file in snakemake@input$connectivity) {
 
   # Derive aggregation level from input path
   agg_lvl <- basename(dirname(dirname(input_file)))
@@ -15,7 +17,7 @@ for (input_file in snakemake@input) {
                    sep = ";")
 
   # Define color palette
-  pal <- c("#3D85F7", "#C32E5A")
+  pal <- unname(PAL_DIRECTION)
 
   for (fao_division in snakemake@params$fao_divisions) {
 
@@ -161,7 +163,7 @@ for (input_file in snakemake@input) {
         labs(x = "Year",
              y = axis_name) +
         coord_cartesian(clip = "off") +
-        theme_ipsum(base_size = 9, axis_title_size = 9) +
+        theme_trade(base_size = 9, axis_title_size = 9) +
         theme(legend.position  = "none",
               plot.margin      = margin(3, 10, 3, 2, unit = "mm"),
               panel.grid.major = element_blank(),

@@ -4,8 +4,10 @@ suppressPackageStartupMessages(library("dplyr"))
 library("reshape2")
 library("patchwork")
 
-# Define color palette
-pal <- c("#3D85F7", "#C32E5A")
+source(file.path(snakemake@scriptdir, "utils.R"))
+
+# Define color palette (imp, exp) — shared base palette from utils.R
+pal <- unname(PAL_DIRECTION)
 
 # Define order for corresponding colors
 order <- c("hhi_imp", "hhi_exp")

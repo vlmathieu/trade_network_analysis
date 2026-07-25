@@ -1,30 +1,34 @@
-from snakemake.script import snakemake
+"""Compute traded value and market-concentration indices (HHI, Shannon)."""
+
 import logging
-import polars as pl
 import pickle
+
+import networkx as nx  # pyright: ignore[reportMissingModuleSource]
 import numpy as np
-import networkx as nx # pyright: ignore[reportMissingModuleSource]
+import polars as pl
+from snakemake.script import snakemake
+
 
 def unit_market_concentration(
-        unit_edge_list_dict: dict, 
-        weight: str = 'primary_value') -> pl.dataframe.frame.DataFrame:
-    '''
-    Function that returns a polar data frame of total traded value and market 
-    concentration indices for exports and imports based on an edge list 
-    describing a trade network for a given year and traded product. The weight 
-    to be taken into account when calculating the total traded value and market 
-    concentration indices is given by the weight parameter. The network refers 
+    unit_edge_list_dict: dict, weight: str = "primary_value"
+) -> pl.dataframe.frame.DataFrame:
+    """
+    Function that returns a polar data frame of total traded value and market
+    concentration indices for exports and imports based on an edge list
+    describing a trade network for a given year and traded product. The weight
+    to be taken into account when calculating the total traded value and market
+    concentration indices is given by the weight parameter. The network refers
     to the trade of one year and one product and is directed and weighted.
 
     Parameters
     ----------
     unit_edge_list_dict : dictionnary
         A dictionnary that associates (i) a tuple (cmd, period) of the commodity
-        code and the year of trade and (ii) the associated edge list describing 
-        the network and on which network total traded value and market 
+        code and the year of trade and (ii) the associated edge list describing
+        the network and on which network total traded value and market
         concentration indices are calculated.
     weight : string
-        The weight on which network total traded value and market concentration 
+        The weight on which network total traded value and market concentration
         indices are calculated. The default value is "primary_value".
 
     Returns
@@ -32,8 +36,8 @@ def unit_market_concentration(
     unit_market_concentration : polars data frame
         A polars data frame of the total traded value and market concentration
         indices for exports and imports for a given year and traded product.
-        
-    '''
+
+    """
 
     # Extract keys and edge list from dict
     [[keys, edge_list]] = unit_edge_list_dict.items()
@@ -43,23 +47,25 @@ def unit_market_concentration(
 
     # Build directed network based on edge_list
     net = nx.from_edgelist(edge_list, create_using=nx.DiGraph)
-    
+
     # Replace None weights by 0
-    for _,_,d in net.edges(data=True):
+    for _, _, d in net.edges(data=True):
         for key in d:
             if d[key] is None:
                 d[key] = 0
-    
+
     # Build weighted degree lists for exporters=out_degree | importers=in_degree
     degree_weighted_exp = [
-        net.out_degree(x, weight = f'{weight}_exp') for x in net.nodes() 
+        net.out_degree(x, weight=f"{weight}_exp")
+        for x in net.nodes()
         # Consider only non-None edges = > 0 weights
-        if net.out_degree(x, weight = f'{weight}_exp') > 0
+        if net.out_degree(x, weight=f"{weight}_exp") > 0
     ]
     degree_weighted_imp = [
-        net.in_degree(x, weight = f'{weight}_imp') for x in net.nodes() 
+        net.in_degree(x, weight=f"{weight}_imp")
+        for x in net.nodes()
         # Consider only non-None edges = > 0 weights
-        if net.in_degree(x, weight = f'{weight}_imp') > 0
+        if net.in_degree(x, weight=f"{weight}_imp") > 0
     ]
 
     # Compute total traded value for exports and imports
@@ -68,51 +74,58 @@ def unit_market_concentration(
 
     # Build dictionnary of tot traded value and market concentration indices
     unit_market_concentration = pl.from_dict(
-            {
-                "period": period,
-                "cmd": cmd,
-                "weight": weight,
-                # Assign total circulating value for exports and imports
-                "tot_exp": tot_exp,
-                "tot_imp": tot_imp,
-                # Compute Herfindahl-Hirschmann index for exports and imports
-                "hhi_exp": sum([(x/tot_exp)**2 
-                                for x in degree_weighted_exp]),
-                "hhi_imp": sum([(x/tot_imp)**2 
-                                for x in degree_weighted_imp]),
-                # Compute Shannon index for exports and imports
-                'shannon_exp': -sum(
-                    [((x / tot_exp) * np.log(x / tot_exp)) 
-                     for x in degree_weighted_exp if x > 0]),
-                'shannon_imp': -sum(
-                    [((x / tot_imp) * np.log(x / tot_imp)) 
-                     for x in degree_weighted_imp if x > 0])
-            }
+        {
+            "period": period,
+            "cmd": cmd,
+            "weight": weight,
+            # Assign total circulating value for exports and imports
+            "tot_exp": tot_exp,
+            "tot_imp": tot_imp,
+            # Compute Herfindahl-Hirschmann index for exports and imports
+            "hhi_exp": sum([(x / tot_exp) ** 2 for x in degree_weighted_exp]),
+            "hhi_imp": sum([(x / tot_imp) ** 2 for x in degree_weighted_imp]),
+            # Compute Shannon index for exports and imports
+            "shannon_exp": -sum(
+                [
+                    ((x / tot_exp) * np.log(x / tot_exp))
+                    for x in degree_weighted_exp
+                    if x > 0
+                ]
+            ),
+            "shannon_imp": -sum(
+                [
+                    ((x / tot_imp) * np.log(x / tot_imp))
+                    for x in degree_weighted_imp
+                    if x > 0
+                ]
+            ),
+        }
     )
 
     return unit_market_concentration
 
+
 def market_concentration(
-        edge_list_dict: dict, 
-        weight: list = 'primary_value') -> pl.dataframe.frame.DataFrame:
-    '''
-    Function that returns a polar data frame of total traded value and market 
-    concentration indices for exports and imports based on a dictionary of edge 
-    lists describing a trade network for each year and product of trade 
-    considered. The weight to be taken into account when calculating the total 
-    traded value and market concentration indices is given by the weight 
+    edge_list_dict: dict, weight: str = "primary_value"
+) -> pl.dataframe.frame.DataFrame:
+    """
+    Function that returns a polar data frame of total traded value and market
+    concentration indices for exports and imports based on a dictionary of edge
+    lists describing a trade network for each year and product of trade
+    considered. The weight to be taken into account when calculating the total
+    traded value and market concentration indices is given by the weight
     parameter. The network is directed and weighted.
 
     Parameters
     ----------
     edge_list_dict : dictionnary
-        A dictionnary that associates, for all years and products of trade 
-        covered, (i) a tuple (product, year) of the product code and the year of 
-        trade and (ii) the associated edge list describing the network and on 
-        which network total traded value and market concentration indices are 
+        A dictionnary that associates, for all years and products of trade
+        covered, (i) a tuple (product, year) of the product code and the year of
+        trade and (ii) the associated edge list describing the network and on
+        which network total traded value and market concentration indices are
         calculated.
     weight : string
-        The weight on which network total traded value and market concentration 
+        The weight on which network total traded value and market concentration
         indices are calculated. The default value is "primary_value".
 
     Returns
@@ -120,8 +133,8 @@ def market_concentration(
     market_concentration : polars data frame
         A polars data frame of the total traded value and market concentration
         indices for exports and imports for each year and product considered.
-        
-    '''
+
+    """
 
     # Divide global dictionary into list of unit edge list dictionnaries
     edge_lists = [{k: v} for (k, v) in edge_list_dict.items()]
@@ -130,48 +143,41 @@ def market_concentration(
     market_concentration = pl.concat(
         [
             unit_market_concentration(
-                unit_edge_list_dict = unit_edge_list_dict, 
-                weight = weight
+                unit_edge_list_dict=unit_edge_list_dict, weight=weight
             )
             for unit_edge_list_dict in edge_lists
         ],
-        how = 'vertical_relaxed'
+        how="vertical_relaxed",
     )
 
     # Sort by cmd and year
-    market_concentration = market_concentration.sort(['cmd', 'period'])
-    
+    market_concentration = market_concentration.sort(["cmd", "period"])
+
     return market_concentration
 
+
 # Log file edition
-logging.basicConfig(filename=snakemake.log[0],
-                    level=logging.INFO,
-                    format='%(asctime)s %(message)s',
-                    datefmt='%Y-%m-%d %H:%M:%S')
+logging.basicConfig(
+    filename=snakemake.log[0],
+    level=logging.INFO,
+    format="%(asctime)s %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 
 # Load dictionary of edge lists
-edge_list_dicts = []
-for p in snakemake.input:
-    with open(p, 'rb') as f:
-        edge_list_dicts.append(pickle.load(f))
+with open(snakemake.input[0], "rb") as f:
+    edge_list_dict = pickle.load(f)
 
 # Compute market concentration stats based on dictionnary of edge lists
-market_concentration = [
-    pl.concat(
-        [
-            market_concentration(
-                edge_list_dict= edge_list_dict,
-                weight= wgt) 
-            for wgt in snakemake.params['weight']
-        ], 
-        how = 'vertical_relaxed'
-    ) 
-    for edge_list_dict in edge_list_dicts
-]
+result = pl.concat(
+    [
+        market_concentration(edge_list_dict, weight=wgt)
+        for wgt in snakemake.params["weight"]
+    ],
+    how="vertical_relaxed",
+)
 
-logging.info(f"\nMarket concentration country level:\n {market_concentration[0]}\n")
-logging.info(f"\nMarket concentration aggregated eu:\n {market_concentration[1]}\n")
+logging.info(f"\nMarket concentration:\n {result}\n")
 
 # Save market concentration stats
-for data, path in zip(market_concentration, snakemake.output):
-    data.write_csv(path, separator=';')
+result.write_csv(snakemake.output[0], separator=";")

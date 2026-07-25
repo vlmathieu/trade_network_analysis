@@ -1,8 +1,11 @@
-from snakemake.script import snakemake
+"""Compute each country's contribution to traded value and edge count."""
+
 import logging
-import polars as pl
 import pickle
+
 import networkx as nx  # pyright: ignore[reportMissingModuleSource]
+import polars as pl
+from snakemake.script import snakemake
 
 
 def _replace_none_weights(graph: nx.DiGraph) -> None:
@@ -14,10 +17,8 @@ def _replace_none_weights(graph: nx.DiGraph) -> None:
 
 
 def network_contribution_single(
-        edge_list: list,
-        cmd,
-        period,
-        weight: str = 'primary_value') -> pl.DataFrame:
+    edge_list: list, cmd, period, weight: str = "primary_value"
+) -> pl.DataFrame:
     """
     Compute every country's contribution to total traded value and edge count
     for one (cmd, period) network.
@@ -57,23 +58,34 @@ def network_contribution_single(
     net = nx.from_edgelist(edge_list, create_using=nx.DiGraph)
     _replace_none_weights(net)
 
-    w_exp = f'{weight}_exp'
-    w_imp = f'{weight}_imp'
+    w_exp = f"{weight}_exp"
+    w_imp = f"{weight}_imp"
 
     # Compute network-level totals once
     nb_edges = net.number_of_edges()
-    tot_exp  = float(sum(net.out_degree(x, weight=w_exp) for x in net.nodes()))
-    tot_imp  = float(sum(net.in_degree(x,  weight=w_imp) for x in net.nodes()))
+    tot_exp = float(sum(net.out_degree(x, weight=w_exp) for x in net.nodes()))
+    tot_imp = float(sum(net.in_degree(x, weight=w_imp) for x in net.nodes()))
 
     # Compute per-country contributions analytically
     countries = sorted(net.nodes())
-    rows = {k: [] for k in [
-        'period', 'cmd', 'weight', 'country',
-        'nb_edges', 'nb_edges_country',
-        'tot_exp', 'tot_imp',
-        'tot_exp_country', 'tot_imp_country',
-        'contrib_nb_edges', 'contrib_tot_exp', 'contrib_tot_imp',
-    ]}
+    rows = {
+        k: []
+        for k in [
+            "period",
+            "cmd",
+            "weight",
+            "country",
+            "nb_edges",
+            "nb_edges_country",
+            "tot_exp",
+            "tot_imp",
+            "tot_exp_country",
+            "tot_imp_country",
+            "contrib_nb_edges",
+            "contrib_tot_exp",
+            "contrib_tot_imp",
+        ]
+    }
 
     for country in countries:
         # Contribution to edge count: all edges incident to this country
@@ -83,41 +95,38 @@ def network_contribution_single(
         #   own outgoing exports + in-neighbours lose their outgoing export to country
         tot_exp_country = float(
             net.out_degree(country, weight=w_exp)
-            + sum(d.get(w_exp, 0) or 0
-                  for _, _, d in net.in_edges(country, data=True))
+            + sum(d.get(w_exp, 0) or 0 for _, _, d in net.in_edges(country, data=True))
         )
 
         # Contribution to import value:
         #   own incoming imports + out-neighbours lose their incoming import from country
         tot_imp_country = float(
             net.in_degree(country, weight=w_imp)
-            + sum(d.get(w_imp, 0) or 0
-                  for _, _, d in net.out_edges(country, data=True))
+            + sum(d.get(w_imp, 0) or 0 for _, _, d in net.out_edges(country, data=True))
         )
 
-        rows['period'].append(period)
-        rows['cmd'].append(str(cmd))
-        rows['weight'].append(weight)
-        rows['country'].append(country)
-        rows['nb_edges'].append(nb_edges)
-        rows['nb_edges_country'].append(nb_edges_country)
-        rows['tot_exp'].append(tot_exp)
-        rows['tot_imp'].append(tot_imp)
-        rows['tot_exp_country'].append(tot_exp_country)
-        rows['tot_imp_country'].append(tot_imp_country)
-        rows['contrib_nb_edges'].append(
-            nb_edges_country / nb_edges if nb_edges else 0.0)
-        rows['contrib_tot_exp'].append(
-            tot_exp_country / tot_exp if tot_exp else 0.0)
-        rows['contrib_tot_imp'].append(
-            tot_imp_country / tot_imp if tot_imp else 0.0)
+        rows["period"].append(period)
+        rows["cmd"].append(str(cmd))
+        rows["weight"].append(weight)
+        rows["country"].append(country)
+        rows["nb_edges"].append(nb_edges)
+        rows["nb_edges_country"].append(nb_edges_country)
+        rows["tot_exp"].append(tot_exp)
+        rows["tot_imp"].append(tot_imp)
+        rows["tot_exp_country"].append(tot_exp_country)
+        rows["tot_imp_country"].append(tot_imp_country)
+        rows["contrib_nb_edges"].append(
+            nb_edges_country / nb_edges if nb_edges else 0.0
+        )
+        rows["contrib_tot_exp"].append(tot_exp_country / tot_exp if tot_exp else 0.0)
+        rows["contrib_tot_imp"].append(tot_imp_country / tot_imp if tot_imp else 0.0)
 
     return pl.from_dict(rows)
 
 
 def network_contribution(
-        edge_list_dict: dict,
-        weight: str = 'primary_value') -> pl.DataFrame:
+    edge_list_dict: dict, weight: str = "primary_value"
+) -> pl.DataFrame:
     """
     Compute every country's contribution for all (cmd, period) networks in
     edge_list_dict, for a single weight type.
@@ -138,7 +147,7 @@ def network_contribution(
         network_contribution_single(el, cmd, period, weight)
         for (cmd, period), el in edge_list_dict.items()
     ]
-    return pl.concat(frames, how='vertical_relaxed').sort(['cmd', 'period'])
+    return pl.concat(frames, how="vertical_relaxed").sort(["cmd", "period"])
 
 
 # ---------------------------------------------------------------------------
@@ -148,29 +157,24 @@ def network_contribution(
 logging.basicConfig(
     filename=snakemake.log[0],
     level=logging.INFO,
-    format='%(asctime)s %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
+    format="%(asctime)s %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 
 # Load all edge list dictionaries (one per aggregation level)
-edge_list_dicts = []
-for p in snakemake.input:
-    with open(p, 'rb') as f:
-        edge_list_dicts.append(pickle.load(f))
+with open(snakemake.input[0], "rb") as f:
+    edge_list_dict = pickle.load(f)
+
 
 # Compute contributions for each aggregation level across all weights
-results = []
-for edge_list_dict in edge_list_dicts:
-    frames = [
+result = pl.concat(
+    [
         network_contribution(edge_list_dict=edge_list_dict, weight=wgt)
-        for wgt in snakemake.params['weight']
-    ]
-    results.append(pl.concat(frames, how='vertical_relaxed'))
-
-logging.info(f"\nNetwork contribution country level:\n{results[0]}\n")
-if len(results) > 1:
-    logging.info(f"\nNetwork contribution aggregated EU:\n{results[1]}\n")
+        for wgt in snakemake.params["weight"]
+    ],
+    how="vertical_relaxed",
+)
+logging.info(f"\nNetwork contribution:\n{result}\n")
 
 # Save results
-for data, path in zip(results, snakemake.output):
-    data.write_csv(path, separator=';')
+result.write_csv(snakemake.output[0], separator=";")

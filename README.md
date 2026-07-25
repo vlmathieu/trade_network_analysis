@@ -88,6 +88,8 @@ All output files generated in the workflow are stored under `results`, unless th
 The latter subfolder also contains small resources that shall be delivered along with the workflow via git, sorted into inhouse data, public data, and- if it is the case- private data.
 The `results` subfolder separate `global` output that consists into resources that have been sorted, cleaned, and possibly arranged. The `results/network_analysis` sort workflow output in input data, intermediary data (typically intermediary object that yield final outputs), output, and plots. 
 
+Every tracked folder carries its own `README.md` describing its contents in detail — start with [`workflow/README.md`](workflow/README.md) for the pipeline, [`config/README.md`](config/README.md) for parameters, and [`resources/README.md`](resources/README.md) for the input data.
+
 ## How to run the workflow
 
 This work relies on [Snakemake workflow management system](https://snakemake.readthedocs.io/en/stable/) and requires an API key to download in bulk the UN Comtrade data.

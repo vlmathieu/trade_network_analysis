@@ -263,8 +263,11 @@ _archives/
 /.quarto/
 **/*.quarto_ipynb
 
-# Prevent writing directory
+# Prevent _writing directory
 _writing/
+
+# Prevent trade_network_analysis-amd64 and tar.gz archives files
+trade_network_analysis-amd64/
 
 # Prevent Claude skill and planning
 .claude/

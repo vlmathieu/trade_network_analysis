@@ -1,0 +1,80 @@
+name: Verify amd64 reproducibility
+
+# Native amd64 verification of the Docker image — the honest counterpart to the
+# arm64 build done on the author's Mac. `ubuntu-latest` runners are real x86_64,
+# so conda-forge polars runs natively (no Rosetta/qemu translation gap).
+#
+# Triggers:
+#   - manual (workflow_dispatch), with an optional switch to also emit the artifact
+#   - any pushed tag matching v* (release), which always emits the artifact
+#
+# What it proves: the image builds from a clean checkout and the full pipeline runs
+# green on native amd64, producing the complete figure set. There is no numeric
+# regression check because results/ is gitignored (no reference data in the repo).
+
+on:
+  workflow_dispatch:
+    inputs:
+      make_artifact:
+        description: "Also save the image as a tarball + checksum artifact"
+        type: boolean
+        default: false
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build image (native amd64)
+        run: |
+          docker build \
+            --build-arg VCS_REF="$(git rev-parse --short HEAD)" \
+            -t trade_network_analysis:ci .
+
+      - name: Run the full pipeline
+        run: |
+          mkdir -p out
+          docker run --rm -v "$PWD/out:/workspace/results" trade_network_analysis:ci
+
+      - name: Assert the full figure set was produced
+        run: |
+          PNG=$(find out -name '*.png' | wc -l)
+          SVG=$(find out -name '*.svg' | wc -l)
+          CSV=$(find out -name '*.csv' | wc -l)
+          echo "PNG=$PNG SVG=$SVG CSV=$CSV"
+          if [ "$PNG" -ne 66 ] || [ "$SVG" -ne 66 ]; then
+            echo "::error::expected 66 PNG + 66 SVG, got PNG=$PNG SVG=$SVG"
+            exit 1
+          fi
+          echo "amd64 reproduction OK: 24/24 pipeline green, $PNG PNG + $SVG SVG + $CSV CSV" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Emit archival artifact (tarball + checksum + image ID)
+        if: ${{ inputs.make_artifact || startsWith(github.ref, 'refs/tags/') }}
+        run: |
+          docker save trade_network_analysis:ci | gzip > trade_network_analysis-amd64.tar.gz
+          sha256sum trade_network_analysis-amd64.tar.gz | tee SHA256SUMS.txt
+          IMAGE_ID=$(docker images --no-trunc --format '{{.ID}}' trade_network_analysis:ci)
+          {
+            echo "### Archival artifact (native amd64, commit \`$(git rev-parse --short HEAD)\`)"
+            echo ""
+            echo "| | value |"
+            echo "|---|---|"
+            echo "| Image ID | \`$IMAGE_ID\` |"
+            echo "| Tarball sha256 | \`$(cut -d' ' -f1 SHA256SUMS.txt)\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload artifact
+        if: ${{ inputs.make_artifact || startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: trade_network_analysis-amd64
+          path: |
+            trade_network_analysis-amd64.tar.gz
+            SHA256SUMS.txt
+          retention-days: 14

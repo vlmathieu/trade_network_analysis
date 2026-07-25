@@ -124,4 +124,27 @@ weight: ['primary_value', 'net_wgt']
 # Threshold to apply for identifying main contributors to trade
 threshold_main_contributors: 0.01
 
+# Reference period used across figures
+reference_years:
+  start: 2000
+  end:   2020
 
+# Selection of dominant traders (plot_network_contribution)
+# Upper-tail probability, NOT an absolute floor: countries above the
+# (1 - top_frac) quantile of the annual cross-country distribution,
+# computed over the last `time_span` years. 0.03 = 97th percentile.
+network_contribution:
+  top_frac:  0.03
+  time_span: 5
+
+# Chord diagram (plot_trade_flows)
+chord:
+  year:  2020
+  n_top: 10
+
+# Trade-network graph (plot_trade_flows)
+trade_network:
+  node_threshold: 0.01
+
+# Output formats for all figures
+figure_ext: ['png', 'svg']

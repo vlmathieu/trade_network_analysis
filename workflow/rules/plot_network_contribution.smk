@@ -8,12 +8,12 @@ rule plot_network_contribution:
         expand('results/network_analysis/{agg_lvl}/plot/{fao_div}/network_contribution.{ext}',
                 agg_lvl = config['agg_lvl'],
                 fao_div = config['fao_divisions_agg'],
-                ext     = ['png', 'svg'])
+                ext     = config['figure_ext'])
     params:
         fao_divisions = config['fao_divisions_agg'],
-        top_frac      = 0.03,
-        time_span     = 5,
-        ext           = ['png', 'svg']
+        top_frac      = config['network_contribution']['top_frac'],
+        time_span     = config['network_contribution']['time_span'],
+        ext           = config['figure_ext']
     threads: 1
     conda:
         '../envs/r_plots.yaml'

@@ -10,7 +10,9 @@ rule filter_data:
         col_keep        = config['col_keep']
     log:
         'workflow/logs/filter_data.log'
-    threads: 2
+    benchmark: 
+        'workflow/benchmarks/filter_data.tsv'
+    threads: 6
     conda:
         '../envs/polars.yaml'
     script:

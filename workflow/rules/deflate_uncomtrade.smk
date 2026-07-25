@@ -6,6 +6,8 @@ rule deflate_uncomtrade:
         'results/global/deflate_uncomtrade_data.parquet.gzip'
     log:
         'workflow/logs/deflate_uncomtrade.log'
+    benchmark: 
+        'workflow/benchmarks/deflate_uncomtrade.tsv'
     threads: 4
     conda:
         '../envs/polars.yaml'

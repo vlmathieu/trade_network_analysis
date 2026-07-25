@@ -1,13 +1,13 @@
 rule network_connectivity:
     input:
-        expand('results/network_analysis/{agg_lvl}/intermediary/edge_lists.pkl',
-                agg_lvl  = config['agg_lvl'])
+        'results/network_analysis/{agg_lvl}/intermediary/edge_lists.pkl'
     output:
-        expand('results/network_analysis/{agg_lvl}/output/network_connectivity.csv',
-                agg_lvl  = config['agg_lvl'])
+        'results/network_analysis/{agg_lvl}/output/network_connectivity.csv'
     log:
-        'workflow/logs/network_connectivity.log'
-    threads: 2
+        'workflow/logs/network_connectivity_{agg_lvl}.log'
+    benchmark:
+        'workflow/benchmarks/network_connectivity_{agg_lvl}.tsv'
+    threads: 1
     conda:
         '../envs/network_connectivity.yaml'
     script: 

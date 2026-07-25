@@ -6,11 +6,11 @@ rule plot_market_concentration:
         expand('results/network_analysis/{agg_lvl}/plot/{fao_div}/market_concentration.{ext}',
                 agg_lvl  = config['agg_lvl'],
                 fao_div  = config['fao_divisions_agg'],
-                ext      = ['png', 'svg'])
+                ext      = config['figure_ext'])
     params:
         fao_divisions   = config['fao_divisions_agg'],
         wgt             = config['weight'],
-        ext             = ['png', 'svg']
+        ext             = config['figure_ext']
     threads: 1
     conda:
         '../envs/r_plots.yaml'

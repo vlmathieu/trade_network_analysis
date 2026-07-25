@@ -1,16 +1,16 @@
 rule market_concentration:
     input:
-        expand('results/network_analysis/{agg_lvl}/intermediary/edge_lists.pkl',
-                agg_lvl  = config['agg_lvl'])
+        'results/network_analysis/{agg_lvl}/intermediary/edge_lists.pkl'
     output:
-        expand('results/network_analysis/{agg_lvl}/output/market_concentration.csv',
-                agg_lvl  = config['agg_lvl'])
+        'results/network_analysis/{agg_lvl}/output/market_concentration.csv'
     params:
-        weight      = config['weight']
+        weight = config['weight']
     log:
-        'workflow/logs/market_concentration.log'
-    threads: 2
+        'workflow/logs/market_concentration_{agg_lvl}.log'
+    benchmark:
+        'workflow/benchmarks/market_concentration_{agg_lvl}.tsv'
+    threads: 1
     conda:
         '../envs/network_metrics.yaml'
-    script: 
+    script:
         '../scripts/market_concentration.py'

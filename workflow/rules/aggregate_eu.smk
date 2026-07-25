@@ -5,6 +5,8 @@ rule aggregate_eu:
         'results/network_analysis/agg_eu/input/input_data.parquet.gzip'
     log:
         'workflow/logs/aggregate_eu.log'
+    benchmark: 
+        'workflow/benchmarks/aggregate_eu.tsv'
     params:
         eu_iso  = config['eu']['iso']
     threads: 4

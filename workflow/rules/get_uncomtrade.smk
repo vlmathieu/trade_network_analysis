@@ -1,6 +1,6 @@
 rule get_uncomtrade:
     input:
-        'resources/inhouse/correspondence_FAO_HS.json'
+        ancient('resources/inhouse/correspondence_FAO_HS.json')
     output:
         'resources/public/uncomtrade_data.parquet.gzip'
     params:

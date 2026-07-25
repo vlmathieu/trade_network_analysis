@@ -7,7 +7,9 @@ rule join_fao_code:
         'results/global/merged_data.parquet.gzip'
     log:
         'workflow/logs/join_fao_code.log'
-    threads: 1
+    benchmark: 
+        'workflow/benchmarks/join_fao_code.tsv'
+    threads: 8
     conda:
         '../envs/polars.yaml'
     script:

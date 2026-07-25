@@ -3,12 +3,12 @@ rule plot_contributor_profiles:
         'results/network_analysis/agg_eu/output/contributor_profiles.csv'
     output:
         expand('results/network_analysis/agg_eu/plot/01/contributor_profiles.{ext}',
-               ext = ['png', 'svg'])
+               ext = config['figure_ext'])
     params:
         fao_divisions = ['01'],
-        year_start    = 2000,
-        year_end      = 2020,
-        ext           = ['png', 'svg'],
+        year_start    = config['reference_years']['start'],
+        year_end      = config['reference_years']['end'],
+        ext           = config['figure_ext'],
         size          = 'primary_value',
         threshold     = config['threshold_main_contributors']
     threads: 1

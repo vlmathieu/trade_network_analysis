@@ -3,6 +3,8 @@ rule correspondence_FAO_HS:
         'resources/inhouse/correspondence_FAO_HS.json'
     log:
         'workflow/logs/correspondence_FAO_HS.log'
+    benchmark: 
+        'workflow/benchmarks/correspondence_FAO_HS.tsv'
     threads: 1
     conda:
         '../envs/polars.yaml'

@@ -66,6 +66,11 @@ Two ways to get the image. **Pick one.**
 
 The data deposit includes a file named like `trade_network_analysis-1.0-amd64.tar.gz`.
 
+> **Where to get this file:** it is archived with the data on recherche.data.gouv.fr — download
+> it from the DOI given in the paper's data-availability statement, alongside the input data.
+> It is deliberately **not** in the git repository (an image is far too large to version there).
+> If you have cloned the repository but have no tarball, use **Option B** instead.
+
 ```zsh
 # 1. (recommended) check the download is intact — compare to the published checksum
 shasum -a 256 trade_network_analysis-1.0-amd64.tar.gz
@@ -78,7 +83,7 @@ This image is built for **Intel/AMD (`amd64`)** chips. It runs natively on Intel
 on Windows, and on Intel Macs. On an **Apple Silicon Mac** it runs only under slow emulation
 and one library may crash — use **Option B** there instead.
 
-### Option B — build the image from source (any machine)
+### Option B — build the image from source (any machine, recommended)
 
 From the root of this repository:
 

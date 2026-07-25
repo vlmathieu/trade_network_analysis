@@ -139,7 +139,6 @@ COPY workflow/rules/     /workspace/workflow/rules/
 COPY workflow/envs/      /workspace/workflow/envs/
 COPY config/             /workspace/config/
 COPY resources/          /workspace/resources/
-COPY workflow/scripts/utils.R /workspace/workflow/scripts/utils.R
 
 # --- 3. Satisfy the Snakefile's `envvars:` declaration ---
 ENV comtrade_apikey=unused-by-default
@@ -181,10 +180,9 @@ makes the image immune to future Snakemake releases.
 
 **Block 2 — copy what is needed to parse the workflow.**
 *Technically:* Snakemake reads the Snakefile, `.smk` rule files, `config.yaml` and the env
-YAMLs to build the DAG. `workflow/scripts/utils.R` is copied here too — it is a declared
-`input:` of `plot_network_connectivity` and `plot_network_composition`, so the DAG build in
-Block 4 fails without it (see below). It is copied separately from the rest of the scripts
-because it changes rarely; editing any other script still skips the env re-solve.
+YAMLs to build the DAG. The analysis scripts are **not** needed yet — a rule's `script:` file
+is not checked for existence at DAG-build time, only its declared `input:` files are. None of
+the scripts is a declared input, so nothing here needs `workflow/scripts/`.
 
 **Block 3 — `ENV comtrade_apikey`.**
 *Technically:* `workflow/Snakefile` has `envvars: 'comtrade_apikey'`. Snakemake raises a
@@ -210,9 +208,8 @@ exact binaries. No solving, no drift.
 *Technically:* each Dockerfile instruction is a cached layer; changing one invalidates every
 layer below it.
 *In plain terms:* scripts change often, environments almost never. Copying scripts *after* env
-creation means editing an R figure script rebuilds in seconds instead of re-solving all seven
-environments. (The one exception is `utils.R`, promoted to Block 2 because the DAG build needs
-it — editing `utils.R` therefore *does* re-solve, but it changes rarely.)
+creation means editing any R figure script — including the shared `utils.R` — rebuilds in
+seconds instead of re-solving all seven environments.
 
 ### Two failures the clean build caught
 
@@ -224,10 +221,14 @@ exactly the kind of latent problem a reproducibility container exists to expose:
    conflict, because today's `condaforge/miniforge3` base pins python 3.13. The original
    Dockerfile used floating `:latest` and would fail identically today. Fix: dedicated `smk`
    env (Block 1). Pinning the base by digest is what makes this reproducible going forward.
-2. **`utils.R` input timing.** `--conda-create-envs-only` still builds the full DAG, which
-   needs every declared input file present. The `utils.R` refactor made two plot rules declare
-   `workflow/scripts/utils.R` as an `input:`, but the scripts were copied *last* → the DAG
-   build hit `MissingInputException`. Fix: copy `utils.R` before Block 4 (Block 2).
+2. **A spurious `utils.R` input.** `--conda-create-envs-only` still builds the full DAG, which
+   needs every declared input file present. Two plot rules declared `workflow/scripts/utils.R`
+   as an `input:`, but the scripts were copied *last* → the DAG build hit `MissingInputException`.
+   The declaration turned out to be unnecessary: every plot script sources utils.R via
+   `source(file.path(snakemake@scriptdir, "utils.R"))`, i.e. relative to the script itself, not
+   via `snakemake@input`. Removing the two `utils` input lines fixed the DAG build and let the
+   scripts stay cleanly copied-last. (Trade-off: editing `utils.R` no longer auto-triggers a
+   figure re-run — acceptable here, and it matches the five plot rules that already omit it.)
 
 > **Why not `snakemake --containerize`?**
 > That tool generated the original Dockerfile. We hand-write instead because `--containerize`
@@ -394,7 +395,7 @@ build and will change with any code, base-image, or dependency change.
 |---|---|---|
 | Build hangs at "sending build context" | `.dockerignore` missing or wrong | Step 1 — verify it is at the project root |
 | `conda install … snakemake` solver conflict on base | base image ships a python snakemake can't solve against | Install snakemake in a dedicated env (Block 1) |
-| `MissingInputException … utils.R` at env creation | a declared script `input:` is copied after Block 4 | Copy it before Block 4 (Block 2) |
+| `MissingInputException … <script>` at env creation | a rule declares a script as `input:`, copied after Block 4 | If the script sources it via `@scriptdir`, drop the input declaration; else copy it before Block 4 |
 | `environment variable comtrade_apikey is requested` | the `envvars:` directive | the `ENV` line in Block 3 |
 | Environments rebuild on every run (slow) | something shadowed `/conda-envs` | check `--conda-prefix` is on *both* build and run commands |
 | `results/` empty after a run | no `-v` mount | Step 4 |

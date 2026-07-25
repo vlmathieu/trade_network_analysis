@@ -1,6 +1,5 @@
 rule plot_network_connectivity:
     input:
-        utils        = 'workflow/scripts/utils.R',
         connectivity = expand('results/network_analysis/{agg_lvl}/output/network_connectivity.csv',
                               agg_lvl = config['agg_lvl'])
     output:

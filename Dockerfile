@@ -12,7 +12,8 @@ ARG VCS_REF=unknown
 LABEL org.opencontainers.image.title="trade_network_analysis" \
       org.opencontainers.image.description="Reproducible Snakemake workflow for the timber trade network analysis. Regenerates all figures from pre-seeded data, no API key required." \
       org.opencontainers.image.version="${VERSION}" \
-      org.opencontainers.image.revision="${VCS_REF}"
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.licenses="MIT"
 
 # --- 1. Snakemake itself, pinned to the version that produced the results.
 #        Installed in a DEDICATED env, not base: this pinned base image ships python=3.13
@@ -31,10 +32,6 @@ COPY workflow/rules/     /workspace/workflow/rules/
 COPY workflow/envs/      /workspace/workflow/envs/
 COPY config/             /workspace/config/
 COPY resources/          /workspace/resources/
-# utils.R is a declared input: of plot_network_connectivity + plot_network_composition,
-# so the DAG build in Block 4 needs it present. Copied here (not with the rest of the
-# scripts in Block 5) because it changes rarely; editing other scripts still skips env re-solve.
-COPY workflow/scripts/utils.R /workspace/workflow/scripts/utils.R
 
 # --- 3. Satisfy the Snakefile's `envvars:` declaration ---
 ENV comtrade_apikey=unused-by-default

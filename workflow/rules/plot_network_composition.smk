@@ -1,6 +1,5 @@
 rule plot_network_composition:
     input:
-        utils       = 'workflow/scripts/utils.R',
         composition = expand('results/network_analysis/{agg_lvl}/output/network_composition.csv',
                 agg_lvl  = config['agg_lvl'])
     output:

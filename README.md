@@ -1,105 +1,95 @@
-# Rise (and Fall?) of China's Demand for Imported Timber: A Network Analysis of the International Roundwood Trade
+# The Rise (and Fall?) of China's Demand for Imported Timber
 
-## Paper in brief
+**A network analysis of the international timber trade.**
+This repository holds the code, input data, and reproducible workflow behind the paper
+by Valentin Mathieu and David W. Shanafelt (Forest Policy and Economics, under review).
 
-<!-- **Authors**: Valentin Mathieu, David Shanafelt -->
+## About
 
-**Abstract**:
+We model the global timber trade as a network of directed flows between countries and
+track how its structure evolved from **1996 to 2023**. The analysis covers three
+wood-product groups — **roundwood, sawnwood, and wood-based panels** (FAO divisions 01,
+05, 07) — built from UN Comtrade bilateral trade records.
 
-The international trade of wood products is an increasingly complex and interdependent component of the global economy, deeply linked to environmental issues, geopolitical shifts, changing competitive landscape, and macroeconomic trends.
-While the literature offers comprehensive studies on the international timber trade, few to date consider the physical structure of the trade network in their analyses, leaving its structural evolution poorly understood.
-To address this gap, we employ a network-theoretic approach to model global roudnwood trade flows between countries, providing a unique diagnosis of the trade's key structural properties and their temporal evolution from 1996 to 2023.
-The analysis reveals that the network has developed short-term resilience while becoming consistently more interconnected and structurally concentrated over the long term.
-Crucially, the structure is highly polarized around China's market dominance, which rapidly grew to concentrate over 56% of total trade value by 2021, due to its import demand.
-This centralization, coupled with the structural withdrawal of major exporter Russia, created a single point of vulnerability in the global supply chain.
-The recent decline in China's contribution post-2021—a result of geopolitical shocks, domestic self-sufficiency policies, and structural economic shifts—signals a fundamental shift in the international roundwood trade.
-These findings underscore the need for exporters to implement market diversification strategies to mitigate policy risks in the global roundwood value chain.
+The headline finding: the network grew steadily more interconnected and concentrated,
+polarising around China's import demand (over half of total trade value by 2021) while a
+major exporter, Russia, structurally withdrew — creating, then partly unwinding, a single
+point of vulnerability in the global supply chain.
 
-**Keywords**: Globalization; Trade; Wood products; Network theory; Structural resilience; Market concentration; Forest policy
+The full study, abstract, and results are in the paper (DOI added on publication).
 
-## Information
+## Repository layout
 
-<!-- ### Funding statement
-
-This study was supported by two grants from the French Grand Est Region (N° 19_GE8_019 20P05044) and the Lab of Excellence ARBRE (N° WP4/20PN17), by the French National Research Institute for Agriculture, Food and Environment (INRAE), and by AgroParisTech.
-
-### CRediT authorship contribution statement
-
-Valentin Mathieu: Conceptualization, Methodology, Software, Validation, Formal analysis, Investigation, Data Curation, Writing - Original Draft, Writing - Review & Editing, Visualization, Supervision, Project administration. 
-
-David W. Shanafelt: Conceptualization, Methodology, Formal analysis, Investigation, Writing - Original Draft, Writing - Review & Editing, Supervision. -->
-
-### Declaration of competing interest
-
-The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.
-
-### Declaration of generative AI and AI-assisted technologies in the writing process
-
-During the preparation of this work the authors used (1) Asta in order to review the litterature aside traditional litterature search tools such as Scopus and Google Scholar and (2) Gemini and DeepL tools to improve English writing. After using this tool/service, the authors reviewed and edited the content as needed and take full responsibility for the content of the publication.
-
-### Data availability
-
-Data and code are available on [GitHub](https://github.com/vlmathieu/trade_network_analysis).
-
-<!-- ### Acknowledgements
-
-We thank Felix Bastit and Clément Nedoncelle for their helpful and relevant comments and suggestions, as well as the following audience: BETA internal environment, Labex ARBRE, Chaire RENEL, the 9th annual conference of the French Association of Environmental and Resource Economists (FAERE), DEEPSURF 2022 Energy and Ecological transition international conference, and the 16th social science research days (JRSS), Paris-Saclay Conference on Trade and Environment, 26th World Congress of the International Union of Forest Research Organizations (IUFRO) - Forests and Society towards 2050. All remaining errors are our own. -->
-
-## Folder structure
-The folder is organized as follows:
-
-```bash
-├── config
-│   ├── config.yaml
-│   └── requirements.txt
-├── dag.pdf
-├── preprint.pdf
-├── README.md
-├── resources
-│   ├── inhouse
-│   └── public
-├── results
-│   ├── global
-│   └── network_analysis
-│       ├── input
-│       ├── intermediary
-│       ├── output
-│       └── plot
-└── workflow
-    ├── envs
-    ├── rules
-    ├── scripts
-    └── Snakefile
+```
+trade_network_analysis/
+├── workflow/            # the Snakemake pipeline (Snakefile, rules, scripts, conda envs)
+├── config/             # config.yaml (all parameters) + pinned requirements
+├── resources/          # pre-seeded input data (UN Comtrade, World Bank, FAO↔HS table)
+├── Dockerfile          # builds a container with the whole software stack baked in
+├── docker-tutorial.md  # step-by-step reproduction with Docker (start here to reproduce)
+├── dag.pdf             # the workflow's job dependency graph
+└── LICENSE             # MIT
 ```
 
-README.md provides information on the repository structuration and explains the data analysis workflow.
-dag.pdf presents the directed graph of jobs in the workflow.
-preprint.pdf is the preprint of the paper, also available on HAL.
- 
-The workflow code goes into a subfolder `workflow`, while the configuration is stored in a subfolder `config`. 
-Inside of the `workflow` subfolder, the central `Snakefile` marks the entrypoint of the workflow (it will be automatically discovered when running snakemake from the root of above structure). 
-In addition to the central `Snakefile`, rules are stored in a modular way, using the subfolder `workflow/rules`. 
-Such modules should end with `.smk`, the recommended file extension of Snakemake. 
-Further, scripts are stored in a subfolder `workflow/scripts`. 
-Conda environments are stored in the subfolder `workflow/envs` (they are kept as finegrained as possible to improve transparency and maintainability).
-The `config` subfolder contains a `requirement.txt` text file that lists the required packages, and a `config.yaml` file that contains all parameters needed for the workflow.
+Every tracked folder carries its own `README.md`. Start with
+[`workflow/README.md`](workflow/README.md) for the pipeline,
+[`config/README.md`](config/README.md) for parameters, and
+[`resources/README.md`](resources/README.md) for the input data.
 
-All output files generated in the workflow are stored under `results`, unless they are rather retrieved resources, in which case they should be stored under `resources`. 
-The latter subfolder also contains small resources that shall be delivered along with the workflow via git, sorted into inhouse data, public data, and- if it is the case- private data.
-The `results` subfolder separate `global` output that consists into resources that have been sorted, cleaned, and possibly arranged. The `results/network_analysis` sort workflow output in input data, intermediary data (typically intermediary object that yield final outputs), output, and plots. 
+> The pipeline writes its outputs to `results/` (figures, metric tables). That folder is
+> **not** stored in git — it is regenerated when you run the workflow.
 
-Every tracked folder carries its own `README.md` describing its contents in detail — start with [`workflow/README.md`](workflow/README.md) for the pipeline, [`config/README.md`](config/README.md) for parameters, and [`resources/README.md`](resources/README.md) for the input data.
+## Reproduce the analysis
 
-## How to run the workflow
+The pre-seeded data in `resources/` lets the entire pipeline run **without a UN Comtrade
+API key**. There are two ways to run it.
 
-This work relies on [Snakemake workflow management system](https://snakemake.readthedocs.io/en/stable/) and requires an API key to download in bulk the UN Comtrade data.
+### Option A — Docker (recommended, no setup)
 
-However, since raw UN Comtrade data are available in `resources` folder, you can render a random API key as an environment parameter and all subsequent jobs can be run one by one using snakemake commands.
-
-To run a particular rule, you need to have [installed Snakemake](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html), then run in your terminal the following command:
+One command regenerates every figure and table in the paper inside a container that
+carries the exact operating system, R, Python, and package versions used. No R, Python,
+or conda needed on your machine.
 
 ```zsh
-snakemake rule_name --sdm conda
+docker build -t trade_network_analysis:1.0 .
+mkdir -p ~/repro_out
+docker run --rm -v ~/repro_out:/workspace/results trade_network_analysis:1.0
 ```
 
-<!-- Further information can be asked to the authors: [valentin.mathieu@agroparistech.fr](mailto:valentin.mathieu@agroparistech.fr) -->
+Full walkthrough, a pre-built image option, and troubleshooting are in
+[`docker-tutorial.md`](docker-tutorial.md).
+
+### Option B — Snakemake + conda
+
+If you already use [Snakemake](https://snakemake.readthedocs.io/), run from the project root:
+
+```zsh
+snakemake --sdm conda --cores 4                 # full pipeline (builds conda envs on first run)
+snakemake <rule> --sdm conda --cores 4          # a single rule
+snakemake --sdm conda --cores 4 -n              # dry-run: list jobs, run nothing
+```
+
+There is no test suite: verify a rule by running it and inspecting `results/` and
+`workflow/logs/<rule>.log`. Only the `get_uncomtrade` rule needs the `comtrade_apikey`
+environment variable, and only if you want to re-download the raw trade data — every other
+rule runs from the pre-seeded data. See [`workflow/README.md`](workflow/README.md) for the
+pipeline structure.
+
+## Data and software availability
+
+- **Code** — this repository (MIT-licensed, see [`LICENSE`](LICENSE)); reuse and adapt freely.
+- **Input data** — third-party records from [UN Comtrade](https://comtrade.un.org/) and the
+  [World Bank](https://data.worldbank.org/), plus an in-house FAO↔HS product correspondence
+  table, all pre-seeded under [`resources/`](resources/).
+- **Archived deposit** — on publication, the input data and a citeable Docker image are
+  deposited on [recherche.data.gouv.fr](https://recherche.data.gouv.fr/) with a DOI (added
+  here at that point). The Docker image tarball is deliberately not stored in git.
+
+## How to cite
+
+Please cite the paper (citation and DOI added on publication) if you use this code or data.
+
+## Contact
+
+Valentin Mathieu — open an [issue](https://github.com/vlmathieu/trade_network_analysis/issues)
+or reach the authors for questions about the workflow.

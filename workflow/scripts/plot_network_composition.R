@@ -159,6 +159,14 @@ mirror_x_limits <- function(tot_left, tot_right, panel_px = 1620,
 # (both loops)
 composition_inputs <- snakemake@input[["composition"]]
 
+# Robustness rule (robustness_deflated.smk) feeds network_composition_deflated
+# .csv, writes LOOP 1 to another file stem, shades the years where the WB unit
+# value index covers less than half of the traded value, and skips LOOP 2
+# (mirrored figures need the nominal column names). All NULL under the core rule.
+out_stem   <- if (is.null(snakemake@params$out_stem)) "network_composition" else snakemake@params$out_stem # nolint
+flag_years <- snakemake@params$flag_years
+run_mirror <- is.null(snakemake@params$mirror) || isTRUE(snakemake@params$mirror)
+
 # ══════════════════════════════════════════════════════════════════════════════
 # LOOP 1 — Network composition figure
 # ══════════════════════════════════════════════════════════════════════════════
@@ -243,8 +251,27 @@ for (input_file in composition_inputs) {
       col   = unname(lab_pal[names(end_vals)])
     )
 
+    # Unreliable-years band (deflated classification only): continuous x on
+    # the line chart, bar positions on the discrete x of the stacked bar
+    band_line <- band_bar <- NULL
+    if (!is.null(flag_years)) {
+      lev <- levels(factor(dat$period))
+      band_line <- geom_rect(
+        aes(xmin = flag_years$start - 0.5, xmax = flag_years$end + 0.5,
+            ymin = 0, ymax = y_max_nodes),
+        fill = "grey92", alpha = 0.08, inherit.aes = FALSE
+      )
+      band_bar <- geom_rect(
+        aes(xmin = match(flag_years$start, lev) - 0.5,
+            xmax = match(flag_years$end, lev) + 0.5,
+            ymin = 0, ymax = 100),
+        fill = "grey92", alpha = 0.08, inherit.aes = FALSE
+      )
+    }
+
     # ── (a) Line chart ───────────────────────────────────────────────────────
     p_line <- ggplot() +
+      band_line +
       # Grid redrawn as explicit layers (theme grid blanked below) so it sits
       # under the lines and labels — as in plot_network_contribution.R
       geom_hline(yintercept = y_breaks_nodes,
@@ -290,6 +317,7 @@ for (input_file in composition_inputs) {
     # ── (b) 100% stacked bar ─────────────────────────────────────────────────
     p_bar <- ggplot(dat_shares,
                     aes(x = factor(period), y = share, fill = trader_type)) +
+      band_bar +
       geom_col(width = 0.85, alpha = 0.85) +
       geom_text(aes(label = bar_label),
                 position = position_stack(vjust = 0.5),
@@ -325,7 +353,7 @@ for (input_file in composition_inputs) {
       out_path <- file.path(
         "results", "network_analysis", agg_lvl, "plot",
         fao_division,
-        paste0("network_composition.", ext)
+        paste0(out_stem, ".", ext)
       )
       ggsave(filename = out_path, plot = composite, device = ext,
              create.dir = TRUE, width = 190, height = 78,
@@ -338,7 +366,7 @@ for (input_file in composition_inputs) {
 # LOOP 2 — Mirrored descriptive statistics figure
 # ══════════════════════════════════════════════════════════════════════════════
 
-for (input_file in composition_inputs) {
+for (input_file in if (run_mirror) composition_inputs else character(0)) {
 
   agg_lvl <- basename(dirname(dirname(input_file)))
 

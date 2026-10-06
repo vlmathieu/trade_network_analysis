@@ -32,6 +32,8 @@ include: 'rules/plot_contributor_profiles.smk'
 include: 'rules/plot_network_connectivity.smk'
 include: 'rules/plot_network_contribution.smk'
 include: 'rules/plot_trade_flows.smk'
+include: 'rules/robustness_deflated.smk'
+include: 'rules/profile_year_windows.smk'
 
 # target rule
 rule all:
@@ -77,6 +79,18 @@ rule all:
         expand('results/network_analysis/{agg_lvl}/plot/{fao_div}/trade_network.{ext}',
                 agg_lvl = config['agg_lvl'],
                 fao_div = config['fao_divisions_agg'],
+                ext     = config['figure_ext']),
+        # Trade profiles under alternative comparison windows (supplementary)
+        expand('results/network_analysis/agg_eu/plot/01/contributor_profiles_{window}.{ext}',
+                window = ['2000_2019', '2000_2021', '1996_2023'],
+                ext    = config['figure_ext']),
+        # Robustness check on deflated value (supplementary material)
+        expand('results/network_analysis/{agg_lvl}/plot/{fao_div}/{fig}_deflated.{ext}',
+                agg_lvl = config['deflation']['agg_lvl'],
+                fao_div = config['deflation']['fao_div'],
+                fig     = ['market_concentration', 'network_contribution',
+                           'network_composition', 'contributor_profiles',
+                           'chord_diagram'],
                 ext     = config['figure_ext']),
         # expand('results/network_analysis/{agg_lvl}/output/contributor_profiles.csv',
         #         agg_lvl = config['agg_lvl']),

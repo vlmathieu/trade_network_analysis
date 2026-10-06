@@ -21,14 +21,35 @@ trader_titles <- c(
 )
 
 wgt_titles <- c(
-  "primary_value" = "Primary value",
-  "net_wgt"       = "Net weight"
+  "primary_value"          = "Primary value",
+  "net_wgt"                = "Net weight",
+  "primary_value_deflated" = "Deflated value"
 )
 
 y_axis_labels <- c(
-  "primary_value" = "Share of global trade value (%)",
-  "net_wgt"       = "Share of global trade volume (%)"
+  "primary_value"          = "Share of global trade value (%)",
+  "net_wgt"                = "Share of global trade volume (%)",
+  "primary_value_deflated" = "Share of global trade value (%)"
 )
+
+# Column order of the composite (left, right). The core rule compares primary
+# value with net weight; the robustness rule (robustness_deflated.smk) compares
+# primary value with deflated value and writes to a different file stem.
+weights    <- if (is.null(snakemake@params$weights)) c("primary_value", "net_wgt") else unlist(snakemake@params$weights) # nolint
+out_stem   <- if (is.null(snakemake@params$out_stem)) "network_contribution" else snakemake@params$out_stem # nolint
+flag_years <- snakemake@params$flag_years
+
+# Years shaded as unreliable for a given weight, or NULL. Net weight: HS
+# transition window (division-specific). Deflated value: years where the WB
+# unit value index covers less than half of the traded value.
+band_years <- function(wgt, fao_division) {
+  if (wgt == "net_wgt" && fao_division == "07") return(c(1996, 1999))
+  if (wgt == "net_wgt") return(c(2000, 2006))
+  if (wgt == "primary_value_deflated" && !is.null(flag_years)) {
+    return(c(flag_years$start, flag_years$end))
+  }
+  NULL
+}
 
 # Base colour per trader type — shared base palette from utils.R
 pal_trader <- PAL_TRADER
@@ -287,17 +308,14 @@ build_panel <- function(plot_data,
     label_df$country == "European Union", "European\nUnion", label_df$country
   )
 
+  band <- band_years(wgt, fao_division)
+
   ggplot(panel_data,
          aes(x = period, group = country)) + # nolint
-    # HS-revision discontinuity band (net weight panels only)
-    # Division 07: disruption 1996–1999; divisions 01/05: disruption 2000–2006
-    (if (wgt == "net_wgt" && fao_division == "07") geom_rect(
-      aes(xmin = 1996, xmax = 1999, ymin = 0, ymax = y_max), # nolint
-      fill        = "grey92",
-      alpha       = 0.08,
-      inherit.aes = FALSE
-    ) else if (wgt == "net_wgt") geom_rect(
-      aes(xmin = 2000, xmax = 2006, ymin = 0, ymax = y_max), # nolint
+    # Unreliable-years band (net weight: HS transition; deflated value: index
+    # coverage gap). See band_years().
+    (if (!is.null(band)) geom_rect(
+      aes(xmin = band[1], xmax = band[2], ymin = 0, ymax = y_max), # nolint
       fill        = "grey92",
       alpha       = 0.08,
       inherit.aes = FALSE
@@ -372,12 +390,11 @@ build_panel <- function(plot_data,
     theme_ipsum(base_size = 8, axis_title_size = 9) +
     theme(
       legend.position  = "none",
-      # Right margin does double duty: on the left column (primary value) it is
-      # the middle gap holding that column's country labels, so it stays wide;
-      # on the right column (net weight) it is the figure's outer-right blank,
-      # trimmed so it matches the 1 mm outer-left blank and the figure reads
-      # centred.
-      plot.margin      = margin(2, if (wgt == "net_wgt") 7 else 9, 2, 1,
+      # Right margin does double duty: on the left column it is the middle gap
+      # holding that column's country labels, so it stays wide; on the right
+      # column it is the figure's outer-right blank, trimmed so it matches the
+      # 1 mm outer-left blank and the figure reads centred.
+      plot.margin      = margin(2, if (wgt == weights[2]) 7 else 9, 2, 1,
                                 unit = "mm"),
       plot.title       = element_text(size = 9, face = "bold"),
       panel.grid.major = element_blank(),
@@ -398,9 +415,8 @@ compo_files   <- snakemake@input[seq_len(n_levels) + n_levels]
 
 # Panel letter sequence: (a)-(f), left-to-right then top-to-bottom
 # Row order: main_exp, balanced, main_imp
-# Column order: primary_value, net_wgt
+# Column order: `weights` (see top of file)
 trader_types  <- c("main_exp", "balanced", "main_imp")
-weights       <- c("primary_value", "net_wgt")
 panel_letters <- letters[1:6]  # a-f
 
 for (idx in seq_len(n_levels)) {
@@ -450,23 +466,22 @@ for (idx in seq_len(n_levels)) {
     )
 
     # --- Shape data for both weight types ---
-    shaped <- list(
-      primary_value = shape_data(network_contribution, prod,
-                                 "primary_value", selected_countries),
-      net_wgt       = shape_data(network_contribution, prod,
-                                 "net_wgt",       selected_countries)
+    # Country selection and classification above are always taken on nominal
+    # primary value, so the two columns show the same countries in the same
+    # rows whatever the second weight is.
+    shaped <- setNames(
+      lapply(weights, function(w) shape_data(network_contribution, prod,
+                                             w, selected_countries)),
+      weights
     )
 
     # --- Shared y-axis maximum across all 6 panels (data-driven, multiple of 10) --- # nolint
     y_max <- ceiling(max(
-      shaped$primary_value$contrib_max_pred,
-      shaped$primary_value$contrib_max,
-      shaped$net_wgt$contrib_max_pred,
-      shaped$net_wgt$contrib_max,
+      unlist(lapply(shaped, function(d) c(d$contrib_max_pred, d$contrib_max))),
       na.rm = TRUE
     ) / 10) * 10
 
-    x_max <- max(shaped$primary_value$period)
+    x_max <- max(shaped[[1]]$period)
 
     # --- Build 6 panels ---
     # Letter index runs left-to-right, top-to-bottom:
@@ -505,8 +520,8 @@ for (idx in seq_len(n_levels)) {
 
     row_list <- list()
     for (tt in trader_types) {
-      p_left  <- panels[[paste(tt, "primary_value", sep = "_")]]
-      p_right <- panels[[paste(tt, "net_wgt",       sep = "_")]]
+      p_left  <- panels[[paste(tt, weights[1], sep = "_")]]
+      p_right <- panels[[paste(tt, weights[2], sep = "_")]]
       if (!is.null(p_left) || !is.null(p_right)) {
         row_list[[tt]] <- fill_null(p_left) + fill_null(p_right)
       }
@@ -526,7 +541,7 @@ for (idx in seq_len(n_levels)) {
     # --- Save ---
     for (ext in snakemake@params$ext) {
       ggsave(
-        filename   = paste0("network_contribution.", ext),
+        filename   = paste0(out_stem, ".", ext),
         plot       = patchwork_plot,
         device     = ext,
         path       = file.path(output_root, agg_lvl, "plot", fao_division),

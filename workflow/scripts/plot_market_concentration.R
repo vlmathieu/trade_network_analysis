@@ -14,9 +14,27 @@ order <- c("hhi_imp", "hhi_exp")
 
 # Map weight values to human-readable titles
 wgt_titles <- c(
-  "primary_value" = "Market concentration based on primary value",
-  "net_wgt"       = "Market concentration based on net weight"
+  "primary_value"          = "Market concentration based on primary value",
+  "net_wgt"                = "Market concentration based on net weight",
+  "primary_value_deflated" = "Market concentration based on deflated value"
 )
+
+# Output file stem and years to shade on the deflated panel (robustness rule
+# only; both NULL under the core rule)
+out_stem   <- if (is.null(snakemake@params$out_stem)) "market_concentration" else snakemake@params$out_stem # nolint
+flag_years <- snakemake@params$flag_years
+
+# Years shaded as unreliable for a given weight, or NULL. Net weight: HS
+# transition window (division-specific). Deflated value: years where the WB
+# unit value index covers less than half of the traded value.
+band_years <- function(wgt, fao_division) {
+  if (wgt == "net_wgt" && fao_division == "07") return(c(1996, 1999))
+  if (wgt == "net_wgt") return(c(2000, 2006))
+  if (wgt == "primary_value_deflated" && !is.null(flag_years)) {
+    return(c(flag_years$start, flag_years$end))
+  }
+  NULL
+}
 
 # Function to build one panel for a given weight
 build_panel <- function(data, prod, wgt, y_min, y_max, panel_letter, fao_division) {
@@ -95,6 +113,8 @@ build_panel <- function(data, prod, wgt, y_min, y_max, panel_letter, fao_divisio
   y_breaks <- y_breaks[y_breaks >= y_min & y_breaks <= y_max]
   x_breaks <- c(1996, 2000, 2005, 2010, 2015, 2020, max(data$period))
 
+  band <- band_years(wgt, fao_division)
+
   # Build the actual plot — HS band first so it renders behind all other layers
   plot_panel <- ggplot(plot_data,
                        aes(x = period, # nolint
@@ -102,13 +122,10 @@ build_panel <- function(data, prod, wgt, y_min, y_max, panel_letter, fao_divisio
                            color = trader_type, # nolint
                            label = trader_type)) +
 
-    # HS-revision discontinuity band (net weight panel only)
-    # Division 07: disruption 1996–1999; divisions 01/05: disruption 2000–2006
-    (if (wgt == "net_wgt" && fao_division == "07") geom_rect(
-      aes(xmin = 1996, xmax = 1999, ymin = y_min, ymax = y_max),
-      fill = "grey92", alpha = 0.08, inherit.aes = FALSE
-    ) else if (wgt == "net_wgt") geom_rect(
-      aes(xmin = 2000, xmax = 2006, ymin = y_min, ymax = y_max),
+    # Unreliable-years band (net weight: HS transition; deflated value: index
+    # coverage gap). See band_years().
+    (if (!is.null(band)) geom_rect(
+      aes(xmin = band[1], xmax = band[2], ymin = y_min, ymax = y_max),
       fill = "grey92", alpha = 0.08, inherit.aes = FALSE
     ) else NULL) +
     # 2007 transient spike (division 07 net weight only)
@@ -256,7 +273,7 @@ for (input_file in snakemake@input) {
       ggsave(
         filename  = file.path(output_root, agg_lvl,
                               "plot", fao_division,
-                              paste("market_concentration", ext, sep = ".")),
+                              paste(out_stem, ext, sep = ".")),
         plot      = patchwork_plot,
         device    = ext,
         create.dir = TRUE,

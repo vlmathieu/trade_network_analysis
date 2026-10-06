@@ -4,7 +4,7 @@ rule market_concentration:
     output:
         'results/network_analysis/{agg_lvl}/output/market_concentration.csv'
     params:
-        weight = config['weight']
+        weight = config['weight'] + [config['deflation']['weight']]
     log:
         'workflow/logs/market_concentration_{agg_lvl}.log'
     benchmark:

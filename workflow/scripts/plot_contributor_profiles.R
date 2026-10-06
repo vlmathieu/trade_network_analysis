@@ -8,6 +8,62 @@ library("patchwork")
 
 source(file.path(snakemake@scriptdir, "utils.R"))
 
+# ── Label nudges ────────────────────────────────────────────────────
+# One (x, y) pair per country, per panel. These tables hold what the main-text
+# figure needs; a rule can shift or add entries for its own variant through the
+# nudge_main / nudge_a / nudge_b params, merged on top of these (see
+# profile_year_windows.smk). A country that appears only in a supplementary
+# window belongs in that rule's override, not here, so these tables stay a
+# faithful record of the published figure.
+# Both axes are sqrt-transformed, so the same nudge value moves a label further
+# in partner counts the further right or higher up the label already sits.
+NUDGE_MAIN <- list(
+  "Canada"         = c( 1.00, -0.20),  # right of its bubble, closer
+  "Malaysia"       = c(-0.90, -0.30),  # bottom-left of its bubble
+  "Thailand"       = c(-1.00,  0.00),  # left of its bubble
+  "Switzerland"    = c( 1.30,  0.30),  # down-right, clear of zoom A box
+  "Türkiye"        = c(-0.80, -0.15),  # a bit lower
+  "European Union" = c( 0.00, -0.50),
+  "USA"            = c( 0.50, -0.50),
+  "Norway"         = c(-0.70,  0.30)
+)
+
+NUDGE_A <- list(
+  "China"         = c(-0.70,  0.50),
+  "India"         = c( 0.70,  0.00),  # right, closer to bubble
+  "Hong Kong"     = c( 0.80,  0.00),  # right of its bubble (~east)
+  "Japan"         = c( 0.60,  0.00),  # right, closer to bubble
+  "Rep. of Korea" = c( 0.50,  0.70),  # top of its bubble, closer
+  "Viet Nam"      = c(-0.70,  0.30)   # top-left of its bubble
+)
+
+NUDGE_B <- list(
+  "New Zealand" = c( 0.35,  0.25),
+  "Australia"   = c(-0.40,  0.05),
+  "Russia"      = c( 0.00, -0.40),
+  "Cameroon"    = c(-0.25, -0.20),
+  "Papua N.G."  = c(-0.10,  0.30),  # on top, a bit more distance
+  "Gabon"       = c( 0.25,  0.15),
+  "Congo"       = c( 0.25,  0.15),
+  "Uruguay"     = c(-0.20, -0.20),
+  "Ukraine"     = c(-0.20, -0.20),
+  "Brazil"      = c( 0.25, -0.15)
+)
+
+# Attach nudge_x / nudge_y to a label frame. A country absent from the merged
+# table gets no nudge, which also covers the "" rows arrow_phantoms() adds.
+apply_nudges <- function(d, base, override = NULL) {
+  tbl <- if (is.null(override)) base else
+    modifyList(base, lapply(override, function(v) as.numeric(unlist(v))))
+  idx  <- match(d$country, names(tbl))
+  pick <- function(k) vapply(idx, function(i) {
+    if (is.na(i)) 0 else as.numeric(tbl[[i]])[k]
+  }, numeric(1))
+  d$nudge_x <- pick(1)
+  d$nudge_y <- pick(2)
+  d
+}
+
 # Long-format helper: two rows per country sorted so larger bubble renders first
 to_long <- function(d) {
   bind_rows(
@@ -32,7 +88,9 @@ trajectory_plot <- function(
   data, prod, year_start, year_end, size, threshold, pal
 ) {
 
-  if (grepl("value", size, fixed = TRUE)) {
+  if (grepl("deflated", size, fixed = TRUE)) {
+    size_label <- "Traded value (million 2015 US$)"
+  } else if (grepl("value", size, fixed = TRUE)) {
     size_label <- "Traded value (million US$)"
   } else {
     size_label <- "Traded weight (million tons)"
@@ -80,27 +138,53 @@ trajectory_plot <- function(
   xy_min   <- floor(min(qualifying_prod_data$nb_edge_exp,
                         qualifying_prod_data$nb_edge_imp,
                         na.rm = TRUE) / 5) * 5
-  size_max <- ceiling(max(qualifying_prod_data[[size_exp_col]],
-                          qualifying_prod_data[[size_imp_col]],
-                          na.rm = TRUE) / 1e6)
+  # Bubble-area maximum. Overridable per rule so a set of figures meant to be
+  # compared with each other can share one scale (profile_year_windows.smk
+  # pins the three alternative comparison windows to a common maximum).
+  size_max <- if (is.null(snakemake@params$size_max)) {
+    ceiling(max(qualifying_prod_data[[size_exp_col]],
+                qualifying_prod_data[[size_imp_col]],
+                na.rm = TRUE) / 1e6)
+  } else {
+    as.numeric(snakemake@params$size_max)
+  }
 
   # Zoom A: Asia high-importers (China, Viet Nam, Korea, Japan, India + neighbors) # nolint
   # Verified from data: China (18->44, 55->76), India (14->20, 54), Korea (6->5, 34->31) # nolint
-  zoom_a_x <- c(3, 52)
-  zoom_a_y <- c(27, 90)
+  # y-range overridable per rule (robustness_deflated.smk widens it to bring
+  # the 2000 positions of Viet Nam and Türkiye inside the inset)
+  zoom_a_x <- if (is.null(snakemake@params$zoom_a_x)) c(3, 52) else unlist(snakemake@params$zoom_a_x) # nolint
+  zoom_a_y <- if (is.null(snakemake@params$zoom_a_y)) c(27, 90) else unlist(snakemake@params$zoom_a_y) # nolint
 
   # Zoom B: low-import exporters (Australia, NZ, PNG, Russia, Cameroon, Brazil, Uruguay) # nolint
   # Verified from data: Russia (33->26, 7->6), Brazil (18->29, 8->5), NZ (21->23, 9->7) # nolint
-  zoom_b_x <- c(10, 36)
-  zoom_b_y <- c(0.5, 10)
+  zoom_b_x <- if (is.null(snakemake@params$zoom_b_x)) c(10, 36) else unlist(snakemake@params$zoom_b_x) # nolint
+  zoom_b_y <- if (is.null(snakemake@params$zoom_b_y)) c(0.5, 10) else unlist(snakemake@params$zoom_b_y) # nolint
 
   # Dynamic size legend breaks as multiples of 1000 (3 breaks). Fractions are
   # widely spaced (1/8, 1/2, 1) so the nested legend circles — whose radius
   # scales with sqrt(value) — don't overlap (0.2/0.6/1.0 put the small and mid
   # circles too close, e.g. 2000/5000/8000 collided).
-  size_breaks <- unique(
-    round(c(size_max * 0.125, size_max * 0.5, size_max) / 1000) * 1000
-  )
+  # Overridable per rule (robustness_deflated.smk).
+  size_breaks <- if (is.null(snakemake@params$size_breaks)) {
+    unique(round(c(size_max * 0.125, size_max * 0.5, size_max) / 1000) * 1000)
+  } else {
+    unlist(snakemake@params$size_breaks)
+  }
+  # guide_circles() anchors each label at the top of its circle, so closely
+  # spaced breaks give touching labels. When breaks are set by the rule, pad
+  # the outer labels with a newline to nudge them down / up (the padding line
+  # is half-height, see the guide theme below).
+  size_labels <- if (is.null(snakemake@params$size_breaks)) {
+    scales::label_comma()
+  } else {
+    function(b) {
+      l <- scales::label_comma()(b)
+      n <- length(l)
+      if (n >= 3) l <- c(paste0("\n", l[1]), l[2:(n - 1)], paste0(l[n], "\n"))
+      l
+    }
+  }
 
   # Year slices
   d_start <- prod_data %>% # nolint
@@ -202,85 +286,20 @@ trajectory_plot <- function(
     d_end_main   %>% mutate(lbl_color = "black",  lbl_face = "bold"),  # nolint
     d_start_main %>% mutate(lbl_color = "grey60", lbl_face = "plain"), # nolint
     arrow_phantoms(d_arrows)
-  ) %>% mutate( # nolint
-    nudge_x = case_when(
-      country == "Canada"         ~  1,  # right of its bubble, closer
-      country == "Malaysia"       ~ -0.9,    # bottom-left of its bubble
-      country == "Thailand"       ~ -1,    # left of its bubble
-      country == "Switzerland"    ~  1.3,    # down-right, clear of zoom A box
-      country == "Türkiye"        ~ -0.8,
-      country == "European Union" ~  0,
-      country == "USA"            ~  0.5,
-      country == "Norway"         ~ -0.7,
-      TRUE ~ 0
-    ),
-    nudge_y = case_when(
-      country == "Canada"         ~ -0.2,
-      country == "Malaysia"       ~ -0.3,
-      country == "Thailand"       ~  0,
-      country == "Switzerland"    ~  0.3,
-      country == "Türkiye"        ~ -0.15,    # a bit lower
-      country == "European Union" ~ -0.5,
-      country == "USA"            ~ -0.5,
-      country == "Norway"         ~  0.3,
-      TRUE ~ 0
-    )
-  )
+  ) %>%
+    apply_nudges(NUDGE_MAIN, snakemake@params$nudge_main)
   d_labels_a <- bind_rows(
     d_end_a   %>% mutate(lbl_color = "black",  lbl_face = "bold"),  # nolint
     d_start_a %>% mutate(lbl_color = "grey60", lbl_face = "plain"), # nolint
     arrow_phantoms(d_arrows_a)
-  ) %>% mutate( # nolint
-    nudge_x = case_when(
-      country == "China"         ~ -0.7,
-      country == "India"         ~  0.7,  # right, closer to bubble
-      country == "Hong Kong"     ~  0.8,    # right of its bubble (~east)
-      country == "Japan"         ~  0.6,  # right, closer to bubble
-      country == "Rep. of Korea" ~  0.5,    # top of its bubble, closer
-      country == "Viet Nam"      ~ -0.7,  # top-left of its bubble
-      TRUE ~ 0
-    ),
-    nudge_y = case_when(
-      country == "China"         ~  0.5,
-      country == "India"         ~  0,
-      country == "Hong Kong"     ~  0,
-      country == "Japan"         ~  0,
-      country == "Rep. of Korea" ~  0.7,
-      country == "Viet Nam"      ~  0.3,
-      TRUE ~ 0
-    )
-  )
+  ) %>%
+    apply_nudges(NUDGE_A, snakemake@params$nudge_a)
   d_labels_b <- bind_rows(
     d_end_b   %>% mutate(lbl_color = "black",  lbl_face = "bold"),  # nolint
     d_start_b %>% mutate(lbl_color = "grey60", lbl_face = "plain"), # nolint
     arrow_phantoms(d_arrows_b)
-  ) %>% mutate( # nolint
-    nudge_x = case_when(
-      country == "New Zealand" ~  0.35,
-      country == "Australia"   ~ -0.4, # nolint
-      country == "Cameroon"    ~ -0.25,
-      country == "Papua N.G."  ~ -0.1,     # on top of its bubble
-      country == "Gabon"       ~  0.25,
-      country == "Congo"       ~  0.25,
-      country == "Uruguay"     ~ -0.2,
-      country == "Ukraine"     ~ -0.2,
-      country == "Brazil"      ~  0.25,
-      TRUE ~ 0
-    ),
-    nudge_y = case_when(
-      country == "New Zealand" ~  0.25,
-      country == "Australia"   ~  0.05,
-      country == "Russia"      ~ -0.4,
-      country == "Cameroon"    ~ -0.2,
-      country == "Papua N.G."  ~  0.3,   # on top, a bit more distance
-      country == "Gabon"       ~  0.15,
-      country == "Congo"       ~  0.15,
-      country == "Uruguay"     ~ -0.2,
-      country == "Ukraine"     ~ -0.2,
-      country == "Brazil"      ~ -0.15,
-      TRUE ~ 0
-    )
-  )
+  ) %>%
+    apply_nudges(NUDGE_B, snakemake@params$nudge_b)
 
   # ── Custom draw_key for year legend: nested circles at data$alpha ────────
   draw_key_alpha_circles <- function(data, params, size) {
@@ -374,11 +393,11 @@ trajectory_plot <- function(
                           guide  = "none") +
     scale_x_sqrt(name   = "Number of export partners",
                  limits = c(xy_min, xy_max),
-                 breaks = c(0, 5, 10, 20, 40, 60, 80, 100),
+                 breaks = c(0, 5, 10, 20, 40, 60, 80, 100, 120),
                  expand = c(0, 0)) +
     scale_y_sqrt(name   = "Number of import partners",
                  limits = c(xy_min, xy_max),
-                 breaks = c(0, 5, 10, 20, 40, 60, 80, 100),
+                 breaks = c(0, 5, 10, 20, 40, 60, 80, 100, 120),
                  expand = c(0, 0)) +
     theme_ipsum(base_size = 8, axis_title_size = 8) +
     coord_cartesian(clip = "off") +
@@ -454,13 +473,13 @@ trajectory_plot <- function(
     scale_size_continuous(range  = c(0.5, 10),
                           breaks = size_breaks,
                           limits = c(0, size_max),
-                          labels = scales::label_comma(),
+                          labels = size_labels,
                           name   = size_label) +
     scale_x_sqrt(name   = "Number of export partners",
-                 breaks = c(0, 5, 10, 20, 40, 60, 80, 100),
+                 breaks = c(0, 5, 10, 20, 40, 60, 80, 100, 120),
                  expand = c(0, 0)) +
     scale_y_sqrt(name   = "Number of import partners",
-                 breaks = c(0, 5, 10, 20, 40, 60, 80, 100),
+                 breaks = c(0, 5, 10, 20, 40, 60, 80, 100, 120),
                  expand = c(0, 0)) +
     theme_ipsum(base_size = 8, axis_title_size = 8) +
     coord_cartesian(xlim = zoom_a_x, ylim = zoom_a_y) +
@@ -468,6 +487,10 @@ trajectory_plot <- function(
       colour = guide_legend(override.aes = list(size = 5, alpha = 0.7), order = -2), # nolint
       size   = guide_circles(
         text_position = "right",
+        # Half-height padding line: the newline padding in size_labels then
+        # nudges the outer labels by a quarter line instead of half a line.
+        # No effect on single-line labels.
+        theme         = theme(legend.text = element_text(lineheight = 0.45)),
         override.aes  = aes(colour = "grey50", alpha = 0.5)
       )
     ) +
@@ -546,7 +569,7 @@ trajectory_plot <- function(
                  breaks = c(10, 15, 20, 25, 30, 35),
                  expand = c(0, 0)) +
     scale_y_sqrt(name   = "Number of import partners",
-                 breaks = c(0, 5, 10, 20, 40, 60, 80, 100),
+                 breaks = c(0, 5, 10, 20, 40, 60, 80, 100, 120),
                  expand = c(0, 0)) +
     theme_ipsum(base_size = 8, axis_title_size = 8) +
     coord_cartesian(xlim = zoom_b_x, ylim = zoom_b_y) +
@@ -567,6 +590,7 @@ size       <- snakemake@params$size
 threshold  <- snakemake@params$threshold
 year_start <- snakemake@params$year_start
 year_end   <- snakemake@params$year_end
+out_stem   <- if (is.null(snakemake@params$out_stem)) "contributor_profiles" else snakemake@params$out_stem # nolint
 
 for (input_file in snakemake@input) {
 
@@ -584,7 +608,7 @@ for (input_file in snakemake@input) {
 
     for (ext in snakemake@params$ext) {
       ggsave(
-        filename   = paste0("contributor_profiles.", ext),
+        filename   = paste0(out_stem, ".", ext),
         plot       = plot_profile,
         device     = ext,
         path       = file.path(output_root, agg_lvl, "plot", fao_division),

@@ -4,7 +4,7 @@ rule network_contribution:
     output:
         'results/network_analysis/{agg_lvl}/output/network_contribution.csv'
     params:
-        weight = config['weight']
+        weight = config['weight'] + [config['deflation']['weight']]
     log:
         'workflow/logs/network_contribution_{agg_lvl}.log'
     benchmark:

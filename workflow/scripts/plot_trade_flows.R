@@ -59,6 +59,8 @@ build_flow_matrix <- function(d_flows, value_col, countries) {
 
 # Chord diagram. panels = "all" → 2×2 (primary value / net weight × exporter / importer reports); # nolint
 #               panels = "fob" → 1×2 exporter reports only (primary value, net weight) # nolint
+#               panels = "deflated" → 1×2 exporter reports only (nominal value, deflated value); # nolint
+#                 same ten traders as the nominal panel (selection on nominal value) # nolint
 chord_plot <- function(flows, profiles, prod, year, n_top, output_path, ext,
                        panels = "all") { # nolint
   # Display alias applied to flows and profiles alike so selection stays consistent
@@ -81,7 +83,8 @@ chord_plot <- function(flows, profiles, prod, year, n_top, output_path, ext,
       pv_exp = ifelse(is.na(primary_value_exp), 0, primary_value_exp) / 1e6, # nolint
       pv_imp = ifelse(is.na(primary_value_imp), 0, primary_value_imp) / 1e6, # nolint
       nw_exp = ifelse(is.na(net_wgt_exp),       0, net_wgt_exp)       / 1e3, # nolint
-      nw_imp = ifelse(is.na(net_wgt_imp),       0, net_wgt_imp)       / 1e3  # nolint
+      nw_imp = ifelse(is.na(net_wgt_imp),       0, net_wgt_imp)       / 1e3, # nolint
+      pvd_exp = ifelse(is.na(primary_value_deflated_exp), 0, primary_value_deflated_exp) / 1e6 # nolint
     )
 
   if (nrow(d) == 0) return(invisible(NULL))
@@ -119,6 +122,7 @@ chord_plot <- function(flows, profiles, prod, year, n_top, output_path, ext,
   mat_pv_imp <- make_ordered_matrix(d, "pv_imp")
   mat_nw_exp <- make_ordered_matrix(d, "nw_exp")
   mat_nw_imp <- make_ordered_matrix(d, "nw_imp")
+  mat_pvd_exp <- if (panels == "deflated") make_ordered_matrix(d, "pvd_exp") else NULL
 
   # Long country names split to two lines for legibility around the arc
   label_map <- c(
@@ -156,8 +160,10 @@ chord_plot <- function(flows, profiles, prod, year, n_top, output_path, ext,
     circos.clear() # nolint
   }
 
-  if (panels == "fob") {
-    # Main-text figure: 1×2, exporter reports only (FOB), 190 mm × 100 mm at 600 DPI
+  if (panels %in% c("fob", "deflated")) {
+    # 1×2 exporter reports only (FOB), 190 mm × 100 mm at 600 DPI.
+    # "fob": main-text figure, primary value vs net weight.
+    # "deflated": robustness figure, nominal vs deflated primary value.
     px_w <- round(190 / 25.4 * 600)
     px_h <- round(100 / 25.4 * 600)
     if (ext == "png") {
@@ -170,10 +176,17 @@ chord_plot <- function(flows, profiles, prod, year, n_top, output_path, ext,
                "Primary value — exporter reports (FOB, million USD)",
                mar = c(0.3, 0.6, 2.5, 0.7), canvas_lim = 1.15, cex_main = 0.65,
                title_line = 1.0)
-    draw_panel(mat_nw_exp, "(b)",
-               "Net weight — exporter reports (tonnes)",
-               mar = c(0.7, 0.7, 2.5, 0.6), canvas_lim = 1.15, cex_main = 0.65,
-               title_line = 1.0)
+    if (panels == "fob") {
+      draw_panel(mat_nw_exp, "(b)",
+                 "Net weight — exporter reports (tonnes)",
+                 mar = c(0.7, 0.7, 2.5, 0.6), canvas_lim = 1.15, cex_main = 0.65,
+                 title_line = 1.0)
+    } else {
+      draw_panel(mat_pvd_exp, "(b)",
+                 "Deflated value — exporter reports (FOB, million 2015 USD)",
+                 mar = c(0.7, 0.7, 2.5, 0.6), canvas_lim = 1.15, cex_main = 0.65,
+                 title_line = 1.0)
+    }
   } else {
     # Full four-panel figure (supplementary): 190 mm × 190 mm at 600 DPI, 2×2 square grid
     px_side <- round(190 / 25.4 * 600)  # 4488 px
@@ -518,6 +531,11 @@ year_start <- snakemake@params$year_start
 year_end   <- snakemake@params$year_end
 chord_year <- snakemake@params$chord_year
 
+# Robustness rule (robustness_deflated.smk): one chord figure only, nominal vs
+# deflated value, written to `out_stem`; no node-link graph. NULL = core rule.
+chord_panels <- snakemake@params$panels
+out_stem     <- if (is.null(snakemake@params$out_stem)) "chord_diagram" else snakemake@params$out_stem # nolint
+
 n_levels      <- length(snakemake@input) / 2
 flows_files   <- snakemake@input[seq_len(n_levels)]
 profile_files <- snakemake@input[seq_len(n_levels) + n_levels]
@@ -540,6 +558,12 @@ for (i in seq_len(n_levels)) {
     for (ext in snakemake@params$ext) {
       out_dir        <- file.path(output_root, agg_lvl, "plot", fao_division)
       dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+      if (!is.null(chord_panels)) {
+        chord_plot(flows, profiles, prod, chord_year, snakemake@params$chord_n, # nolint
+                   file.path(out_dir, paste0(out_stem, ".", ext)), ext,
+                   panels = chord_panels)
+        next
+      }
       chord_path     <- file.path(out_dir, paste0("chord_diagram.", ext))
       chord_fob_path <- file.path(out_dir, paste0("chord_diagram_fob.", ext))
       chord_plot(flows, profiles, prod, chord_year, snakemake@params$chord_n, # nolint
@@ -547,6 +571,7 @@ for (i in seq_len(n_levels)) {
       chord_plot(flows, profiles, prod, chord_year, snakemake@params$chord_n, # nolint
                  chord_fob_path, ext, panels = "fob")
     }
+    if (!is.null(chord_panels)) next
 
     # ── Trade network ──────────────────────────────────────────────────────
     net_plot <- network_plot(flows, prod, year_start, year_end,

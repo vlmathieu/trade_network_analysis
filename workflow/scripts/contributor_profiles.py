@@ -41,6 +41,10 @@ def unit_node_metrics(unit_edge_list_dict: dict) -> pl.DataFrame:
         pv_imp = net.in_degree(x, weight="primary_value_imp")
         wgt_exp = net.out_degree(x, weight="net_wgt_exp")
         wgt_imp = net.in_degree(x, weight="net_wgt_imp")
+        # Deflated value (robustness check, supplementary material); null
+        # deflated reports were set to 0 above, as any non-report.
+        pvd_exp = net.out_degree(x, weight="primary_value_deflated_exp")
+        pvd_imp = net.in_degree(x, weight="primary_value_deflated_imp")
         nb_exp = net.out_degree(x)
         nb_imp = net.in_degree(x)
         pv_tot = pv_exp + pv_imp
@@ -56,6 +60,8 @@ def unit_node_metrics(unit_edge_list_dict: dict) -> pl.DataFrame:
                 "primary_value_imp": pv_imp,
                 "net_wgt_exp": wgt_exp,
                 "net_wgt_imp": wgt_imp,
+                "primary_value_deflated_exp": pvd_exp,
+                "primary_value_deflated_imp": pvd_imp,
                 "exp_share": pv_exp / pv_tot if pv_tot > 0 else None,
                 "imp_share": pv_imp / pv_tot if pv_tot > 0 else None,
                 "primary_value_per_partner_exp": pv_exp / nb_exp
@@ -66,6 +72,12 @@ def unit_node_metrics(unit_edge_list_dict: dict) -> pl.DataFrame:
                 else None,
                 "net_wgt_per_partner_exp": wgt_exp / nb_exp if nb_exp > 0 else None,
                 "net_wgt_per_partner_imp": wgt_imp / nb_imp if nb_imp > 0 else None,
+                "primary_value_deflated_per_partner_exp": pvd_exp / nb_exp
+                if nb_exp > 0
+                else None,
+                "primary_value_deflated_per_partner_imp": pvd_imp / nb_imp
+                if nb_imp > 0
+                else None,
             }
         )
 

@@ -121,6 +121,19 @@ agg_lvl: ['country_lvl', 'agg_eu']
 # The weight of network edges to choose
 weight: ['primary_value', 'net_wgt']
 
+# Robustness check on inflation-adjusted value (supplementary material).
+# Added as a third weight to the metric rules only; plot rules keep `weight`.
+# The WB unit value index covers less than half of the traded value before
+# 2000, so deflated panels shade that window rather than drop it.
+deflation:
+  weight: 'primary_value_deflated'
+  flag_years:
+    start: 1996
+    end:   2000
+  # Figures nominal vs deflated (robustness_deflated.smk): one level, one division
+  agg_lvl: 'agg_eu'
+  fao_div: '01'
+
 # Threshold to apply for identifying main contributors to trade
 threshold_main_contributors: 0.01
 

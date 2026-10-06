@@ -9,7 +9,7 @@ from snakemake.script import snakemake
 
 
 def unit_network_composition(
-    unit_edge_list_dict: dict, threshold: float = 0.8
+    unit_edge_list_dict: dict, threshold: float = 0.8, value_col: str = "primary_value"
 ) -> pl.dataframe.frame.DataFrame:
     """
     Function that returns a polar data frame of the network composition
@@ -61,6 +61,11 @@ def unit_network_composition(
         Minimum share of total traded value (exports + imports) attributable to
         exports (or imports) for a country to be classified as a main exporter
         (or main importer). Must be between 0 and 1. Default is 0.8.
+    value_col : str, optional
+        Edge attribute prefix of the value measure used for classification and
+        for the value flow totals: "primary_value" (nominal, default) or
+        "primary_value_deflated" (inflation-adjusted robustness check). Output
+        column names carry the chosen prefix in place of "primary_value" below.
 
     Returns
     -------
@@ -138,8 +143,8 @@ def unit_network_composition(
     country_imp_value = {}
 
     for src, tgt, d in net.edges(data=True):
-        v_exp = d["primary_value_exp"]
-        v_imp = d["primary_value_imp"]
+        v_exp = d[f"{value_col}_exp"]
+        v_imp = d[f"{value_col}_imp"]
         country_exp_value[src] = country_exp_value.get(src, 0) + (
             v_exp if v_exp > 0 else v_imp
         )
@@ -180,7 +185,7 @@ def unit_network_composition(
     # reconciliation): a zero report contributes zero to that report's series,
     # so mirror-report gaps stay visible in the output.
     categories = ["main_exp", "main_imp", "balanced"]
-    measures = ["net_wgt", "primary_value"]
+    measures = ["net_wgt", value_col]
     reports = ["exp", "imp"]
 
     src_flows = {
@@ -206,12 +211,12 @@ def unit_network_composition(
     # these masked columns are what plot_prices_figures.R (LOOP 1) divides by.
     # See the "Net-weight reporting gaps" supplementary section.
     src_price_val = {
-        f"src_{cat}_primary_value_wp_{r}": 0.0 for cat in categories for r in reports
+        f"src_{cat}_{value_col}_wp_{r}": 0.0 for cat in categories for r in reports
     }
     tgt_price_val = {
-        f"tgt_{cat}_primary_value_wp_{r}": 0.0 for cat in categories for r in reports
+        f"tgt_{cat}_{value_col}_wp_{r}": 0.0 for cat in categories for r in reports
     }
-    tot_price_val = {f"tot_primary_value_wp_{r}": 0.0 for r in reports}
+    tot_price_val = {f"tot_{value_col}_wp_{r}": 0.0 for r in reports}
 
     # Helper: map a country to its category label
     def get_category(country: str) -> str:
@@ -239,10 +244,10 @@ def unit_network_composition(
         # so "> 0" isolates reported-weight flows from the null-set ones).
         for r in reports:
             if d[f"net_wgt_{r}"] > 0:
-                v = d[f"primary_value_{r}"]
-                src_price_val[f"src_{src_cat}_primary_value_wp_{r}"] += v
-                tgt_price_val[f"tgt_{tgt_cat}_primary_value_wp_{r}"] += v
-                tot_price_val[f"tot_primary_value_wp_{r}"] += v
+                v = d[f"{value_col}_{r}"]
+                src_price_val[f"src_{src_cat}_{value_col}_wp_{r}"] += v
+                tgt_price_val[f"tgt_{tgt_cat}_{value_col}_wp_{r}"] += v
+                tot_price_val[f"tot_{value_col}_wp_{r}"] += v
 
     # tot_flows is accumulated once per edge but independently for src and tgt,
     # so it is identical in both — use it as the single network total per
@@ -277,7 +282,9 @@ def unit_network_composition(
     return unit_network_composition
 
 
-def network_composition(edge_list_dict: dict) -> pl.dataframe.frame.DataFrame:
+def network_composition(
+    edge_list_dict: dict, value_col: str = "primary_value"
+) -> pl.dataframe.frame.DataFrame:
     """
     Function that returns a polar data frame of the network composition
     descriptive statistics (number of trading countries, number of pure
@@ -293,6 +300,8 @@ def network_composition(edge_list_dict: dict) -> pl.dataframe.frame.DataFrame:
         covered, (i) a tuple (product, year) of the product code and the year of
         trade and (ii) the associated edge list describing the network and on
         which network composition descriptive statistics are calculated.
+    value_col : str, optional
+        Value measure passed to unit_network_composition (see there).
 
     Returns
     -------
@@ -308,7 +317,9 @@ def network_composition(edge_list_dict: dict) -> pl.dataframe.frame.DataFrame:
     # Apply unit_network_composition to every edge list dictionnary
     network_composition = pl.concat(
         [
-            unit_network_composition(unit_edge_list_dict=unit_edge_list_dict)
+            unit_network_composition(
+                unit_edge_list_dict=unit_edge_list_dict, value_col=value_col
+            )
             for unit_edge_list_dict in edge_lists
         ],
         how="vertical_relaxed",
@@ -332,15 +343,23 @@ logging.basicConfig(
 with open(snakemake.input[0], "rb") as f:
     edge_list_dict = pickle.load(f)
 
-# Compute network composition desc stats based on dictionnary of edge lists
-composition_df = network_composition(edge_list_dict)
-logging.info(f"\nNetwork composition:\n {composition_df}\n")
+# Compute network composition desc stats based on dictionnary of edge lists,
+# once on nominal value (core results) and once on deflated value (robustness
+# check, supplementary material). The deflated run reclassifies countries on
+# deflated value; edges whose deflated value is null (no WB index for the
+# reporter, most of 1996-1999) count as 0 on that side, as any non-report.
+for out_key, value_col in [
+    ("nominal", "primary_value"),
+    ("deflated", snakemake.params["value_col_deflated"]),
+]:
+    composition_df = network_composition(edge_list_dict, value_col=value_col)
+    logging.info(f"\nNetwork composition ({value_col}):\n {composition_df}\n")
 
-# Save network composition
-composition_df.with_columns(
-    [
-        pl.col("list_main_exp").list.join("|"),
-        pl.col("list_main_imp").list.join("|"),
-        pl.col("list_balanced").list.join("|"),
-    ]
-).write_csv(snakemake.output[0], separator=";")
+    # Save network composition
+    composition_df.with_columns(
+        [
+            pl.col("list_main_exp").list.join("|"),
+            pl.col("list_main_imp").list.join("|"),
+            pl.col("list_balanced").list.join("|"),
+        ]
+    ).write_csv(snakemake.output[out_key], separator=";")
